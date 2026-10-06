@@ -87,7 +87,7 @@ This stores C major in variable `0`.
 | Right 5 | velocity | `f` | Base-36 velocity (0–16) |
 | Right 6 | length | `1` | Note duration in clock ticks (0–32) |
 
-Place a neighboring `*` to send the note. The degree counts only pitches marked `1` in the scale mask. Degrees beyond the scale's first octave continue into higher octaves. The scale key must resolve to exactly twelve `0`/`1` characters.
+Place a neighboring `*` to send the note. The degree counts only pitches marked `1` in the scale mask. Degrees beyond the scale's first octave continue into higher octaves. The scale key must resolve to exactly twelve `0`/`1` characters. Orca clears variables at the start of each frame, so place the matching `+` operator earlier in evaluation order (on a row above `)`, or to its left on the same row). That lets `+` write the mask before the note reads it.
 
 ```text
 *)0470f1
