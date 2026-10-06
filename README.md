@@ -1,133 +1,55 @@
-# orca_seaflake
+# Orca Seaflake
 
-A reconstructed C build of Hundred Rabbits' Orca-c with new operators.
+Orca Seaflake is a desktop grid sequencer for live coding MIDI, OSC, and UDP. This repository contains **Build 04**, the Electron desktop application source, including its Seaflake operator additions.
 
-## Seaflake operator
+## Install a packaged build
 
-`@abcdefg` is a triggered MIDI sequence operator:
+Download the artifact for your system from the repository's **Actions → Build packages** workflow (or from a GitHub Release when a release is published). Extract the archive and launch Orca Seaflake. Debian packages install a desktop entry and the `orca-seaflake` launcher.
 
-- `a`: MIDI channel
-- `b`: octave
-- `c`: note
-- `d`: velocity
-- `e`: envelope shape 1-4
-- `f`: repeat count
-- `g`: clock division, following the timing behavior of `D`
-
-The envelope is evaluated across the repeat cycle. `@` and `$` are accepted as grid glyphs so files containing the Seaflake command syntax are not silently converted to dots.
-
-## Seaflake additions
-
-### Global swing
-
-Swing is a **global clock setting**. It changes the timing of Orca's ticks rather than changing the behavior of an individual operator.
-
-- **50%**: straight timing
-- **66%**: triplet-style swing
-- **75%**: strong swing
-
-Swing applies to the entire running grid, including the standard operators and Seaflake operators. It is not encoded in `@abcdefg`.
-
-### `@` Seaflake MIDI sequence
-
-`@abcdefg` triggers a MIDI sequence with seven parameters:
-
-| Parameter | Meaning |
+| System | Package produced |
 |---|---|
-| `a` | MIDI channel |
-| `b` | Octave |
-| `c` | MIDI note |
-| `d` | Velocity |
-| `e` | Envelope shape, 1-4 |
-| `f` | Repeat count |
-| `g` | Clock division / timing value |
+| macOS Apple Silicon | `.zip` containing `Orca-Seaflake.app` (arm64) |
+| macOS Intel | `.zip` containing `Orca-Seaflake.app` (x64) |
+| Windows x64 | `.zip` containing the Windows app folder and `orca-seaflake.exe` |
+| Linux x64 | `.tar.gz` and Debian `.deb` (amd64) |
+| Linux ARM64 | `.tar.gz` and Debian `.deb` (arm64), for 64-bit Raspberry Pi OS and other ARM64 Debian/Ubuntu systems |
 
-The four envelope shapes are saw, triangle, pulse, and inverse saw. The envelope is evaluated across the repeat cycle.
+Raspberry Pi OS must be the 64-bit ARM64 edition. 32-bit ARM is not packaged. Linux packages require a graphical desktop and ALSA/MIDI system libraries; see [Linux notes](docs/PACKAGING.md).
 
-### Chance / probability
+## Run from source
 
-The Seaflake chance operator adds probabilistic control to the grid. It can be used to make an event occur only some percentage of the time, allowing generative patterns to vary from one tick to the next without manually duplicating grid logic.
+Requirements: Node.js 18 or newer and npm.
 
-### Additional MIDI operators
+```sh
+npm ci
+npm start
+```
 
-The Seaflake build also includes the expanded MIDI operators from the reconstructed development version. These are intended for direct MIDI event generation and sequencing alongside Orca's existing MIDI, MIDI CC, and MIDI pitch-bend operators.
+Choose a MIDI output with **MIDI → Next Output Device** (`Cmd/Ctrl+.`); refresh hardware with `Cmd/Ctrl+Shift+M`. Orca Seaflake can also send OSC and UDP; choose the destination ports from **Communication**. Press `Cmd/Ctrl+G` to show the built-in operator guide and `Cmd/Ctrl+K` to open the command prompt. See the complete [operator reference](docs/OPERATORS.md) and [packaging guide](docs/PACKAGING.md).
 
-The exact operator syntax is displayed in Orca's operator reference/help screen so the documentation stays synchronized with the compiled operator set.
+## Package locally
 
-### `# orca_seaflake
+From macOS, Windows, or Linux, install dependencies with `npm ci`, then run the script for the target. macOS builds must be run on macOS. Windows and Linux app bundles may also be cross-packaged from the other supported hosts by Electron Packager.
 
-A reconstructed C build of Hundred Rabbits' Orca-c with new operators.
+```sh
+npm run package:mac:arm64
+npm run package:mac:x64
+npm run package:windows:x64
+npm run package:linux:x64
+npm run package:linux:arm64
+```
 
-## Seaflake operator
+Packaged application folders are written under `dist/`. The GitHub Actions workflow creates downloadable archives and Debian packages for all listed targets when run manually or when code is pushed to `main`.
 
-`@abcdefg` is a triggered MIDI sequence operator:
+## Build 04 operator additions
 
-- `a`: MIDI channel
-- `b`: octave
-- `c`: note
-- `d`: velocity
-- `e`: envelope shape 1-4
-- `f`: repeat count
-- `g`: clock division, following the timing behavior of `D`
+- `^` probability gate, `&` phase clock, and `~` timed burst.
+- `(` just-intonation MIDI notes, `)` notes selected from a stored binary scale, and `+` binary-scale definition.
+- `@` shaped MIDI sequence, with eight operands for channel, octave, note, velocity, envelope, repeats, duration, and pulse width.
+- `%` monophonic MIDI, `!` MIDI control change, and `?` MIDI pitch bend.
 
-The envelope is evaluated across the repeat cycle. `@` and `$` are accepted as grid glyphs so files containing the Seaflake command syntax are not silently converted to dots.
- grid commands
+The full operand positions, ranges, defaults, examples, and triggering rules are in [docs/OPERATORS.md](docs/OPERATORS.md).
 
-The C build accepts `# orca_seaflake
+## License and upstream
 
-A reconstructed C build of Hundred Rabbits' Orca-c with new operators.
-
-## Seaflake operator
-
-`@abcdefg` is a triggered MIDI sequence operator:
-
-- `a`: MIDI channel
-- `b`: octave
-- `c`: note
-- `d`: velocity
-- `e`: envelope shape 1-4
-- `f`: repeat count
-- `g`: clock division, following the timing behavior of `D`
-
-The envelope is evaluated across the repeat cycle. `@` and `$` are accepted as grid glyphs so files containing the Seaflake command syntax are not silently converted to dots.
- as a valid grid character, preventing Seaflake grids containing dollar-sign command syntax from being replaced with `.` during input. Full command behavior is platform-dependent and remains separate from the C VM's operator system.
-
-## Downloads
-
-GitHub Releases are configured for macOS Apple Silicon and Intel, Linux x86_64, Debian/Raspberry Pi OS ARM64, and Windows x86_64. The Raspberry Pi target is 64-bit ARM (aarch64).
-
-## Build from source
-
-### macOS
-
-`brew install ncurses portmidi`
-
-`./tool build --portmidi orca`
-
-### Debian / Ubuntu / Raspberry Pi OS
-
-`sudo apt install build-essential pkg-config libncursesw5-dev libform-dev libportmidi-dev`
-
-`./tool build --portmidi orca`
-
-### CLI
-
-`./tool build cli`
-
-## Homebrew
-
-The intended tap is `femifleming/homebrew-orca-seaflake`. Once that tap exists, install with `brew install femifleming/homebrew-orca-seaflake/orca-seaflake`.
-
-The formula source is kept under `packaging/homebrew/`.
-
-## Windows
-
-The Windows build uses MinGW-w64 and PDCurses for the native console layer, with PortMidi for MIDI I/O. The release artifact is a ZIP containing the executable and runtime DLLs.
-
-## Source
-
-The base C implementation is derived from Hundred Rabbits' Orca-c. See LICENSE.md for the upstream license and preserve attribution when redistributing.
-
-## Status
-
-This repository is a reconstruction rather than a claim that the original local build directory still exists. The custom Seaflake operator is implemented directly in the VM and the build/release configuration is kept in this repository so future builds are reproducible.
+This is a modified desktop build of [Hundred Rabbits' Orca](https://github.com/hundredrabbits/Orca). Upstream attribution and license terms are in [LICENSE.md](LICENSE.md).

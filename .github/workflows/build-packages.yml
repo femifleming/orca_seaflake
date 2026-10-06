@@ -1,0 +1,98 @@
+name: Build packages
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ matrix.platform }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            platform: darwin
+            arch: arm64
+            script: package:mac:arm64
+            kind: mac
+          - runner: macos-15-intel
+            platform: darwin
+            arch: x64
+            script: package:mac:x64
+            kind: mac
+          - runner: windows-latest
+            platform: win32
+            arch: x64
+            script: package:windows:x64
+            kind: windows
+          - runner: ubuntu-22.04
+            platform: linux
+            arch: x64
+            script: package:linux:x64
+            kind: linux
+            deb_arch: amd64
+          - runner: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+            script: package:linux:arm64
+            kind: linux
+            deb_arch: arm64
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Package application
+        run: npm run "${{ matrix.script }}"
+
+      - name: Prepare artifact folder
+        shell: bash
+        run: mkdir -p artifacts
+
+      - name: Archive macOS application
+        if: matrix.kind == 'mac'
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          ditto -c -k --keepParent "dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app" "artifacts/Orca-Seaflake-${version}-darwin-${{ matrix.arch }}.zip"
+
+      - name: Archive Windows application
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          Compress-Archive -Path 'dist/Orca-Seaflake-win32-x64' -DestinationPath "artifacts/Orca-Seaflake-$version-win32-x64.zip" -CompressionLevel Optimal
+
+      - name: Archive Linux application and create Debian package
+        if: matrix.kind == 'linux'
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          app_dir="dist/Orca-Seaflake-linux-${{ matrix.arch }}"
+          tar -czf "artifacts/Orca-Seaflake-${version}-linux-${{ matrix.arch }}.tar.gz" -C dist "Orca-Seaflake-linux-${{ matrix.arch }}"
+          ./scripts/package-deb.sh "$app_dir" "${{ matrix.deb_arch }}" "artifacts/orca-seaflake_${version}_${{ matrix.deb_arch }}.deb"
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: Orca-Seaflake-${{ matrix.platform }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,43 @@
+{
+  "name": "orca-seaflake",
+  "productName": "Orca Seaflake",
+  "version": "0.1.0",
+  "description": "A desktop grid sequencer for MIDI, OSC, and UDP live coding, with Seaflake operators.",
+  "author": "Orca Seaflake contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/femifleming/orca_seaflake",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --disable-gpu",
+    "package:mac:arm64": "electron-packager . Orca-Seaflake --platform=darwin --arch=arm64 --out=dist --overwrite --icon=icon.icns",
+    "package:mac:x64": "electron-packager . Orca-Seaflake --platform=darwin --arch=x64 --out=dist --overwrite --icon=icon.icns",
+    "package:windows:x64": "electron-packager . Orca-Seaflake --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --executable-name=orca-seaflake",
+    "package:linux:x64": "electron-packager . Orca-Seaflake --platform=linux --arch=x64 --out=dist --overwrite --executable-name=orca-seaflake",
+    "package:linux:arm64": "electron-packager . Orca-Seaflake --platform=linux --arch=arm64 --out=dist --overwrite --executable-name=orca-seaflake"
+  },
+  "devDependencies": {
+    "electron": "11.5.0",
+    "electron-packager": "15.1.0"
+  },
+  "dependencies": {
+    "node-osc": "4.1.9"
+  },
+  "standard": {
+    "globals": [
+      "terminal",
+      "localStorage",
+      "DOMParser",
+      "onMessage",
+      "postMessage",
+      "FileReader",
+      "performance",
+      "Worker"
+    ],
+    "ignore": [
+      "/node_modules/*"
+    ]
+  }
+}
