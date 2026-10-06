@@ -1,6 +1,6 @@
 # Build and packaging guide
 
-Build 04 is an Electron 11 desktop application. Electron Packager produces runnable application bundles; the repository workflow wraps those bundles as `.zip` archives, Linux `.tar.gz` archives, and Debian `.deb` packages.
+Orca Seaflake is an Electron desktop application; version 0.1.0 is its first public release. Electron Packager produces runnable application bundles; the repository workflow wraps those bundles as `.zip` archives, Linux `.tar.gz` archives, and Debian `.deb` packages.
 
 ## Requirements
 
