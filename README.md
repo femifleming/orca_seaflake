@@ -15,12 +15,13 @@ This is the first public release of Orca Seaflake: a **livecoding environment**,
 
 ### Install with Homebrew
 
-On macOS, install Orca Seaflake from this repository's Homebrew tap:
+On macOS, install Orca Seaflake with one command:
 
 ```sh
-brew tap femifleming/orca_seaflake https://github.com/femifleming/orca_seaflake.git
 brew install --cask femifleming/orca_seaflake/orca-seaflake
 ```
+
+Homebrew automatically adds the repository as a tap when needed; you do not need to run `brew tap` separately.
 
 Homebrew downloads the matching Apple Silicon or Intel app from the latest GitHub Release. The first release is published as `v0.1.0`; macOS may ask you to approve the unsigned app the first time you open it.
 
