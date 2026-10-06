@@ -10,7 +10,7 @@ Orca is a two-dimensional grid sequencer. Place an operator glyph in the grid an
 - The clock runs at the selected BPM. Use the Clock menu or its shortcuts to play, pause, and adjust tempo. The `D` and `C` operators use this clock's frame count.
 - MIDI channels are zero-based (`0`–`f`, with valid MIDI channels `0`–`f` in the app's base-36 notation, limited to 0–15). Note names are letters; lowercase note glyphs are sharp spellings. Set up an output device in **MIDI → Next Output Device**.
 
-## Build 04 additions
+## Seaflake operators
 
 ### `^` — probability gate
 
@@ -140,7 +140,7 @@ This starts four notes on channel 0, octave 4, C, with maximum velocity `z`, sha
 
 ### Other MIDI output operators
 
-These are part of Build 04's expanded MIDI set. Each is bang-triggered and reads its operands to the right.
+These are part of Seaflake's expanded MIDI set. Each is bang-triggered and reads its operands to the right.
 
 | Glyph | Name | Operand order |
 |---|---|---|
@@ -158,7 +158,7 @@ For `:` and `%`, velocity defaults to `f`, length to `1`, octave to `4`, and cha
 *?000      pitch bend with both data bytes at 0
 ```
 
-## Core alphabet operators
+## Orca alphabet operators
 
 Uppercase forms evaluate every frame; lowercase forms evaluate on a bang.
 
