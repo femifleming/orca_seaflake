@@ -1,6 +1,6 @@
 # orca_seaflake
 
-A reconstructed C build of Hundred Rabbits' Orca-c with Femi Shonuga-Fleming's Seaflake MIDI operator.
+A reconstructed C build of Hundred Rabbits' Orca-c with new operators.
 
 ## Seaflake operator
 
