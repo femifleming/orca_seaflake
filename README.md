@@ -1,4 +1,4 @@
-# ORCΛ SEΛFLΛKE
+# orca seaflake
 
 <img src="icon.png" width="300" alt="Orca Seaflake icon"/>
 
