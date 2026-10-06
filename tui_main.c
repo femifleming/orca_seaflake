@@ -884,6 +884,7 @@ typedef struct {
   Usz ruler_spacing_y, ruler_spacing_x;
   Ged_input_mode input_mode;
   Usz bpm;
+  U8 swing; // 50 = straight, 66 = triplet swing, 75 = hard swing
   U64 clock;
   double accum_secs;
   double time_to_next_note_off;
@@ -921,6 +922,7 @@ static void ged_init(Ged *a, Usz undo_limit, Usz init_bpm, Usz init_seed) {
   a->ruler_spacing_y = a->ruler_spacing_x = 8;
   a->input_mode = Ged_input_mode_normal;
   a->bpm = init_bpm;
+  a->swing = 50;
   a->clock = 0;
   a->accum_secs = 0.0;
   a->time_to_next_note_off = 1.0;
@@ -1243,6 +1245,14 @@ static double ged_secs_to_deadline(Ged const *a) {
   if (!a->is_playing)
     return 1.0;
   double secs_span = 60.0 / (double)a->bpm / 4.0;
+  if (a->swing != 50) {
+    double amount = ((double)a->swing - 50.0) / 50.0;
+    secs_span *= (a->tick_num & 1) ? (1.0 - amount) : (1.0 + amount);
+  }
+  if (a->swing != 50) {
+    double amount = ((double)a->swing - 50.0) / 50.0;
+    secs_span *= (a->tick_num & 1) ? (1.0 - amount) : (1.0 + amount);
+  }
   // If MIDI beat clock output is enabled, we need to send an event every 24
   // parts per quarter note. Since we've already divided quarter notes into 4
   // for ORCA's timing semantics, divide it by a further 6. This same logic is
@@ -2124,6 +2134,7 @@ static void push_playback_menu(bool midi_bclock_enabled) {
   qmenu_set_title(qm, "Clock & Timing");
   qmenu_add_printf(qm, Playback_menu_midi_bclock, "[%c] Send MIDI Beat Clock",
                    midi_bclock_enabled ? '*' : ' ');
+  qmenu_add_printf(qm, 2, "Swing: %zu%%", swing);
   qmenu_push_to_nav(qm);
 }
 static void push_about_msg(void) {
@@ -2891,7 +2902,7 @@ staticni Tui_menus_result tui_drive_menus(Tui *t, int key) {
         case Main_menu_quit:
           return Tui_menus_quit;
         case Main_menu_playback:
-          push_playback_menu(t->ged.midi_bclock);
+          push_playback_menu(t->ged.midi_bclock, t->ged.swing);
           break;
         case Main_menu_cosmetics:
           push_cosmetics_menu();
