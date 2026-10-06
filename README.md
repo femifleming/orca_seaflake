@@ -1,14 +1,14 @@
-# orca seaflake
+# ORCΛ SEΛFLΛKE
 
 <img src="icon.png" width="300" alt="Orca Seaflake icon"/>
 
 Orca Seaflake is a modified desktop build of [Orca](https://github.com/hundredrabbits/Orca), the esoteric programming language for quickly creating procedural sequencers. Each letter is an operation: lowercase operators run on bang, while uppercase operators run each frame.
 
-This application **is not a synthesizer, but a livecoding environment** capable of sending MIDI, OSC, and UDP to audio and visual software or hardware. Build 04 adds probability, phase, burst, tuned-note, binary-scale, and shaped MIDI-sequence operators.
+This is the first public release of Orca Seaflake: a **livecoding environment**, not a synthesizer, that sends MIDI, OSC, and UDP to audio and visual software or hardware. It includes probability, phase, burst, tuned-note, binary-scale, and shaped MIDI-sequence operators.
 
 - [Download builds](https://github.com/femifleming/orca_seaflake/actions/workflows/build-packages.yml), available for **macOS, Windows, Linux, Debian/Ubuntu, and 64-bit Raspberry Pi OS**. Open the latest successful **Build packages** run and download its artifacts.
 - [Run from source](#install--run), using Node.js and npm.
-- Read the [Build 04 operator guide](docs/OPERATORS.md) for operand positions, defaults, ranges, examples, and triggering behavior.
+- Read the [operator guide](docs/OPERATORS.md) for operand positions, defaults, ranges, examples, and triggering behavior.
 - Read the [packaging guide](docs/PACKAGING.md) to create packages locally.
 
 ## Install & Run
@@ -43,7 +43,7 @@ Choose a MIDI output with **MIDI → Next Output Device** (`Cmd/Ctrl+.`); refres
 
 ## Operators
 
-The full operator list is available in the built-in guide with `Cmd/Ctrl+G`. Build 04 adds:
+The full operator list is available in the built-in guide with `Cmd/Ctrl+G`. Seaflake adds:
 
 - `^` **probability**: passes a bang according to its probability operands.
 - `&` **phase clock**: emits a phase-based clock pulse.
@@ -80,7 +80,7 @@ Orca Seaflake can send MIDI, OSC, and UDP to compatible applications and hardwar
 
 - [Original Orca](https://github.com/hundredrabbits/Orca)
 - [Build packages and downloads](https://github.com/femifleming/orca_seaflake/actions/workflows/build-packages.yml)
-- [Build 04 operator reference](docs/OPERATORS.md)
+- [Operator reference](docs/OPERATORS.md)
 - [Packaging guide](docs/PACKAGING.md)
 
 ## Extras
