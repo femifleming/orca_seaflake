@@ -40,7 +40,7 @@ Section: sound
 Priority: optional
 Architecture: $deb_arch
 Maintainer: Orca Seaflake contributors
-Depends: libgtk-3-0, libnss3, libxss1, libgbm1, libasound2 | libasound2t64
+Depends: libgtk-3-0 | libgtk-3-0t64, libnss3, libxss1, libgbm1, libasound2 | libasound2t64
 Description: Orca live-coding sequencer with Seaflake operators
  A desktop grid sequencer for MIDI, OSC, and UDP live coding.
 CONTROL
