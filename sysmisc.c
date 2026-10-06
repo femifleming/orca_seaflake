@@ -37,6 +37,8 @@ Cboard_error cboard_copy(Glyph const *gbuffer, Usz field_height,
   FILE *fp =
 #ifdef ORCA_OS_MAC
       popen("pbcopy -pboard general 2>/dev/null", "w");
+#elif defined(ORCA_OS_WINDOWS)
+      popen("clip", "w");
 #else
       popen("xclip -i -selection clipboard 2>/dev/null", "w");
 #endif
@@ -58,6 +60,8 @@ Cboard_error cboard_paste(Glyph *gbuffer, Usz height, Usz width, Usz y, Usz x,
   FILE *fp =
 #ifdef ORCA_OS_MAC
       popen("pbpaste -pboard general -Prefer txt 2>/dev/null", "r");
+#elif defined(ORCA_OS_WINDOWS)
+      popen("powershell.exe -NoProfile -Command Get-Clipboard", "r");
 #else
       popen("xclip -o -selection clipboard 2>/dev/null", "r");
 #endif
