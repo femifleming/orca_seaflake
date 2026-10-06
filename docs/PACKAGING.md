@@ -52,7 +52,7 @@ The package installs the app under `/usr/lib/orca-seaflake`, adds `/usr/bin/orca
 - Linux x64 tar.gz and Debian amd64 package
 - Linux arm64 tar.gz and Debian arm64 package
 
-To publish versioned builds, update `version` in `package.json`, commit the change, and push a matching tag such as `v0.1.1`. The Actions run stores the package artifacts for download; the workflow does not create or publish a GitHub Release automatically.
+To publish versioned builds, update `version` in `package.json`, commit the change, and push a matching tag such as `v0.1.1`. The Actions run stores package artifacts for 30 days. When a version tag matching `package.json` is pushed (for example, `v0.1.0`), the workflow publishes the built packages as a GitHub Release and adds stable macOS asset names used by the Homebrew Cask in `Casks/orca-seaflake.rb`.
 
 ## Platform notes
 
