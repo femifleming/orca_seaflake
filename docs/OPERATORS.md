@@ -130,7 +130,7 @@ This triggers a C note at octave 4 on channel 0 with velocity `z` and length 1, 
 
 Trigger `@` with a neighboring `*` to start/restart the sequence. Without a bang, changes to its operands update an already-running sequence at that grid location. The sequence uses real-time timers and does not change the Orca frame counter.
 
-The shape values are eased curves across the sequence: `1` rises slowly at first, `2` rises quickly at first, `3` eases in and out, and `4` advances linearly scaled by pulse width. The pulse-width value is divided by 36 internally. Velocity is shaped across the sequence and kept between 1 and the supplied maximum. Repeats below 1 do not start a sequence.
+The shape values control note timing across the sequence: `1` spaces events slowly at first and faster near the end, `2` spaces them quickly at first and slower near the end, `3` concentrates events toward the middle, and `4` places them linearly within the pulse width. Pulse width is divided by 36 internally. Velocity stays at the entered value for each note. Repeats below 1 do not start a sequence.
 
 ```text
 *@04Cz141i
@@ -155,7 +155,7 @@ For `:` and `%`, velocity defaults to `f`, length to `1`, octave to `4`, and cha
 *:04Cz1    MIDI note
 *%04Cz1    monophonic MIDI note
 *!007      CC controller 0, value 7
-*?080      pitch bend with both data bytes at 0
+*?000      pitch bend with both data bytes at 0
 ```
 
 ## Core alphabet operators
