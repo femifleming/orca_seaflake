@@ -155,7 +155,10 @@ function Commander (client) {
 
   this.onKeyDown = (e) => {
     if (e.ctrlKey || e.metaKey) { return }
-    client[this.isActive === true ? 'commander' : 'cursor'].write(e.key)
+    // Some Electron/Linux keyboard layouts report the unshifted key for
+    // Shift+4. Preserve the printable `$` glyph used by the self operator.
+    const key = e.key === '4' && e.shiftKey && e.code === 'Digit4' ? '$' : e.key
+    client[this.isActive === true ? 'commander' : 'cursor'].write(key)
     e.stopPropagation()
   }
 

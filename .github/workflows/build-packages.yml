@@ -55,11 +55,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: desktop/package-lock.json
 
       - name: Install locked dependencies
+        working-directory: desktop
         run: npm ci
 
       - name: Package application
+        working-directory: desktop
         run: npm run "${{ matrix.script }}"
 
       - name: Prepare artifact folder
@@ -70,24 +73,24 @@ jobs:
         if: matrix.kind == 'mac'
         shell: bash
         run: |
-          version="$(node -p "require('./package.json').version")"
-          ditto -c -k --keepParent "dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app" "artifacts/Orca-Seaflake-${version}-darwin-${{ matrix.arch }}.zip"
+          version="$(node -p "require('./desktop/package.json').version")"
+          ditto -c -k --keepParent "desktop/dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app" "artifacts/Orca-Seaflake-${version}-darwin-${{ matrix.arch }}.zip"
 
       - name: Archive Windows application
         if: matrix.kind == 'windows'
         shell: pwsh
         run: |
-          $version = node -p "require('./package.json').version"
-          Compress-Archive -Path 'dist/Orca-Seaflake-win32-x64' -DestinationPath "artifacts/Orca-Seaflake-$version-win32-x64.zip" -CompressionLevel Optimal
+          $version = node -p "require('./desktop/package.json').version"
+          Compress-Archive -Path 'desktop/dist/Orca-Seaflake-win32-x64' -DestinationPath "artifacts/Orca-Seaflake-$version-win32-x64.zip" -CompressionLevel Optimal
 
       - name: Archive Linux application and create Debian package
         if: matrix.kind == 'linux'
         shell: bash
         run: |
-          version="$(node -p "require('./package.json').version")"
-          app_dir="dist/Orca-Seaflake-linux-${{ matrix.arch }}"
-          tar -czf "artifacts/Orca-Seaflake-${version}-linux-${{ matrix.arch }}.tar.gz" -C dist "Orca-Seaflake-linux-${{ matrix.arch }}"
-          ./scripts/package-deb.sh "$app_dir" "${{ matrix.deb_arch }}" "artifacts/orca-seaflake_${version}_${{ matrix.deb_arch }}.deb"
+          version="$(node -p "require('./desktop/package.json').version")"
+          app_dir="desktop/dist/Orca-Seaflake-linux-${{ matrix.arch }}"
+          tar -czf "artifacts/Orca-Seaflake-${version}-linux-${{ matrix.arch }}.tar.gz" -C desktop/dist "Orca-Seaflake-linux-${{ matrix.arch }}"
+          ./desktop/scripts/package-deb.sh "$app_dir" "${{ matrix.deb_arch }}" "../artifacts/orca-seaflake_${version}_${{ matrix.deb_arch }}.deb"
 
       - name: Upload packages
         uses: actions/upload-artifact@v4
@@ -118,7 +121,7 @@ jobs:
       - name: Add stable macOS download names
         shell: bash
         run: |
-          version="$(node -p "require('./package.json').version")"
+          version="$(node -p "require('./desktop/package.json').version")"
           test "${GITHUB_REF_NAME}" = "v${version}"
           cp "release-assets/Orca-Seaflake-${version}-darwin-arm64.zip" "release-assets/Orca-Seaflake-darwin-arm64.zip"
           cp "release-assets/Orca-Seaflake-${version}-darwin-x64.zip" "release-assets/Orca-Seaflake-darwin-x64.zip"

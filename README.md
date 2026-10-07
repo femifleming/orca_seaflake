@@ -4,10 +4,11 @@
 
 Orca Seaflake is a modified desktop build of [Orca](https://github.com/hundredrabbits/Orca), the esoteric programming language for quickly creating procedural sequencers. Each letter is an operation: lowercase operators run on bang, while uppercase operators run each frame.
 
-This is the first public release of Orca Seaflake: a **livecoding environment**, not a synthesizer, that sends MIDI, OSC, and UDP to audio and visual software or hardware. It includes probability, phase, burst, tuned-note, binary-scale, and shaped MIDI-sequence operators.
+Orca Seaflake is a **livecoding environment**, not a synthesizer. It sends MIDI, OSC, and UDP to audio and visual software or hardware, and includes probability, phase, burst, tuned-note, binary-scale, and shaped MIDI-sequence operators.
 
-- [Download builds](https://github.com/femifleming/orca_seaflake/actions/workflows/build-packages.yml), available for **macOS, Windows, Linux, Debian/Ubuntu, and 64-bit Raspberry Pi OS**. Open the latest successful **Build packages** run and download its artifacts.
+- [Download installers](https://github.com/femifleming/orca_seaflake/releases/latest) for **macOS, Windows, Linux, Debian/Ubuntu, and 64-bit Raspberry Pi OS**.
 - [Run from source](#install--run), using Node.js and npm.
+- The desktop app follows upstream Orca's layout: application code, Electron entry point, and desktop packaging metadata live in [`desktop/`](desktop/).
 - Read the [operator guide](docs/OPERATORS.md) for operand positions, defaults, ranges, examples, and triggering behavior.
 - Read the [packaging guide](docs/PACKAGING.md) to create packages locally.
 
@@ -23,11 +24,11 @@ brew install --cask femifleming/orca_seaflake/orca-seaflake
 
 Homebrew automatically adds the repository as a tap when needed; you do not need to run `brew tap` separately.
 
-Homebrew downloads the matching Apple Silicon or Intel app from the latest GitHub Release. The first release is published as `v0.1.0`; macOS may ask you to approve the unsigned app the first time you open it.
+Homebrew downloads the matching Apple Silicon or Intel app from the latest GitHub Release; macOS may ask you to approve the unsigned app the first time you open it.
 
 ### Download a packaged build
 
-Open [Build packages](https://github.com/femifleming/orca_seaflake/actions/workflows/build-packages.yml), select the latest successful run, and download the artifact for your system. Extract it, then launch **Orca-Seaflake**. The workflow keeps artifacts for 30 days.
+Open the [latest release](https://github.com/femifleming/orca_seaflake/releases/latest) and download the installer for your system. Each release includes installers for macOS, Windows, Linux x64, Linux ARM64, Debian/Ubuntu amd64, and Debian/Ubuntu arm64.
 
 | System | Download |
 | --- | --- |
@@ -38,15 +39,24 @@ Open [Build packages](https://github.com/femifleming/orca_seaflake/actions/workf
 | Debian / Ubuntu | `.deb` installer (`amd64` or `arm64`) |
 | Raspberry Pi OS | `.deb` or `.tar.gz` (`arm64`, 64-bit OS only) |
 
-The Debian package installs an application launcher and the `orca-seaflake` command. Linux builds need a graphical desktop and MIDI/ALSA system libraries; see [Linux packaging notes](docs/PACKAGING.md#linux-notes). 32-bit Raspberry Pi OS is not packaged.
+The Debian package installs an application launcher and the `orca-seaflake` command. Linux builds need a graphical desktop and MIDI/ALSA system libraries; see [Linux packaging notes](docs/PACKAGING.md#platform-notes). 32-bit Raspberry Pi OS is not packaged.
+
+### Install steps by system
+
+1. **macOS (Apple Silicon or Intel):** download the matching `.zip`, double-click it, then drag `Orca-Seaflake.app` into Applications. On first launch, Control-click the app and choose **Open** if macOS blocks this unsigned build.
+2. **Windows 10/11 (64-bit):** download and extract the Windows `.zip` (right-click → **Extract All**), then launch `Orca-Seaflake.exe` from the extracted folder. If SmartScreen appears, select **More info → Run anyway**; the build is currently unsigned.
+3. **Debian or Ubuntu (64-bit PC or ARM64):** download the matching `.deb`, open it with Software Install, or install from Terminal with `sudo apt install ./orca-seaflake_0.1.1_amd64.deb` (use `orca-seaflake_0.1.1_arm64.deb` on ARM64).
+4. **Other 64-bit Linux distributions:** download the matching Linux `.tar.gz`, extract it, open a terminal in the extracted `Orca-Seaflake-linux-ARCH` folder and run `./orca-seaflake`. If it does not start, install the GTK, NSS, X11 screen-saver, ALSA, and GBM runtime libraries provided by your distribution.
+5. **64-bit Raspberry Pi OS:** use the ARM64 `.deb` with the Software installer or `sudo apt install ./orca-seaflake_0.1.1_arm64.deb`; the ARM64 `.tar.gz` is also available. This build does not support 32-bit Raspberry Pi OS.
 
 ### Run from source
 
-Install [Node.js](https://nodejs.org/) 18 or newer, then run:
+Install [Node.js](https://nodejs.org/) 18 or newer, then run these commands from a terminal:
 
 ```sh
 git clone https://github.com/femifleming/orca_seaflake.git
 cd orca_seaflake
+cd desktop
 npm ci
 npm start
 ```
@@ -77,7 +87,7 @@ Existing Orca operators and the Seaflake IO/MIDI operators are documented in the
 - `;` **udp**: sends UDP messages.
 - `$` **self**: sends an Orca command.
 
-See the operator guide for exact inputs and examples for these operators.
+See the operator guide for exact inputs and examples for these operators. On Linux layouts where Shift+4 is reported as the unshifted `4` key, the grid converts Shift+4 to `$` so the self operator remains typeable.
 
 ## Companion Applications
 
@@ -91,7 +101,7 @@ Orca Seaflake can send MIDI, OSC, and UDP to compatible applications and hardwar
 ## Links
 
 - [Original Orca](https://github.com/hundredrabbits/Orca)
-- [Build packages and downloads](https://github.com/femifleming/orca_seaflake/actions/workflows/build-packages.yml)
+- [Latest release and downloads](https://github.com/femifleming/orca_seaflake/releases/latest)
 - [Operator reference](docs/OPERATORS.md)
 - [Packaging guide](docs/PACKAGING.md)
 
