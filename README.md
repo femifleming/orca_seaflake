@@ -22,7 +22,7 @@ On macOS, install Orca Seaflake with one command:
 brew install --cask femifleming/orca_seaflake/orca-seaflake
 ```
 
-Homebrew automatically adds the repository as a tap when needed; you do not need to run `brew tap` separately.
+Homebrew automatically adds the [Orca Seaflake Cask tap](https://github.com/femifleming/homebrew-orca_seaflake) when needed; you do not need to run `brew tap` separately.
 
 Homebrew downloads the matching Apple Silicon or Intel app from the latest GitHub Release; macOS may ask you to approve the unsigned app the first time you open it.
 
