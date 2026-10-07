@@ -81,6 +81,28 @@ jobs:
           version="$(node -p "require('./desktop/package.json').version")"
           ditto -c -k --sequesterRsrc --keepParent "desktop/dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app" "artifacts/Orca-Seaflake-${version}-darwin-${{ matrix.arch }}.zip"
 
+      - name: Build and verify macOS installer package
+        if: matrix.kind == 'mac'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./desktop/package.json').version")"
+          app_path="desktop/dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app"
+          package_path="artifacts/Orca-Seaflake-${version}-darwin-${{ matrix.arch }}.pkg"
+          pkgbuild \
+            --component "$app_path" \
+            --install-location /Applications \
+            --identifier com.femifleming.orcaseaflake \
+            --version "$version" \
+            "$package_path"
+          pkgutil --payload-files "$package_path" | grep -Fqx './Orca-Seaflake.app/Contents/Info.plist'
+          expanded_package="$RUNNER_TEMP/orca-seaflake-pkg-${{ matrix.arch }}"
+          pkgutil --expand-full "$package_path" "$expanded_package"
+          grep -Fq 'install-location="/Applications"' "$expanded_package/PackageInfo"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            codesign --verify --deep --strict --verbose=2 "$expanded_package/Payload/Orca-Seaflake.app"
+          fi
+
       - name: Archive Windows application
         if: matrix.kind == 'windows'
         shell: pwsh
@@ -130,6 +152,8 @@ jobs:
           test "${GITHUB_REF_NAME}" = "v${version}"
           cp "release-assets/Orca-Seaflake-${version}-darwin-arm64.zip" "release-assets/Orca-Seaflake-darwin-arm64.zip"
           cp "release-assets/Orca-Seaflake-${version}-darwin-x64.zip" "release-assets/Orca-Seaflake-darwin-x64.zip"
+          cp "release-assets/Orca-Seaflake-${version}-darwin-arm64.pkg" "release-assets/Orca-Seaflake-darwin-arm64.pkg"
+          cp "release-assets/Orca-Seaflake-${version}-darwin-x64.pkg" "release-assets/Orca-Seaflake-darwin-x64.pkg"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2

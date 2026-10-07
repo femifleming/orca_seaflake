@@ -1,13 +1,13 @@
 # Build and packaging guide
 
-Orca Seaflake is an Electron desktop application; version 0.1.3 is the current release, following the initial 0.1.0, 0.1.1, and 0.1.2 releases. Electron Packager produces runnable application bundles; the repository workflow wraps those bundles as `.zip` archives, Linux `.tar.gz` archives, and Debian `.deb` packages.
+Orca Seaflake is an Electron desktop application; version 0.1.4 is the current release, following the initial 0.1.0 through 0.1.3 releases. Electron Packager produces runnable application bundles; the repository workflow wraps those bundles as macOS `.zip` archives and `.pkg` installers, Windows `.zip` archives, Linux `.tar.gz` archives, and Debian `.deb` packages.
 
 ## Requirements
 
 - Node.js 18 or newer and npm.
 - macOS packaging requires macOS. Windows and Linux targets can be packaged from supported macOS, Windows, or Linux hosts. The automated workflow uses an Intel macOS runner for x64 and an ARM64 Linux runner for the Raspberry Pi/ARM64 package.
 - Debian packages require `dpkg-deb`; the GitHub Actions Linux runner already provides it.
-- macOS releases are signed ad hoc to seal and verify the app bundle without an Apple account. Because they are not signed with a Developer ID or notarized, macOS may require the user to approve the first launch in Privacy & Security. v0.1.1 had an invalid resource seal, and v0.1.2 failed library validation on launch; v0.1.3 fixes both.
+- macOS releases include Apple Silicon and Intel builds, each as a `.zip` and an Installer `.pkg` that places the app in `/Applications`. The app is signed ad hoc to seal and verify the bundle without an Apple account. The `.pkg` is not signed with a Developer ID Installer certificate, and the app is not Developer ID signed or notarized, so Gatekeeper may require users to approve installation or first launch. v0.1.1 had an invalid resource seal, and v0.1.2 failed library validation on launch; v0.1.3 fixed both.
 - Windows packages are unsigned and may show a SmartScreen warning.
 
 Enter the desktop application folder and install exact locked dependencies:
@@ -31,15 +31,15 @@ Run the matching command from `desktop/`. Electron Packager writes a directory b
 | Linux x64 | `npm run package:linux:x64` |
 | Linux ARM64 | `npm run package:linux:arm64` |
 
-For macOS, zip the generated `.app` bundle while preserving its directory structure. For Windows, zip the complete generated app folder. For Linux, tar the complete generated app folder; it can be launched with `./orca-seaflake`.
+For macOS, the release workflow creates both a ZIP (preserving bundle metadata) and a `.pkg` installer that installs the app in `/Applications`. For Windows, zip the complete generated app folder. For Linux, tar the complete generated app folder; it can be launched with `./orca-seaflake`.
 
 ## Debian packages
 
 On Debian or Ubuntu, first build the Linux bundle, then run:
 
 ```sh
-./scripts/package-deb.sh dist/Orca-Seaflake-linux-x64 amd64 dist/orca-seaflake_0.1.3_amd64.deb
-./scripts/package-deb.sh dist/Orca-Seaflake-linux-arm64 arm64 dist/orca-seaflake_0.1.3_arm64.deb
+./scripts/package-deb.sh dist/Orca-Seaflake-linux-x64 amd64 dist/orca-seaflake_0.1.4_amd64.deb
+./scripts/package-deb.sh dist/Orca-Seaflake-linux-arm64 arm64 dist/orca-seaflake_0.1.4_arm64.deb
 ```
 
 The package installs the app under `/usr/lib/orca-seaflake`, adds `/usr/bin/orca-seaflake`, and registers an application menu entry. The ARM64 package targets 64-bit Raspberry Pi OS and ARM64 Debian/Ubuntu. The app does not support 32-bit Raspberry Pi OS in this build.
@@ -48,13 +48,13 @@ The package installs the app under `/usr/lib/orca-seaflake`, adds `/usr/bin/orca
 
 `.github/workflows/build-packages.yml` runs on pushes to `main`, version tags (`v*`), and manual dispatch. It enters `desktop/` for Electron dependency installation and packaging, then uploads downloadable workflow artifacts:
 
-- macOS arm64 zip
-- macOS x64 zip
+- macOS arm64 zip and `.pkg` installer
+- macOS x64 zip and `.pkg` installer
 - Windows x64 zip
 - Linux x64 tar.gz and Debian amd64 package
 - Linux arm64 tar.gz and Debian arm64 package
 
-To publish versioned builds, update `version` in `desktop/package.json`, commit the change, and push a matching tag such as `v0.1.3`. The Actions run stores package artifacts for 30 days. When a version tag matching `desktop/package.json` is pushed, the workflow publishes the built packages as a GitHub Release and adds stable macOS asset names used by the Homebrew Cask in `Casks/orca-seaflake.rb`.
+To publish versioned builds, update `version` in `desktop/package.json`, commit the change, and push a matching tag such as `v0.1.4`. The Actions run stores package artifacts for 30 days. When a version tag matching `desktop/package.json` is pushed, the workflow publishes the built packages as a GitHub Release and adds stable macOS asset names used by the Homebrew Cask in `Casks/orca-seaflake.rb`.
 
 ### macOS code signing
 
@@ -64,6 +64,6 @@ No Apple account or GitHub Actions secrets are needed to publish. For tagged rel
 
 - Linux uses the Electron prebuilt binaries. Debian packages declare GTK, NSS, X11 screen-saver, ALSA, and GBM runtime libraries as dependencies.
 - The ARM64 build uses the official Linux arm64 Electron binary. It requires a 64-bit ARM OS and a graphical desktop.
-- The ad-hoc-signed macOS zip is created with `ditto`, preserving macOS bundle metadata.
+- The ad-hoc-signed macOS app is distributed in `.zip` and `.pkg` containers. The package installs the app into `/Applications`; both variants preserve the app bundle's code signature.
 - Build outputs and installed dependencies are ignored by Git (`desktop/dist/`, `outputs/`, and `desktop/node_modules/`).
 - The desktop app includes MIDI, OSC, and UDP output. Actual MIDI ports depend on the operating system's MIDI services and connected devices.
