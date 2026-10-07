@@ -17,7 +17,9 @@ cask "orca-seaflake" do
   app "Orca-Seaflake.app"
 
   caveats <<~EOS
-    The current v0.1.1 macOS download has an invalid code signature and may be rejected
-    by Gatekeeper as damaged. Wait for the signed and notarized release before installing.
+    On first launch, macOS may say it cannot verify the developer. To open the app,
+    Control-click Orca-Seaflake in Applications, choose Open, then confirm Open.
+    The release has an ad-hoc code signature to verify app integrity; it is not
+    signed with an Apple Developer ID or notarized.
   EOS
 end

@@ -24,7 +24,7 @@ brew install --cask femifleming/orca_seaflake/orca-seaflake
 
 Homebrew automatically adds the [Orca Seaflake Cask tap](https://github.com/femifleming/homebrew-orca_seaflake) when needed; you do not need to run `brew tap` separately.
 
-**macOS release notice:** the current v0.1.1 app has an invalid code signature and may show a “damaged” warning. The next macOS release will be signed and notarized before it can be published. The release workflow now stops instead of publishing macOS packages unless that signing succeeds.
+**macOS first launch:** the current v0.1.1 download has a broken signature and may show a “damaged” warning. Starting with v0.1.2, the app will have a valid ad-hoc signature so macOS can verify its files. Apple may still ask you to approve it once because it is not signed by a registered developer or notarized: Control-click the app, choose **Open**, then confirm. This does not require an Apple developer account.
 
 ### Download a packaged build
 
@@ -43,11 +43,11 @@ The Debian package installs an application launcher and the `orca-seaflake` comm
 
 ### Install steps by system
 
-1. **macOS (Apple Silicon or Intel):** download the matching `.zip`, double-click it, then drag `Orca-Seaflake.app` into Applications. The current v0.1.1 app is affected by an invalid signature; wait for the signed and notarized release before installing it.
+1. **macOS (Apple Silicon or Intel):** download the matching `.zip`, double-click it, then drag `Orca-Seaflake.app` into Applications. If macOS blocks the first launch, Control-click the app, choose **Open**, and confirm **Open**. If that option is unavailable, open **System Settings → Privacy & Security**, scroll to Security, then select **Open Anyway** for Orca Seaflake.
 2. **Windows 10/11 (64-bit):** download and extract the Windows `.zip` (right-click → **Extract All**), then launch `Orca-Seaflake.exe` from the extracted folder. If SmartScreen appears, select **More info → Run anyway**; the build is currently unsigned.
-3. **Debian or Ubuntu (64-bit PC or ARM64):** download the matching `.deb`, open it with Software Install, or install from Terminal with `sudo apt install ./orca-seaflake_0.1.1_amd64.deb` (use `orca-seaflake_0.1.1_arm64.deb` on ARM64).
+3. **Debian or Ubuntu (64-bit PC or ARM64):** download the matching `.deb`, open it with Software Install, or install from Terminal with `sudo apt install ./orca-seaflake_0.1.2_amd64.deb` (use `orca-seaflake_0.1.2_arm64.deb` on ARM64).
 4. **Other 64-bit Linux distributions:** download the matching Linux `.tar.gz`, extract it, open a terminal in the extracted `Orca-Seaflake-linux-ARCH` folder and run `./orca-seaflake`. If it does not start, install the GTK, NSS, X11 screen-saver, ALSA, and GBM runtime libraries provided by your distribution.
-5. **64-bit Raspberry Pi OS:** use the ARM64 `.deb` with the Software installer or `sudo apt install ./orca-seaflake_0.1.1_arm64.deb`; the ARM64 `.tar.gz` is also available. This build does not support 32-bit Raspberry Pi OS.
+5. **64-bit Raspberry Pi OS:** use the ARM64 `.deb` with the Software installer or `sudo apt install ./orca-seaflake_0.1.2_arm64.deb`; the ARM64 `.tar.gz` is also available. This build does not support 32-bit Raspberry Pi OS.
 
 ### Run from source
 

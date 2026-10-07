@@ -1,7 +1,7 @@
 {
   "name": "orca-seaflake",
   "productName": "Orca Seaflake",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A desktop grid sequencer for MIDI, OSC, and UDP live coding, with Seaflake operators.",
   "author": "Orca Seaflake contributors",
   "license": "MIT",
@@ -14,13 +14,12 @@
     "start": "electron . --disable-gpu",
     "package:mac:arm64": "electron-packager . Orca-Seaflake --platform=darwin --arch=arm64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
     "package:mac:x64": "electron-packager . Orca-Seaflake --platform=darwin --arch=x64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
-    "sign:mac:release": "node scripts/sign-and-notarize-mac.js",
+    "sign:mac:adhoc": "node scripts/sign-mac-adhoc.js",
     "package:windows:x64": "electron-packager . Orca-Seaflake --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --executable-name=orca-seaflake",
     "package:linux:x64": "electron-packager . Orca-Seaflake --platform=linux --arch=x64 --out=dist --overwrite --executable-name=orca-seaflake",
     "package:linux:arm64": "electron-packager . Orca-Seaflake --platform=linux --arch=arm64 --out=dist --overwrite --executable-name=orca-seaflake"
   },
   "devDependencies": {
-    "@electron/notarize": "2.5.0",
     "@electron/osx-sign": "1.3.3",
     "electron": "11.5.0",
     "electron-packager": "15.1.0"
