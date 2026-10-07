@@ -17,7 +17,7 @@ cask "orca-seaflake" do
   app "Orca-Seaflake.app"
 
   caveats <<~EOS
-    This app is not signed or notarized. On first launch, open Orca Seaflake from Finder
-    and approve macOS's unidentified-developer prompt.
+    The current v0.1.1 macOS download has an invalid code signature and may be rejected
+    by Gatekeeper as damaged. Wait for the signed and notarized release before installing.
   EOS
 end

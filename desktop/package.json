@@ -12,13 +12,16 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . --disable-gpu",
-    "package:mac:arm64": "electron-packager . Orca-Seaflake --platform=darwin --arch=arm64 --out=dist --overwrite --icon=icon.icns",
-    "package:mac:x64": "electron-packager . Orca-Seaflake --platform=darwin --arch=x64 --out=dist --overwrite --icon=icon.icns",
+    "package:mac:arm64": "electron-packager . Orca-Seaflake --platform=darwin --arch=arm64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
+    "package:mac:x64": "electron-packager . Orca-Seaflake --platform=darwin --arch=x64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
+    "sign:mac:release": "node scripts/sign-and-notarize-mac.js",
     "package:windows:x64": "electron-packager . Orca-Seaflake --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --executable-name=orca-seaflake",
     "package:linux:x64": "electron-packager . Orca-Seaflake --platform=linux --arch=x64 --out=dist --overwrite --executable-name=orca-seaflake",
     "package:linux:arm64": "electron-packager . Orca-Seaflake --platform=linux --arch=arm64 --out=dist --overwrite --executable-name=orca-seaflake"
   },
   "devDependencies": {
+    "@electron/notarize": "2.5.0",
+    "@electron/osx-sign": "1.3.3",
     "electron": "11.5.0",
     "electron-packager": "15.1.0"
   },
@@ -39,5 +42,9 @@
     "ignore": [
       "/node_modules/*"
     ]
+  },
+  "allowScripts": {
+    "electron@11.5.0": true,
+    "core-js": false
   }
 }
