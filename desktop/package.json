@@ -1,7 +1,7 @@
 {
   "name": "orca-seaflake",
   "productName": "Orca Seaflake",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A desktop grid sequencer for MIDI, OSC, and UDP live coding, with Seaflake operators.",
   "author": "Orca Seaflake contributors",
   "license": "MIT",
