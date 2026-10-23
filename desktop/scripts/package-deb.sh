@@ -31,6 +31,9 @@ install -d "$package_dir/DEBIAN" \
   "$package_dir/usr/share/applications" \
   "$package_dir/usr/share/icons/hicolor/256x256/apps"
 cp -R "$app_dir/." "$package_dir/usr/lib/orca-seaflake/"
+# Electron's SUID sandbox helper must be root-owned and setuid, or the app
+# aborts at launch on distributions that restrict unprivileged user namespaces.
+chmod 4755 "$package_dir/usr/lib/orca-seaflake/chrome-sandbox"
 install -m 0644 icon.png "$package_dir/usr/share/icons/hicolor/256x256/apps/orca-seaflake.png"
 
 cat > "$package_dir/DEBIAN/control" <<CONTROL
