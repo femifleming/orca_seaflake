@@ -53,6 +53,16 @@ function Commander (client) {
       const formatted = new Date(250 * (client.orca.f * (60 / client.clock.speed.value))).toISOString().substr(14, 5).replace(/:/g, '')
       client.orca.writeBlock(origin ? origin.x : client.cursor.x, origin ? origin.y : client.cursor.y, `${formatted}`)
     },
+    // Song Mode
+    song: (p) => {
+      if (!p.str || p.str === 'toggle') { client.song.toggle() }
+      else if (p.str === 'play') { client.song.play() }
+      else if (p.str === 'pause') { client.song.pause() }
+      else if (p.str === 'stop') { client.song.stop() }
+      else if (p.str === 'mode') { client.song.cycleMode() }
+      else if (p.str === 'save') { client.song.saveSong() }
+      else if (p.str === 'open') { client.song.openSong() }
+    },
     // Themeing
     color: (p) => {
       if (p.parts[0]) { client.theme.set('b_low', p.parts[0]) }
@@ -132,8 +142,16 @@ function Commander (client) {
   }
 
   this.trigger = function (msg = this.query, origin = null, stopping = true) {
-    const cmd = `${msg}`.split(':')[0].trim().replace(/\W/g, '').toLowerCase()
-    const val = `${msg}`.substr(cmd.length + 1)
+    const raw = `${msg}`.trim()
+    let cmd = raw.split(':')[0].trim().replace(/\W/g, '').toLowerCase()
+    let val = raw.substr(cmd.length + 1)
+    if (!this.actives[cmd] && raw.indexOf(':') === -1) {
+      const match = raw.match(/^([a-zA-Z]+)(\d.*)$/)
+      if (match && this.actives[match[1].toLowerCase()]) {
+        cmd = match[1].toLowerCase()
+        val = match[2]
+      }
+    }
     const fn = this.actives[cmd]
     if (!fn) { console.warn('Commander', `Unknown message: ${msg}`); this.stop(); return }
     fn(new Param(val), origin)

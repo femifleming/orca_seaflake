@@ -54,6 +54,13 @@ function Acels (client) {
   }
 
   this.onKeyDown = (e) => {
+    if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) {
+      if (e.key === 'Escape') {
+        document.activeElement.blur()
+        e.preventDefault()
+      }
+      return
+    }
     const target = this.get(this.convert(e))
     if (!target || !target.downfn) { return this.pipe ? this.pipe.onKeyDown(e) : null }
     target.downfn()

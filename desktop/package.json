@@ -11,7 +11,9 @@
   },
   "main": "main.js",
   "scripts": {
+    "test": "node scripts/test-song-mode.js",
     "start": "electron . --disable-gpu",
+    "build:mac:arm64": "npm run package:mac:arm64 && node scripts/sign-mac-adhoc.js dist/Orca-Seaflake-darwin-arm64/Orca-Seaflake.app",
     "package:mac:arm64": "electron-packager . Orca-Seaflake --platform=darwin --arch=arm64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
     "package:mac:x64": "electron-packager . Orca-Seaflake --platform=darwin --arch=x64 --out=dist --overwrite --icon=icon.icns --app-bundle-id=com.femifleming.orcaseaflake",
     "sign:mac:adhoc": "node scripts/sign-mac-adhoc.js",

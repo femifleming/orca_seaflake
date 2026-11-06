@@ -2,12 +2,40 @@
 
 /* global createWindow */
 
-const { app, BrowserWindow, Menu } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron')
+const fs = require('fs')
 const path = require('path')
 
 let isShown = true
 
 app.win = null
+
+// Native file dialogs for Song Mode tracker files (.song JSON).
+ipcMain.handle('song:save-file', async (event, content) => {
+  const result = await dialog.showSaveDialog(app.win, {
+    title: 'Save Orca Seaflake Song',
+    defaultPath: 'Untitled.song',
+    buttonLabel: 'Save Song',
+    filters: [{ name: 'Orca Song', extensions: ['song'] }, { name: 'JSON', extensions: ['json'] }]
+  })
+  if (result.canceled || !result.filePath) return { canceled: true }
+  let filePath = result.filePath
+  if (!/\.(song|json)$/i.test(filePath)) filePath += '.song'
+  fs.writeFileSync(filePath, content, 'utf8')
+  return { canceled: false, filePath }
+})
+
+ipcMain.handle('song:open-file', async () => {
+  const result = await dialog.showOpenDialog(app.win, {
+    title: 'Open Orca Seaflake Song',
+    buttonLabel: 'Open Song',
+    properties: ['openFile'],
+    filters: [{ name: 'Orca Song', extensions: ['song', 'json'] }, { name: 'All Files', extensions: ['*'] }]
+  })
+  if (result.canceled || !result.filePaths.length) return { canceled: true }
+  const filePath = result.filePaths[0]
+  return { canceled: false, filePath, content: fs.readFileSync(filePath, 'utf8') }
+})
 
 app.on('ready', () => {
   app.win = new BrowserWindow({
