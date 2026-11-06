@@ -10,7 +10,26 @@ Orca Seaflake is a **livecoding environment**, not a synthesizer. It sends MIDI,
 - [Run from source](#install--run), using Node.js and npm.
 - The desktop app follows upstream Orca's layout: application code, Electron entry point, and desktop packaging metadata live in [`desktop/`](desktop/).
 - Read the [operator guide](docs/OPERATORS.md) for operand positions, defaults, ranges, examples, and triggering behavior.
+- Read the [song mode guide](docs/SONG_MODE.md) to sequence Orca patterns with a tracker arranger, 16th-note resolution, and tempo overrides.
 - Read the [packaging guide](docs/PACKAGING.md) to create packages locally.
+
+## Two ways to run it
+
+| | Folder | What it is |
+| --- | --- | --- |
+| **Terminal** | [`terminal/`](terminal/) | Runs inside Terminal / Windows Terminal / an SSH session on a Pi. Same operator engine, Song Mode, MIDI out. No Electron. See [terminal/README.md](terminal/README.md). |
+| **Desktop** | [`desktop/`](desktop/) | The full Electron app with MIDI, OSC, UDP, themes and the Song Mode panel. |
+
+Quick start for the terminal version (macOS, Windows, Linux, Raspberry Pi OS):
+
+```sh
+cd terminal
+npm install
+npm link        # adds the `orca-seaflake` command
+orca-seaflake ../patches/untitled2.orca
+```
+
+Example patches and songs live in [`patches/`](patches/).
 
 ## Install & Run
 

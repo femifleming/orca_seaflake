@@ -10,6 +10,7 @@
 /* global Commander */
 /* global Clock */
 /* global Theme */
+/* global Song */
 
 function Client () {
   this.version = 178
@@ -25,6 +26,7 @@ function Client () {
   this.cursor = new Cursor(this)
   this.commander = new Commander(this)
   this.clock = new Clock(this)
+  this.song = new Song(this)
 
   // Settings
   this.scale = window.devicePixelRatio
@@ -121,6 +123,11 @@ function Client () {
     this.acels.set('Communication', 'Choose OSC Port', 'alt+O', () => { this.commander.start('osc:') })
     this.acels.set('Communication', 'Choose UDP Port', 'alt+U', () => { this.commander.start('udp:') })
 
+    this.acels.set('Song', 'Toggle Song Panel', 'CmdOrCtrl+T', () => { this.song.toggle() })
+    this.acels.set('Song', 'Toggle Song Panel (Alt)', 'CmdOrCtrl+M', () => { this.song.toggle() })
+    this.acels.set('Song', 'Save Song File', 'CmdOrCtrl+Shift+E', () => { this.song.exportFile() })
+    this.acels.set('Song', 'Open Song File', 'CmdOrCtrl+Shift+I', () => { this.song.importFile() })
+
     this.acels.install(window)
     this.acels.pipe(this.commander)
   }
@@ -155,6 +162,7 @@ function Client () {
   this.run = () => {
     this.io.clear()
     this.clock.run()
+    this.song.tick()
     this.orca.run()
     this.io.run()
     this.update()
@@ -167,6 +175,7 @@ function Client () {
     this.drawProgram()
     this.drawInterface()
     this.drawGuide()
+    this.song.draw()
   }
 
   this.whenOpen = (file, text) => {
@@ -451,6 +460,12 @@ function Client () {
     e.preventDefault()
     e.stopPropagation()
     for (const file of e.dataTransfer.files) {
+      if (/\.(song|orcasong|json)$/i.test(file.name)) {
+        if (this.song) {
+          this.source.read(file, (f, text) => this.song.use(text))
+        }
+        return
+      }
       if (file.name.indexOf('.orca') < 0) { continue }
       this.toggleGuide(false)
       this.source.read(file, null, true)

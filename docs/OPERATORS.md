@@ -1,6 +1,6 @@
 # Operator reference
 
-Orca is a two-dimensional grid sequencer. Place an operator glyph in the grid and put its operands in the cells around it. Most operators read a value to their left and right and write below; the tables below give the exact positions for each operator. A `.` input uses the documented default when one exists.
+Orca is a two-dimensional grid sequencer. Place an operator glyph in the grid and put its operands in the cells around it. Most operators read a value to their left and right and write below; the tables below give the exact positions for each operator. A `.` input uses the documented default when one exists. The original Orca operators (A–Z and `* # : % ! ? = ; $`) behave exactly as in upstream [Hundred Rabbits Orca](https://github.com/hundredrabbits/Orca): an empty input reads as `0`, except where a minimum or default is listed below.
 
 ## Values and triggering
 
@@ -149,7 +149,7 @@ These are part of Seaflake's expanded MIDI set. Each is bang-triggered and reads
 | `!` | MIDI control change | channel, controller number, value |
 | `?` | MIDI pitch bend | channel, LSB, MSB |
 
-For `:` and `%`, velocity defaults to `f`, length to `1`, octave to `4`, and channel to `0`. Note letters use the app's transpose table; lowercase notes are sharps. CC values and pitch-bend LSB/MSB inputs are mapped from base-36 `0`–`z` to MIDI `0`–`127`. Channel values above 15 are ignored.
+For `:` and `%`, an empty velocity reads as `f` and an empty length as `1`. The channel, octave and note must be filled in; if any of them is `.`, no note is sent (this is the original Orca behavior, so `:0.C` stays silent). `!` and `?` likewise send nothing while their channel is `.`. Note letters use the app's transpose table; lowercase notes are sharps. CC values and pitch-bend LSB/MSB inputs are mapped from base-36 `0`–`z` to MIDI `0`–`127`. Channel values above 15 are ignored.
 
 ```text
 *:04Cz1    MIDI note
@@ -166,30 +166,30 @@ Uppercase forms evaluate every frame; lowercase forms evaluate on a bang.
 |---|---|---|
 | `A` | add | Left + right; result below |
 | `B` | subtract | Absolute difference of left and right; result below |
-| `C` | clock | Left = rate (default 1), right = modulus (default `z`); outputs frame/rate modulo modulus below |
-| `D` | delay | Left = rate (default 1), right = modulus (default 1); bangs below on the frame modulo `(rate × modulus)` boundary |
+| `C` | clock | Left = rate (minimum 1), right = modulus; outputs frame/rate modulo modulus below. An empty modulus outputs nothing |
+| `D` | delay | Left = rate (minimum 1), right = modulus (minimum 1); bangs below on the frame modulo `(rate × modulus)` boundary |
 | `E` | east | Moves one cell east; bangs if blocked |
 | `F` | if | Bangs below when left and right glyphs match |
 | `G` | generator | Left 3 = x offset, left 2 = y offset, left 1 = length; copies the following operands to the target row |
 | `H` | halt | Reads and locks the operand below |
-| `I` | increment | Left = step (default 1), right = modulus (default `z`); increments the value below |
+| `I` | increment | Left = step, right = modulus; adds step to the value below, modulo modulus. An empty step or modulus leaves it at `0` |
 | `J` | jumper | Outputs the glyph above below itself |
 | `K` | konkat | Left = count; reads that many variable keys on its right and writes their values below |
 | `L` | lesser | Outputs the smaller of left and right below |
-| `M` | multiply | Left × right; result below |
+| `M` | multiply | Left × right; result below. An empty side is `0` |
 | `N` | north | Moves one cell north; bangs if blocked |
 | `O` | read | Left 2 = x offset, left 1 = y offset; outputs the referenced grid glyph below |
 | `P` | push | Left 2 = key, left 1 = list length, right = value; writes the value below at horizontal slot `key modulo length` |
 | `Q` | query | Left 3 = x offset, left 2 = y offset, left 1 = count; reads that many grid cells and writes results below |
-| `R` | random | Left/right = inclusive base-36 range (defaults `0`–`z`); result below |
+| `R` | random | Left/right = inclusive base-36 range (an empty side is `0`); result below |
 | `S` | south | Moves one cell south; bangs if blocked |
 | `T` | track | Left 2 = index key, left 1 = list length; selects the eastward operand at `key modulo length` and outputs it below |
-| `U` | uclid | Left = step count (default 1), right = cycle length (default 4); bangs below on a Euclidean rhythm |
+| `U` | uclid | Left = step count, right = cycle length (minimum 1); bangs below on a Euclidean rhythm. An empty step count never bangs |
 | `V` | variable | Left = write value, right = read key; reads/writes the selected variable and outputs below |
 | `W` | west | Moves one cell west; bangs if blocked |
 | `X` | write | Left 2 = x offset, left 1 = y offset, right = value; writes the value at the selected grid location |
 | `Y` | jymper | Outputs the glyph to the left below itself |
-| `Z` | lerp | Left = transition rate, right = target, below = current value; moves the current value toward target |
+| `Z` | lerp | Left = transition rate, right = target, below = current value; moves the current value toward target. An empty rate does not move |
 
 ## Other built-in operators
 
