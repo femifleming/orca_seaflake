@@ -51,19 +51,35 @@ class CoreMidi {
   refresh () {
     this.devices = []
     for (let i = 0; i < this.output.getPortCount(); i++) this.devices.push(this.output.getPortName(i))
-    if (this.devices.length && this.outputIndex < 0) this.selectOutput(0)
+    // Use the first output that actually opens; one may be busy or broken.
+    if (this.devices.length && this.outputIndex < 0) {
+      for (let i = 0; i < this.devices.length; i++) if (this.selectOutput(i)) break
+    }
   }
+  // Returns true when the port opened. Opening can fail, e.g. on Windows when
+  // another program (often a DAW) already has the device open.
   selectOutput (i) {
     try { if (this.output.isPortOpen()) this.output.closePort() } catch {}
-    this.outputIndex = i
-    if (i >= 0 && this.devices[i]) this.output.openPort(i)
+    this.outputIndex = -1
+    this.failedPort = null
+    if (i < 0 || !this.devices[i]) return false
+    try {
+      this.output.openPort(i)
+      this.outputIndex = i
+      return true
+    } catch (e) {
+      this.failedPort = this.devices[i]
+      return false
+    }
   }
   outputDevice () { return this.outputIndex >= 0 ? { name: this.devices[this.outputIndex] } : null }
   statusLabel () {
     if (!midi) return 'MIDI UNAVAILABLE (native module not built)'
     if (this.openError) return 'MIDI UNAVAILABLE (could not open the OS MIDI system)'
     const d = this.outputDevice()
-    return d ? `${this.outputIndex}: ${d.name}` : 'no output found'
+    if (d) return `${this.outputIndex}: ${d.name}`
+    if (this.devices.length) return 'no output open (Ctrl-K, midi: -1)'
+    return 'no output found'
   }
   send (bytes) { if (this.output.isPortOpen()) this.output.sendMessage(bytes) }
   transpose (note, octave = 3) {
@@ -447,7 +463,8 @@ function runGridCommand (input) {
     if (!midi) { state.message = `MIDI UNAVAILABLE: ${midiLoadError?.message?.split('\n')[0] || 'native module missing'}`; return false }
     if (!midiOut.devices.length) { state.message = `NO MIDI OUTPUTS. ${platform.midiSetupHint()}`; return false }
     if (value < 0 || value >= midiOut.devices.length) { state.message = `MIDI OUTPUTS: ${midiOut.devices.map((d, i) => `${i}=${d}`).join('  ')}`; return false }
-    midiOut.silence(); midiOut.selectOutput(value)
+    midiOut.silence()
+    if (!midiOut.selectOutput(value)) { state.message = `COULD NOT OPEN ${midiOut.devices[value]}. IS ANOTHER APP USING IT?`; return false }
     state.message = `MIDI OUTPUT ${value}: ${midiOut.devices[value]}`
     return true
   }
@@ -602,6 +619,7 @@ process.stdout.on('resize', () => { resizeGrid(); draw() })
 process.on('SIGTERM', shutdown)
 process.on('exit', () => { try { midiOut.close() } catch {} })
 if (!midi) state.message = `NO MIDI: native module failed to load. Run \`npm rebuild midi\` in the terminal folder. Editing still works.`
+else if (midiOut.devices.length && !midiOut.outputDevice()) state.message = `COULD NOT OPEN ANY MIDI OUTPUT (another app may be using it). Ctrl-K then "midi: -1" to retry.`
 else if (midiOut.openError) state.message = `NO MIDI: ${midiOut.openError.message.split('\n')[0]}. Editing still works.`
 else if (!midiOut.devices.length) state.message = `NO MIDI OUTPUTS FOUND. ${platform.midiSetupHint()}`
 else state.message = `Ctrl-K then "midi: -1" lists MIDI outputs, "midi: 2" picks output 2`
