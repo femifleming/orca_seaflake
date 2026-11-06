@@ -22,8 +22,27 @@ function Song (client) {
   const blank = () => ({ slots: Array(N).fill(null), mode: 0, loop: 1 })
 
   // Validates a song from localStorage or a file, returns null if it is not one
+  // Early Song Mode builds saved { format: 'orca-seaflake-song', patterns: [...] }
+  // with each grid as one long line. Convert that to the slot format.
+  const fromPatterns = (j) => {
+    const modes = { forward: 0, ordered: 0, order: 0, reverse: 1, backward: 1, random: 2, shuffle: 2 }
+    const order = typeof j.order === 'string' ? modes[j.order.toLowerCase()] : undefined
+    return {
+      mode: order !== undefined ? order : j.mode,
+      loop: j.loop,
+      slots: j.patterns.map((pt) => {
+        if (!pt || typeof pt.patch !== 'string') { return null }
+        const w = pt.width | 0
+        let p = pt.patch
+        if (p.indexOf('\n') < 0 && w > 0 && p.length > w) { p = p.match(new RegExp(`.{1,${w}}`, 'g')).join('\n') }
+        return { len: pt.steps | 0, mul: 1, bpm: (pt.tempo | 0) || (j.tempo | 0) || 120, p }
+      })
+    }
+  }
+
   const clean = (j) => {
     if (!j) { return null }
+    if (!Array.isArray(j.slots) && Array.isArray(j.patterns)) { j = fromPatterns(j) }
     // Support { slots: [...] } as well as legacy or custom format
     const srcSlots = Array.isArray(j.slots) ? j.slots : Array.isArray(j.rows) ? j.rows : null
     if (!srcSlots) { return null }
@@ -67,7 +86,7 @@ function Song (client) {
   }
 
   const pack = (d) => JSON.stringify({
-    orcaSong: 1,
+    orcaSong: 2,
     mode: d.mode,
     loop: d.loop,
     slots: d.slots.map((s) => s && { len: s.len, mul: s.mul, bpm: s.bpm, p: s.p.split('\n') })

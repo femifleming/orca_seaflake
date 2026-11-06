@@ -99,8 +99,8 @@ Examples:
 | `[` / `]` | Select song bank (1 to 16) |
 | `W` | Save current song to selected bank in local storage |
 | `R` | Recall song from selected bank in local storage |
-| `E` | Export song as a `.song` file (native macOS Save Dialog) |
-| `I` | Import song from a `.song` file (native macOS Open Dialog) |
+| `E` | Export song as a `.song` file (opens a save dialog) |
+| `I` | Import song from a `.song` file (opens a file dialog) |
 | `Escape` | Unfocus and slide song tracker away |
 
 ---
@@ -116,3 +116,9 @@ Examples:
 | Stop Song Sequencing | - | `song:stop` |
 | Orca Clock Play/Pause | `Space` (when on grid) | `play` / `stop` |
 | Drag & Drop Song File | Drag any `.song` file into window | - |
+
+---
+
+## Song Files
+
+`.song` files are plain JSON and open in both the desktop app and the [terminal version](../terminal/README.md). Older files open too: songs saved with bars and 16ths are converted to `LEN`, and `.orca-song` files from early Song Mode builds load with one slot per pattern.

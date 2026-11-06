@@ -215,13 +215,15 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
 
-      - name: Install ALSA headers (Linux)
+      - name: Install the ALSA runtime, as the README says (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+        run: sudo apt-get update && sudo apt-get install -y alsa-utils
 
       - name: Run tests from source
+        shell: bash
         working-directory: terminal
         run: |
+          set -euo pipefail
           npm ci
           npm test
 
@@ -254,11 +256,13 @@ jobs:
         if: matrix.platform == 'linux/arm/v7'
         uses: docker/setup-qemu-action@v3
 
+      # No compilers are installed here on purpose: the install must use the
+      # prebuilt MIDI binary, exactly as the README promises.
       - name: Follow the README install steps in a fresh system
         run: |
           docker run --rm --platform ${{ matrix.platform }} -v "$PWD:/src" -w /src/terminal ${{ matrix.image }} bash -euxc '
             apt-get update
-            apt-get install -y nodejs npm build-essential python3 libasound2-dev
+            apt-get install -y nodejs npm alsa-utils
             node -v
             npm ci
             npm test

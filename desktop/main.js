@@ -8,6 +8,12 @@ const path = require('path')
 
 let isShown = true
 
+// Electron 11 quits with "GPU process isn't usable" on machines without a
+// working GPU (virtual machines, some Linux drivers, some Raspberry Pi setups).
+// Orca draws a simple 2D grid, so software rendering is plenty. This matches
+// the --disable-gpu flag that `npm start` already passes.
+app.disableHardwareAcceleration()
+
 app.win = null
 
 // Native file dialogs for Song Mode tracker files (.song JSON).

@@ -19,7 +19,8 @@
     "sign:mac:adhoc": "node scripts/sign-mac-adhoc.js",
     "package:windows:x64": "electron-packager . Orca-Seaflake --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --executable-name=orca-seaflake",
     "package:linux:x64": "electron-packager . Orca-Seaflake --platform=linux --arch=x64 --out=dist --overwrite --executable-name=orca-seaflake",
-    "package:linux:arm64": "electron-packager . Orca-Seaflake --platform=linux --arch=arm64 --out=dist --overwrite --executable-name=orca-seaflake"
+    "package:linux:arm64": "electron-packager . Orca-Seaflake --platform=linux --arch=arm64 --out=dist --overwrite --executable-name=orca-seaflake",
+    "app:mac": "sh scripts/make-mac-app.sh"
   },
   "devDependencies": {
     "@electron/osx-sign": "1.3.3",
