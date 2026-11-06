@@ -252,6 +252,8 @@ console.assert(patternSong && patternSong.slots.filter(Boolean).length === 6, 'E
 console.assert(patternSong.slots[0].len === 12 && patternSong.slots[0].bpm === 120, 'Pattern 01 becomes len 12 at 120 BPM')
 console.assert(patternSong.slots[5].bpm === 60, 'Pattern 06 keeps its own 60 BPM')
 console.assert(patternSong.slots[0].p.split('\n').length === 42 && patternSong.slots[0].p.split('\n')[0].length === 78, 'Pattern grid is cut back into 42 rows of 78')
+const barsSong = song.clean(JSON.parse(fs.readFileSync(path.join(songsDir, 'untitled2.song'), 'utf8')))
+console.assert(barsSong && barsSong.slots.filter(Boolean).length === 5 && barsSong.slots[0].len === 17 && barsSong.slots[0].bpm === 90, 'Oldest bars/16ths song opens: slot 1 is 17 frames at 90 BPM')
 console.log('✔ Test 11: Real song files from patches/songs open')
 
 if (failures) {

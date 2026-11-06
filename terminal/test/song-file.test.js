@@ -28,6 +28,12 @@ test('oldest format (bars + 16ths) converts to frames', () => {
   assert.deepStrictEqual([s.slots[0].len, s.slots[0].mul, s.slots[0].bpm, s.mode], [36, 1, 130, 1])
 })
 
+test('oldest-format file saved by the desktop app opens', () => {
+  const s = parseSong(read('untitled2.song'))
+  assert.strictEqual(s.slots.filter(Boolean).length, 5)
+  assert.deepStrictEqual([s.slots[0].len, s.slots[0].mul, s.slots[0].bpm], [17, 1, 90])
+})
+
 test('early pattern format (.orca-song) opens', () => {
   const s = parseSong(read('testingsongmode-26V04-811047.orca-song'))
   assert.strictEqual(s.slots.filter(Boolean).length, 6)
