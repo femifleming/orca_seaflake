@@ -20,8 +20,8 @@ library.a = function OperatorA (orca, x, y, passive) {
   this.name = 'add'
   this.info = 'Outputs sum of inputs'
 
-  this.ports.a = { x: -1, y: 0, default: '0' }
-  this.ports.b = { x: 1, y: 0, default: '0' }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -37,8 +37,8 @@ library.b = function OperatorB (orca, x, y, passive) {
   this.name = 'subtract'
   this.info = 'Outputs difference of inputs'
 
-  this.ports.a = { x: -1, y: 0, default: '0' }
-  this.ports.b = { x: 1, y: 0, default: '0' }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -54,8 +54,8 @@ library.c = function OperatorC (orca, x, y, passive) {
   this.name = 'clock'
   this.info = 'Outputs modulo of frame'
 
-  this.ports.rate = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
-  this.ports.mod = { x: 1, y: 0, default: 'z' }
+  this.ports.rate = { x: -1, y: 0, clamp: { min: 1 } }
+  this.ports.mod = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -72,8 +72,8 @@ library.d = function OperatorD (orca, x, y, passive) {
   this.name = 'delay'
   this.info = 'Bangs on modulo of frame'
 
-  this.ports.rate = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
-  this.ports.mod = { x: 1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.rate = { x: -1, y: 0, clamp: { min: 1 } }
+  this.ports.mod = { x: 1, y: 0, clamp: { min: 1 } }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
   this.operation = function (force = false) {
@@ -177,8 +177,8 @@ library.f = function OperatorF (orca, x, y, passive) {
   this.name = 'if'
   this.info = 'Bangs if inputs are equal'
 
-  this.ports.a = { x: -1, y: 0, default: '0' }
-  this.ports.b = { x: 1, y: 0, default: '0' }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
   this.operation = function (force = false) {
@@ -194,9 +194,9 @@ library.g = function OperatorG (orca, x, y, passive) {
   this.name = 'generator'
   this.info = 'Writes operands with offset'
 
-  this.ports.x = { x: -3, y: 0, default: '0' }
-  this.ports.y = { x: -2, y: 0, default: '0' }
-  this.ports.len = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.x = { x: -3, y: 0 }
+  this.ports.y = { x: -2, y: 0 }
+  this.ports.len = { x: -1, y: 0, clamp: { min: 1 } }
 
   this.operation = function (force = false) {
     const len = this.listen(this.ports.len, true)
@@ -233,8 +233,8 @@ library.i = function OperatorI (orca, x, y, passive) {
   this.name = 'increment'
   this.info = 'Increments southward operand'
 
-  this.ports.step = { x: -1, y: 0, default: '1' }
-  this.ports.mod = { x: 1, y: 0, default: 'z' }
+  this.ports.step = { x: -1, y: 0 }
+  this.ports.mod = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, reader: true, output: true }
 
   this.operation = function (force = false) {
@@ -271,7 +271,7 @@ library.k = function OperatorK (orca, x, y, passive) {
   this.name = 'konkat'
   this.info = 'Reads multiple variables'
 
-  this.ports.len = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.len = { x: -1, y: 0, clamp: { min: 1 } }
 
   this.operation = function (force = false) {
     this.len = this.listen(this.ports.len, true)
@@ -295,8 +295,8 @@ library.l = function OperatorL (orca, x, y, passive) {
   this.name = 'lesser'
   this.info = 'Outputs smallest input'
 
-  this.ports.a = { x: -1, y: 0, default: '0' }
-  this.ports.b = { x: 1, y: 0, default: '0' }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -312,8 +312,8 @@ library.m = function OperatorM (orca, x, y, passive) {
   this.name = 'multiply'
   this.info = 'Outputs product of inputs'
 
-  this.ports.a = { x: -1, y: 0, default: '1' }
-  this.ports.b = { x: 1, y: 0, default: '1' }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -342,8 +342,8 @@ library.o = function OperatorO (orca, x, y, passive) {
   this.name = 'read'
   this.info = 'Reads operand with offset'
 
-  this.ports.x = { x: -2, y: 0, default: '0' }
-  this.ports.y = { x: -1, y: 0, default: '0' }
+  this.ports.x = { x: -2, y: 0 }
+  this.ports.y = { x: -1, y: 0 }
   this.ports.output = { x: 0, y: 1, output: true }
 
   this.operation = function (force = false) {
@@ -360,8 +360,8 @@ library.p = function OperatorP (orca, x, y, passive) {
   this.name = 'push'
   this.info = 'Writes eastward operand'
 
-  this.ports.key = { x: -2, y: 0, default: '0' }
-  this.ports.len = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.key = { x: -2, y: 0 }
+  this.ports.len = { x: -1, y: 0, clamp: { min: 1 } }
   this.ports.val = { x: 1, y: 0 }
 
   this.operation = function (force = false) {
@@ -381,9 +381,9 @@ library.q = function OperatorQ (orca, x, y, passive) {
   this.name = 'query'
   this.info = 'Reads operands with offset'
 
-  this.ports.x = { x: -3, y: 0, default: '0' }
-  this.ports.y = { x: -2, y: 0, default: '0' }
-  this.ports.len = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.x = { x: -3, y: 0 }
+  this.ports.y = { x: -2, y: 0 }
+  this.ports.len = { x: -1, y: 0, clamp: { min: 1 } }
 
   this.operation = function (force = false) {
     const len = this.listen(this.ports.len, true)
@@ -406,16 +406,18 @@ library.r = function OperatorR (orca, x, y, passive) {
   this.name = 'random'
   this.info = 'Outputs random value'
 
-  this.ports.a = { x: -1, y: 0, default: '0', clamp: { min: 0, max: 35 } }
-  this.ports.b = { x: 1, y: 0, default: 'z', clamp: { min: 0, max: 35 } }
+  this.ports.a = { x: -1, y: 0 }
+  this.ports.b = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
     const a = this.listen(this.ports.a, true)
     const b = this.listen(this.ports.b, true)
-    const min = Math.min(a, b)
-    const max = Math.max(a, b)
-    return orca.keyOf(Math.floor(Math.random() * (max - min + 1) + min))
+    if(a == b)
+        return orca.keyOf(a)
+    if(a > b)
+        return orca.keyOf(parseInt(Math.random() * (a - b + 1) + b))
+    return orca.keyOf(parseInt(Math.random() * (b - a + 1) + a))
   }
 }
 
@@ -438,8 +440,8 @@ library.t = function OperatorT (orca, x, y, passive) {
   this.name = 'track'
   this.info = 'Reads eastward operand'
 
-  this.ports.key = { x: -2, y: 0, default: '0' }
-  this.ports.len = { x: -1, y: 0, default: '1', clamp: { min: 1 } }
+  this.ports.key = { x: -2, y: 0 }
+  this.ports.len = { x: -1, y: 0, clamp: { min: 1 } }
   this.ports.output = { x: 0, y: 1, output: true }
 
   this.operation = function (force = false) {
@@ -459,8 +461,8 @@ library.u = function OperatorU (orca, x, y, passive) {
   this.name = 'uclid'
   this.info = 'Bangs on Euclidean rhythm'
 
-  this.ports.step = { x: -1, y: 0, default: '1', clamp: { min: 0 } }
-  this.ports.max = { x: 1, y: 0, default: '4', clamp: { min: 1 } }
+  this.ports.step = { x: -1, y: 0, clamp: { min: 0 } }
+  this.ports.max = { x: 1, y: 0, clamp: { min: 1 } }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
   this.operation = function (force = false) {
@@ -513,8 +515,8 @@ library.x = function OperatorX (orca, x, y, passive) {
   this.name = 'write'
   this.info = 'Writes operand with offset'
 
-  this.ports.x = { x: -2, y: 0, default: '0' }
-  this.ports.y = { x: -1, y: 0, default: '0' }
+  this.ports.x = { x: -2, y: 0 }
+  this.ports.y = { x: -1, y: 0 }
   this.ports.val = { x: 1, y: 0 }
 
   this.operation = function (force = false) {
@@ -551,8 +553,8 @@ library.z = function OperatorZ (orca, x, y, passive) {
   this.name = 'lerp'
   this.info = 'Transitions operand to target'
 
-  this.ports.rate = { x: -1, y: 0, default: '1' }
-  this.ports.target = { x: 1, y: 0, default: '0' }
+  this.ports.rate = { x: -1, y: 0 }
+  this.ports.target = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, reader: true, output: true }
 
   this.operation = function (force = false) {
@@ -598,7 +600,7 @@ library['#'] = function OperatorComment (orca, x, y, passive) {
 // IO
 
 library.$ = function OperatorSelf (orca, x, y, passive) {
-  Operator.call(this, orca, x, y, '$', true)
+  Operator.call(this, orca, x, y, '*', true)
 
   this.name = 'self'
   this.info = 'Sends ORCA command'
@@ -616,7 +618,7 @@ library.$ = function OperatorSelf (orca, x, y, passive) {
     if (msg === '') { return }
 
     this.draw = false
-    client.commander.trigger(`${msg}`, { x: this.x, y: this.y + 1 }, false)
+    client.commander.trigger(`${msg}`, { x, y: y + 1 }, false)
   }
 }
 
@@ -625,8 +627,8 @@ library[':'] = function OperatorMidi (orca, x, y, passive) {
 
   this.name = 'midi'
   this.info = 'Sends MIDI note'
-  this.ports.channel = { x: 1, y: 0, default: '0' }
-  this.ports.octave = { x: 2, y: 0, default: '4', clamp: { min: 0, max: 8 } }
+  this.ports.channel = { x: 1, y: 0 }
+  this.ports.octave = { x: 2, y: 0, clamp: { min: 0, max: 8 } }
   this.ports.note = { x: 3, y: 0 }
   this.ports.velocity = { x: 4, y: 0, default: 'f', clamp: { min: 0, max: 16 } }
   this.ports.length = { x: 5, y: 0, default: '1', clamp: { min: 0, max: 32 } }
@@ -645,10 +647,10 @@ library[':'] = function OperatorMidi (orca, x, y, passive) {
     const velocity = this.listen(this.ports.velocity, true)
     const length = this.listen(this.ports.length, true)
 
-    const item = client.io.midi.push(channel, octave, note, velocity, length)
+    client.io.midi.push(channel, octave, note, velocity, length)
 
     if (force === true) {
-      client.io.midi.runItem(item)
+      client.io.midi.run()
     }
 
     this.draw = false
@@ -801,9 +803,9 @@ library['!'] = function OperatorCC (orca, x, y) {
 
   this.name = 'cc'
   this.info = 'Sends MIDI control change'
-  this.ports.channel = { x: 1, y: 0, default: '0' }
-  this.ports.knob = { x: 2, y: 0, default: '0', clamp: { min: 0 } }
-  this.ports.value = { x: 3, y: 0, default: '0', clamp: { min: 0 } }
+  this.ports.channel = { x: 1, y: 0 }
+  this.ports.knob = { x: 2, y: 0, clamp: { min: 0 } }
+  this.ports.value = { x: 3, y: 0, clamp: { min: 0 } }
 
   this.operation = function (force = false) {
     if (!this.hasNeighbor('*') && force === false) { return }
@@ -831,9 +833,9 @@ library['?'] = function OperatorPB (orca, x, y) {
 
   this.name = 'pb'
   this.info = 'Sends MIDI pitch bend'
-  this.ports.channel = { x: 1, y: 0, default: '0', clamp: { min: 0, max: 15 } }
-  this.ports.lsb = { x: 2, y: 0, default: '0', clamp: { min: 0 } }
-  this.ports.msb = { x: 3, y: 0, default: '0', clamp: { min: 0 } }
+  this.ports.channel = { x: 1, y: 0, clamp: { min: 0, max: 15 } }
+  this.ports.lsb = { x: 2, y: 0, clamp: { min: 0 } }
+  this.ports.msb = { x: 3, y: 0, clamp: { min: 0 } }
 
   this.operation = function (force = false) {
     if (!this.hasNeighbor('*') && force === false) { return }
@@ -861,8 +863,8 @@ library['%'] = function OperatorMono (orca, x, y, passive) {
 
   this.name = 'mono'
   this.info = 'Sends MIDI monophonic note'
-  this.ports.channel = { x: 1, y: 0, default: '0' }
-  this.ports.octave = { x: 2, y: 0, default: '4', clamp: { min: 0, max: 8 } }
+  this.ports.channel = { x: 1, y: 0 }
+  this.ports.octave = { x: 2, y: 0, clamp: { min: 0, max: 8 } }
   this.ports.note = { x: 3, y: 0 }
   this.ports.velocity = { x: 4, y: 0, default: 'f', clamp: { min: 0, max: 16 } }
   this.ports.length = { x: 5, y: 0, default: '1', clamp: { min: 0, max: 32 } }
