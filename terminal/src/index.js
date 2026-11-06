@@ -31,8 +31,16 @@ const state = { x: 0, y: 0, bpm: 120, playing: false, insert: false, message: ''
 
 class CoreMidi {
   constructor () {
-    this.output = midi ? new midi.Output() : new NoMidiPort()
-    this.input = midi ? new midi.Input() : new NoMidiPort()
+    // Opening the OS MIDI system can throw, e.g. on Linux without an ALSA
+    // sequencer (/dev/snd/seq). Fall back to no MIDI instead of crashing.
+    try {
+      this.output = midi ? new midi.Output() : new NoMidiPort()
+      this.input = midi ? new midi.Input() : new NoMidiPort()
+    } catch (e) {
+      this.openError = e
+      this.output = new NoMidiPort()
+      this.input = new NoMidiPort()
+    }
     this.stack = []
     this.sequences = new Map()
     this.devices = []
@@ -52,6 +60,7 @@ class CoreMidi {
   outputDevice () { return this.outputIndex >= 0 ? { name: this.devices[this.outputIndex] } : null }
   statusLabel () {
     if (!midi) return 'MIDI UNAVAILABLE (native module not built)'
+    if (this.openError) return 'MIDI UNAVAILABLE (could not open the OS MIDI system)'
     const d = this.outputDevice()
     return d ? `${this.outputIndex}: ${d.name}` : 'no output found'
   }
@@ -592,6 +601,7 @@ process.stdout.on('resize', () => { resizeGrid(); draw() })
 process.on('SIGTERM', shutdown)
 process.on('exit', () => { try { midiOut.close() } catch {} })
 if (!midi) state.message = `NO MIDI: native module failed to load. Run \`npm rebuild midi\` in the terminal folder. Editing still works.`
+else if (midiOut.openError) state.message = `NO MIDI: ${midiOut.openError.message.split('\n')[0]}. Editing still works.`
 else if (!midiOut.devices.length) state.message = `NO MIDI OUTPUTS FOUND. ${platform.midiSetupHint()}`
 else state.message = `Ctrl-K then "midi: -1" lists MIDI outputs, "midi: 2" picks output 2`
 try { if (process.argv[2]) openFile(process.argv[2]) } catch (e) { state.message = e.message }

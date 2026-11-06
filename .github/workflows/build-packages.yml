@@ -1,4 +1,4 @@
-name: Build packages
+name: Build and test
 
 on:
   push:
@@ -61,12 +61,16 @@ jobs:
         working-directory: desktop
         run: npm ci
 
+      - name: Run desktop tests
+        working-directory: desktop
+        run: npm test
+
       - name: Package application
         working-directory: desktop
         run: npm run "${{ matrix.script }}"
 
       - name: Apply an ad-hoc signature and verify macOS application
-        if: matrix.kind == 'mac' && startsWith(github.ref, 'refs/tags/v')
+        if: matrix.kind == 'mac'
         working-directory: desktop
         run: npm run sign:mac:adhoc -- "dist/Orca-Seaflake-darwin-${{ matrix.arch }}/Orca-Seaflake.app"
 
@@ -119,6 +123,33 @@ jobs:
           tar -czf "artifacts/Orca-Seaflake-${version}-linux-${{ matrix.arch }}.tar.gz" -C desktop/dist "Orca-Seaflake-linux-${{ matrix.arch }}"
           ./desktop/scripts/package-deb.sh "$app_dir" "${{ matrix.deb_arch }}" "../artifacts/orca-seaflake_${version}_${{ matrix.deb_arch }}.deb"
 
+      - name: Install the macOS .pkg and launch the app
+        if: matrix.kind == 'mac'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo installer -pkg artifacts/*.pkg -target /
+          test -d /Applications/Orca-Seaflake.app
+          /Applications/Orca-Seaflake.app/Contents/MacOS/Orca-Seaflake > launch.log 2>&1 &
+          pid=$!
+          sleep 20
+          if ! kill -0 "$pid" 2>/dev/null; then echo "App exited during launch:"; cat launch.log; exit 1; fi
+          kill "$pid"
+          echo "Launched and stayed running for 20s"
+
+      - name: Unzip the Windows build and launch the app
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: |
+          Expand-Archive -Path (Get-Item artifacts/*.zip).FullName -DestinationPath "$env:RUNNER_TEMP/orca"
+          $exe = Get-ChildItem -Path "$env:RUNNER_TEMP/orca" -Recurse -Filter orca-seaflake.exe | Select-Object -First 1
+          if (-not $exe) { throw 'orca-seaflake.exe not found in the zip' }
+          $p = Start-Process -FilePath $exe.FullName -PassThru
+          Start-Sleep -Seconds 20
+          if ($p.HasExited) { throw "App exited during launch with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          Write-Output 'Launched and stayed running for 20s'
+
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
@@ -128,10 +159,118 @@ jobs:
           retention-days: 30
 
 
+  desktop-linux-install:
+    name: install .deb on ${{ matrix.runner }}
+    needs: package
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-22.04, arch: x64 }
+          - { runner: ubuntu-24.04, arch: x64 }
+          - { runner: ubuntu-22.04-arm, arch: arm64 }
+          - { runner: ubuntu-24.04-arm, arch: arm64 }
+    steps:
+      - name: Download the Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          name: Orca-Seaflake-linux-${{ matrix.arch }}-${{ github.run_number }}
+          path: artifacts
+
+      - name: Install with apt, exactly as the README says, and launch
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ./artifacts/*.deb xvfb xauth
+          command -v orca-seaflake
+          test -f /usr/share/applications/orca-seaflake.desktop
+          xvfb-run -a orca-seaflake > launch.log 2>&1 &
+          sleep 25
+          if ! pgrep -f /usr/lib/orca-seaflake/orca-seaflake > /dev/null; then echo "App exited during launch:"; cat launch.log; exit 1; fi
+          pkill -f /usr/lib/orca-seaflake/orca-seaflake || true
+          echo "Launched and stayed running for 25s"
+
+  terminal:
+    name: terminal ${{ matrix.os }} node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, node: 20 }
+          - { os: macos-15-intel, node: 20 }
+          - { os: macos-15, node: 24 }
+          - { os: windows-latest, node: 20 }
+          - { os: windows-latest, node: 22 }
+          - { os: ubuntu-22.04, node: 18 }
+          - { os: ubuntu-24.04, node: 22 }
+          - { os: ubuntu-24.04, node: 24 }
+          - { os: ubuntu-24.04-arm, node: 20 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install ALSA headers (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+
+      - name: Run tests from source
+        working-directory: terminal
+        run: |
+          npm ci
+          npm test
+
+      - name: Pack, then install globally the way users do
+        shell: bash
+        working-directory: terminal
+        run: |
+          set -euo pipefail
+          tgz="$(npm pack --silent)"
+          npm install -g "./$tgz"
+          orca-seaflake --version
+          test "$(orca-seaflake --version)" = "$(node -p "require('./package.json').version")"
+          orca-seaflake --midi
+          orca-seaflake --help
+
+  terminal-raspberry-pi:
+    name: terminal ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Raspberry Pi OS 64-bit (bookworm)', image: 'debian:bookworm', platform: linux/arm64, runner: ubuntu-24.04-arm }
+          - { name: 'Raspberry Pi OS 64-bit (trixie)', image: 'debian:trixie', platform: linux/arm64, runner: ubuntu-24.04-arm }
+          - { name: 'Raspberry Pi OS 32-bit (trixie, emulated)', image: 'debian:trixie', platform: linux/arm/v7, runner: ubuntu-24.04 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up ARM emulation
+        if: matrix.platform == 'linux/arm/v7'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Follow the README install steps in a fresh system
+        run: |
+          docker run --rm --platform ${{ matrix.platform }} -v "$PWD:/src" -w /src/terminal ${{ matrix.image }} bash -euxc '
+            apt-get update
+            apt-get install -y nodejs npm build-essential python3 libasound2-dev
+            node -v
+            npm ci
+            npm test
+            npm install -g "./$(npm pack --silent)"
+            orca-seaflake --version
+            orca-seaflake --midi
+          '
+
   release:
     name: Publish release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: package
+    needs: [package, desktop-linux-install, terminal, terminal-raspberry-pi]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -145,15 +284,28 @@ jobs:
           path: release-assets
           merge-multiple: true
 
-      - name: Add stable macOS download names
+      - name: Add stable download names (used by the README's direct links and Homebrew)
         shell: bash
         run: |
+          set -euo pipefail
           version="$(node -p "require('./desktop/package.json').version")"
           test "${GITHUB_REF_NAME}" = "v${version}"
-          cp "release-assets/Orca-Seaflake-${version}-darwin-arm64.zip" "release-assets/Orca-Seaflake-darwin-arm64.zip"
-          cp "release-assets/Orca-Seaflake-${version}-darwin-x64.zip" "release-assets/Orca-Seaflake-darwin-x64.zip"
-          cp "release-assets/Orca-Seaflake-${version}-darwin-arm64.pkg" "release-assets/Orca-Seaflake-darwin-arm64.pkg"
-          cp "release-assets/Orca-Seaflake-${version}-darwin-x64.pkg" "release-assets/Orca-Seaflake-darwin-x64.pkg"
+          test "$(node -p "require('./terminal/package.json').version")" = "${version}"
+          cd release-assets
+          for f in darwin-arm64.zip darwin-x64.zip darwin-arm64.pkg darwin-x64.pkg win32-x64.zip linux-x64.tar.gz linux-arm64.tar.gz; do
+            cp "Orca-Seaflake-${version}-${f}" "Orca-Seaflake-${f}"
+          done
+          cp "orca-seaflake_${version}_amd64.deb" "orca-seaflake_amd64.deb"
+          cp "orca-seaflake_${version}_arm64.deb" "orca-seaflake_arm64.deb"
+
+      - name: Pack the terminal version
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd terminal
+          tgz="$(npm pack --silent)"
+          cp "$tgz" "../release-assets/$tgz"
+          cp "$tgz" ../release-assets/orca-seaflake-terminal.tgz
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2

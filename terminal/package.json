@@ -1,12 +1,32 @@
 {
   "name": "orca-seaflake-terminal",
-  "version": "0.7.0",
-  "private": false,
+  "version": "0.8.0",
   "description": "Terminal Orca Seaflake for macOS, Windows and Linux / Raspberry Pi OS, with Song Mode and MIDI output",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/femifleming/orca_seaflake.git",
+    "directory": "terminal"
+  },
+  "homepage": "https://github.com/femifleming/orca_seaflake/tree/main/terminal",
+  "keywords": [
+    "orca",
+    "livecoding",
+    "sequencer",
+    "midi",
+    "terminal",
+    "raspberry-pi"
+  ],
   "main": "src/index.js",
   "bin": {
     "orca-seaflake": "bin/orca-seaflake"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE.md"
+  ],
   "scripts": {
     "start": "node src/index.js",
     "test": "node --test"
