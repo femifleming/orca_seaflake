@@ -4,3 +4,4 @@ outputs/
 artifacts/
 .DS_Store
 *.log
+terminal/node_modules/

@@ -1,0 +1,20 @@
+{
+  "name": "orca-seaflake-terminal",
+  "version": "0.7.0",
+  "private": false,
+  "description": "Terminal Orca Seaflake for macOS, Windows and Linux / Raspberry Pi OS, with Song Mode and MIDI output",
+  "main": "src/index.js",
+  "bin": {
+    "orca-seaflake": "bin/orca-seaflake"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "midi": "^2.0.0"
+  }
+}
