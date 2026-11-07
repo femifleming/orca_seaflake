@@ -64,7 +64,7 @@ class OrcaSeaflakeTerminal < Formula
   license "MIT"
 
   livecheck do
-    url :homepage
+    url :stable
     strategy :github_latest
   end
 
