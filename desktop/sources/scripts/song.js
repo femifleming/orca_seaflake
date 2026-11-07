@@ -300,7 +300,7 @@ function Song (client) {
     client.update()
   }
 
-  // the panel stays inside the grid rows (0..o.h-1) so the footer below is never covered
+  // the panel stays above the footer (rows 0..client.footerRow()-1) so it is never covered
   this.help = (h) => h >= 15 ? 3 : 2
   this.rows = (h) => Math.max(1, h - 5 - this.help(h))
 
@@ -338,9 +338,10 @@ function Song (client) {
     }
     this.focus = true
     const rx = mx - (x0 + 1)
-    if (my >= o.h) { return }
-    if (my >= 5 && my < 5 + this.rows(o.h)) {
-      const vr = this.rows(o.h)
+    const vh = client.footerRow()
+    if (my >= vh) { return }
+    if (my >= 5 && my < 5 + this.rows(vh)) {
+      const vr = this.rows(vh)
       const top = clamp(this.r - (vr >> 1), 0, Math.max(0, N - vr))
       const row = top + (my - 5)
       if (row >= 0 && row < N) {
@@ -369,9 +370,12 @@ function Song (client) {
     const vis = Math.min(o.w, Math.ceil((window.innerWidth - 60) / t.w))
     const x0 = Math.max(0, vis - this.cols)
     const w = (s, x, y, ty) => client.write(s, x0 + 1 + x, y, 99, ty)
-    client.context.clearRect(x0 * t.ws, 0, client.el.width, o.h * t.hs)
-    // Draw cyan edge vertical dividing bar
-    for (let y = 0; y < o.h; y++) { client.drawSprite(x0, y, ' ', 0) }
+    const vh = client.footerRow()
+    client.context.clearRect(x0 * t.ws, 0, client.el.width, vh * t.hs)
+    // Thin 2px edge line on the panel's left side, in the operator color
+    const line = Math.max(1, Math.round(2 * client.scale))
+    client.context.fillStyle = client.theme.active.b_med
+    client.context.fillRect((x0 + 1) * t.ws - line - Math.round(t.ws / 4), 0, line, vh * t.hs)
     const hd = this.focus ? 4 : 3
     w(' '.repeat(W - 1), 0, 0, hd)
     const state = this.on ? 'PLAY' : 'STOP'
@@ -387,7 +391,7 @@ function Song (client) {
     }
     w(this.msg, 0, 3, 11)
     w('  # LEN MUL BPM PATCH', 0, 4, 5)
-    const vr = this.rows(o.h)
+    const vr = this.rows(vh)
     const top = clamp(this.r - (vr >> 1), 0, Math.max(0, N - vr))
     for (let k = 0; k < vr && top + k < N; k++) {
       const i = top + k
@@ -402,8 +406,8 @@ function Song (client) {
       if (s) { w(snip(s), 16, y, 5) }
     }
     // Key help: the key in bright text, what it does in dim text, in grid-aligned columns
-    const rows = this.help(o.h) === 3 ? HELP : HELP_SHORT
-    const hy = o.h - rows.length
+    const rows = this.help(vh) === 3 ? HELP : HELP_SHORT
+    const hy = vh - rows.length
     rows.forEach((row, j) => {
       const cw = Math.floor((W - 1) / row.length)
       row.forEach(([key, label], c) => {

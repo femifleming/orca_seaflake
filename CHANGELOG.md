@@ -17,7 +17,8 @@ Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seafla
 - The panel's header shows the song's name, and its key help is laid out in grid-aligned columns. The terminal version's Song Mode screen matches.
 - Slot notes written in the terminal version are kept when the song is opened and saved in the desktop app.
 - New slots in the terminal version default to `LEN 16`, as in the desktop app.
-- The panel no longer covers the footer at the bottom of the window.
+- The footer at the bottom of the window stays visible when a patch or song slot is taller than the window (it used to be pushed off-screen when a slot loaded). The Song Mode panel never covers it.
+- The panel's edge is a thin 2-pixel line instead of a full-width bar.
 - `Cmd+T` alone opens Song Mode; `Cmd+M` minimizes the window again.
 - `.orca-song` files can be dragged onto the window, and a dropped song no longer loads twice.
 - Fixed: the `song:mode`, `song:save` and `song:open` commands did nothing.

@@ -300,6 +300,13 @@ function Client () {
 
   // Canvas
 
+  // Row the footer is drawn on: the grid's last row + 1, or higher when the grid
+  // is taller than the window (same sizing as resize(): two rows kept for the footer).
+  this.footerRow = () => {
+    const fit = Math.ceil((window.innerHeight - 60) / this.tile.h) - 2
+    return Math.max(1, Math.min(this.orca.h, fit))
+  }
+
   this.applyFont = () => {
     if (!this.tile.hs) { return }
     this.context.font = `${this.tile.hs * 0.75}px ${this.settings.fontStack()}`
@@ -337,22 +344,27 @@ function Client () {
   }
 
   this.drawInterface = () => {
-    this.write(`${this.cursor.inspect()}`, this.grid.w * 0, this.orca.h, this.grid.w - 1)
-    this.write(`${this.cursor.x},${this.cursor.y}${this.cursor.ins ? '+' : ''}`, this.grid.w * 1, this.orca.h, this.grid.w, this.cursor.ins ? 1 : 2)
-    this.write(`${this.cursor.w}:${this.cursor.h}`, this.grid.w * 2, this.orca.h, this.grid.w)
-    this.write(`${this.orca.f}f${this.clock.isPaused ? '~' : ''}`, this.grid.w * 3, this.orca.h, this.grid.w)
-    this.write(`${this.io.inspect(this.grid.w)}`, this.grid.w * 4, this.orca.h, this.grid.w - 1)
-    this.write(this.orca.f < 250 ? `< ${this.io.midi.toInputString()}` : '', this.grid.w * 5, this.orca.h, this.grid.w * 4)
+    // The footer sits on the last two rows that fit in the window, so it stays
+    // visible when a patch or song slot is taller than the window.
+    const fy = this.footerRow()
+    // Clear the footer rows and anything of the grid below them
+    this.context.clearRect(0, fy * this.tile.hs, this.el.width, this.el.height - fy * this.tile.hs)
+    this.write(`${this.cursor.inspect()}`, this.grid.w * 0, fy, this.grid.w - 1)
+    this.write(`${this.cursor.x},${this.cursor.y}${this.cursor.ins ? '+' : ''}`, this.grid.w * 1, fy, this.grid.w, this.cursor.ins ? 1 : 2)
+    this.write(`${this.cursor.w}:${this.cursor.h}`, this.grid.w * 2, fy, this.grid.w)
+    this.write(`${this.orca.f}f${this.clock.isPaused ? '~' : ''}`, this.grid.w * 3, fy, this.grid.w)
+    this.write(`${this.io.inspect(this.grid.w)}`, this.grid.w * 4, fy, this.grid.w - 1)
+    this.write(this.orca.f < 250 ? `< ${this.io.midi.toInputString()}` : '', this.grid.w * 5, fy, this.grid.w * 4)
 
     if (this.commander.isActive === true) {
-      this.write(`${this.commander.query}${this.orca.f % 2 === 0 ? '_' : ''}`, this.grid.w * 0, this.orca.h + 1, this.grid.w * 4)
+      this.write(`${this.commander.query}${this.orca.f % 2 === 0 ? '_' : ''}`, this.grid.w * 0, fy + 1, this.grid.w * 4)
     } else {
-      this.write(this.orca.f < 25 ? `ver${this.version}` : `${Object.keys(this.source.cache).length} mods`, this.grid.w * 0, this.orca.h + 1, this.grid.w)
-      this.write(`${this.orca.w}x${this.orca.h}`, this.grid.w * 1, this.orca.h + 1, this.grid.w)
-      this.write(`${this.grid.w}/${this.grid.h}${this.tile.w !== 10 ? ' ' + (this.tile.w / 10).toFixed(1) : ''}`, this.grid.w * 2, this.orca.h + 1, this.grid.w)
-      this.write(`${this.clock}`, this.grid.w * 3, this.orca.h + 1, this.grid.w, this.clock.isPuppet ? 3 : this.io.midi.isClock ? 11 : this.clock.isPaused ? 20 : 2)
-      this.write(`${display(Object.keys(this.orca.variables).join(''), this.orca.f, this.grid.w - 1)}`, this.grid.w * 4, this.orca.h + 1, this.grid.w - 1)
-      this.write(this.orca.f < 250 ? `> ${this.io.midi.toOutputString()}` : '', this.grid.w * 5, this.orca.h + 1, this.grid.w * 4)
+      this.write(this.orca.f < 25 ? `ver${this.version}` : `${Object.keys(this.source.cache).length} mods`, this.grid.w * 0, fy + 1, this.grid.w)
+      this.write(`${this.orca.w}x${this.orca.h}`, this.grid.w * 1, fy + 1, this.grid.w)
+      this.write(`${this.grid.w}/${this.grid.h}${this.tile.w !== 10 ? ' ' + (this.tile.w / 10).toFixed(1) : ''}`, this.grid.w * 2, fy + 1, this.grid.w)
+      this.write(`${this.clock}`, this.grid.w * 3, fy + 1, this.grid.w, this.clock.isPuppet ? 3 : this.io.midi.isClock ? 11 : this.clock.isPaused ? 20 : 2)
+      this.write(`${display(Object.keys(this.orca.variables).join(''), this.orca.f, this.grid.w - 1)}`, this.grid.w * 4, fy + 1, this.grid.w - 1)
+      this.write(this.orca.f < 250 ? `> ${this.io.midi.toOutputString()}` : '', this.grid.w * 5, fy + 1, this.grid.w * 4)
     }
   }
 
@@ -363,7 +375,7 @@ function Client () {
       const key = operators[id]
       const oper = new this.library[key]()
       const text = oper.info
-      const frame = this.orca.h - 4
+      const frame = this.footerRow() - 4
       const x = (Math.floor(parseInt(id) / frame) * 32) + 2
       const y = (parseInt(id) % frame) + 2
       this.write(key, x, y, 99, 3)
