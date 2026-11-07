@@ -51,7 +51,7 @@ function readClipboard () {
 // app still runs as an editor and tells the user why there is no MIDI.
 function loadMidi () {
   try {
-    return { midi: require('midi'), error: null }
+    return { midi: require('@julusian/midi'), error: null }
   } catch (e) {
     return { midi: null, error: e }
   }

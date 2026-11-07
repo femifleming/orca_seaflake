@@ -11,6 +11,7 @@
 /* global Clock */
 /* global Theme */
 /* global Song */
+/* global Settings */
 
 function Client () {
   this.version = 178
@@ -27,6 +28,7 @@ function Client () {
   this.commander = new Commander(this)
   this.clock = new Clock(this)
   this.song = new Song(this)
+  this.settings = new Settings(this)
 
   // Settings
   this.scale = window.devicePixelRatio
@@ -43,6 +45,8 @@ function Client () {
   this.install = (host) => {
     host.appendChild(this.el)
     this.theme.install(host)
+    this.settings.install(host)
+    this.theme.onLoad = () => { if (this.isStarted) { this.settings.apply() } }
 
     this.theme.default = { background: '#000000', f_high: '#ffffff', f_med: '#777777', f_low: '#444444', f_inv: '#000000', b_high: '#eeeeee', b_med: '#72dec2', b_low: '#444444', b_inv: '#ffb545' }
 
@@ -124,7 +128,6 @@ function Client () {
     this.acels.set('Communication', 'Choose UDP Port', 'alt+U', () => { this.commander.start('udp:') })
 
     this.acels.set('Song', 'Toggle Song Panel', 'CmdOrCtrl+T', () => { this.song.toggle() })
-    this.acels.set('Song', 'Toggle Song Panel (Alt)', 'CmdOrCtrl+M', () => { this.song.toggle() })
     this.acels.set('Song', 'Save Song File', 'CmdOrCtrl+Shift+E', () => { this.song.exportFile() })
     this.acels.set('Song', 'Open Song File', 'CmdOrCtrl+Shift+I', () => { this.song.importFile() })
 
@@ -144,7 +147,8 @@ function Client () {
 
     this.reset()
     this.modZoom()
-    this.update()
+    this.isStarted = true
+    this.settings.start()
     this.el.className = 'ready'
 
     this.toggleGuide()
@@ -287,7 +291,7 @@ function Client () {
     // Output Reader
     if (type === 9) { return { bg: this.theme.active.b_inv, fg: this.theme.active.background } }
     // Reader+Background
-    if (type === 10) { return { bg: this.theme.active.background, fg: this.theme.active.f_high } }
+    if (type === 10) { return { bg: this.settings.background(), fg: this.theme.active.f_high } }
     // Clock(yellow fg)
     if (type === 11) { return { fg: this.theme.active.b_inv } }
     // Default
@@ -295,6 +299,18 @@ function Client () {
   }
 
   // Canvas
+
+  // Row the footer is drawn on: the grid's last row + 1, or higher when the grid
+  // is taller than the window (same sizing as resize(): two rows kept for the footer).
+  this.footerRow = () => {
+    const fit = Math.ceil((window.innerHeight - 60) / this.tile.h) - 2
+    return Math.max(1, Math.min(this.orca.h, fit))
+  }
+
+  this.applyFont = () => {
+    if (!this.tile.hs) { return }
+    this.context.font = `${this.tile.hs * 0.75}px ${this.settings.fontStack()}`
+  }
 
   this.clear = () => {
     this.context.clearRect(0, 0, this.el.width, this.el.height)
@@ -328,43 +344,56 @@ function Client () {
   }
 
   this.drawInterface = () => {
-    this.write(`${this.cursor.inspect()}`, this.grid.w * 0, this.orca.h, this.grid.w - 1)
-    this.write(`${this.cursor.x},${this.cursor.y}${this.cursor.ins ? '+' : ''}`, this.grid.w * 1, this.orca.h, this.grid.w, this.cursor.ins ? 1 : 2)
-    this.write(`${this.cursor.w}:${this.cursor.h}`, this.grid.w * 2, this.orca.h, this.grid.w)
-    this.write(`${this.orca.f}f${this.clock.isPaused ? '~' : ''}`, this.grid.w * 3, this.orca.h, this.grid.w)
-    this.write(`${this.io.inspect(this.grid.w)}`, this.grid.w * 4, this.orca.h, this.grid.w - 1)
-    this.write(this.orca.f < 250 ? `< ${this.io.midi.toInputString()}` : '', this.grid.w * 5, this.orca.h, this.grid.w * 4)
+    // The footer sits on the last two rows that fit in the window, so it stays
+    // visible when a patch or song slot is taller than the window.
+    const fy = this.footerRow()
+    // Clear the footer rows and anything of the grid below them
+    this.context.clearRect(0, fy * this.tile.hs, this.el.width, this.el.height - fy * this.tile.hs)
+    this.write(`${this.cursor.inspect()}`, this.grid.w * 0, fy, this.grid.w - 1)
+    this.write(`${this.cursor.x},${this.cursor.y}${this.cursor.ins ? '+' : ''}`, this.grid.w * 1, fy, this.grid.w, this.cursor.ins ? 1 : 2)
+    this.write(`${this.cursor.w}:${this.cursor.h}`, this.grid.w * 2, fy, this.grid.w)
+    this.write(`${this.orca.f}f${this.clock.isPaused ? '~' : ''}`, this.grid.w * 3, fy, this.grid.w)
+    this.write(`${this.io.inspect(this.grid.w)}`, this.grid.w * 4, fy, this.grid.w - 1)
+    this.write(this.orca.f < 250 ? `< ${this.io.midi.toInputString()}` : '', this.grid.w * 5, fy, this.grid.w * 4)
 
     if (this.commander.isActive === true) {
-      this.write(`${this.commander.query}${this.orca.f % 2 === 0 ? '_' : ''}`, this.grid.w * 0, this.orca.h + 1, this.grid.w * 4)
+      this.write(`${this.commander.query}${this.orca.f % 2 === 0 ? '_' : ''}`, this.grid.w * 0, fy + 1, this.grid.w * 4)
     } else {
-      this.write(this.orca.f < 25 ? `ver${this.version}` : `${Object.keys(this.source.cache).length} mods`, this.grid.w * 0, this.orca.h + 1, this.grid.w)
-      this.write(`${this.orca.w}x${this.orca.h}`, this.grid.w * 1, this.orca.h + 1, this.grid.w)
-      this.write(`${this.grid.w}/${this.grid.h}${this.tile.w !== 10 ? ' ' + (this.tile.w / 10).toFixed(1) : ''}`, this.grid.w * 2, this.orca.h + 1, this.grid.w)
-      this.write(`${this.clock}`, this.grid.w * 3, this.orca.h + 1, this.grid.w, this.clock.isPuppet ? 3 : this.io.midi.isClock ? 11 : this.clock.isPaused ? 20 : 2)
-      this.write(`${display(Object.keys(this.orca.variables).join(''), this.orca.f, this.grid.w - 1)}`, this.grid.w * 4, this.orca.h + 1, this.grid.w - 1)
-      this.write(this.orca.f < 250 ? `> ${this.io.midi.toOutputString()}` : '', this.grid.w * 5, this.orca.h + 1, this.grid.w * 4)
+      this.write(this.orca.f < 25 ? `ver${this.version}` : `${Object.keys(this.source.cache).length} mods`, this.grid.w * 0, fy + 1, this.grid.w)
+      this.write(`${this.orca.w}x${this.orca.h}`, this.grid.w * 1, fy + 1, this.grid.w)
+      this.write(`${this.grid.w}/${this.grid.h}${this.tile.w !== 10 ? ' ' + (this.tile.w / 10).toFixed(1) : ''}`, this.grid.w * 2, fy + 1, this.grid.w)
+      this.write(`${this.clock}`, this.grid.w * 3, fy + 1, this.grid.w, this.clock.isPuppet ? 3 : this.io.midi.isClock ? 11 : this.clock.isPaused ? 20 : 2)
+      this.write(`${display(Object.keys(this.orca.variables).join(''), this.orca.f, this.grid.w - 1)}`, this.grid.w * 4, fy + 1, this.grid.w - 1)
+      this.write(this.orca.f < 250 ? `> ${this.io.midi.toOutputString()}` : '', this.grid.w * 5, fy + 1, this.grid.w * 4)
     }
   }
 
   this.drawGuide = () => {
     if (this.guide !== true) { return }
     const operators = Object.keys(this.library).filter((val) => { return isNaN(val) })
+    // Fit the list in the visible window: as many rows as fit above the footer,
+    // then columns up to 32 cells wide, narrower when the window is narrow.
+    const visible = Math.min(this.orca.w, Math.floor((window.innerWidth - 60) / this.tile.w))
+    const rows = Math.max(1, this.footerRow() - 3)
+    const cols = Math.ceil(operators.length / rows)
+    const colW = Math.max(4, Math.min(32, Math.floor((visible - 2) / cols)))
     for (const id in operators) {
       const key = operators[id]
       const oper = new this.library[key]()
-      const text = oper.info
-      const frame = this.orca.h - 4
-      const x = (Math.floor(parseInt(id) / frame) * 32) + 2
-      const y = (parseInt(id) % frame) + 2
+      const x = (Math.floor(parseInt(id) / rows) * colW) + 2
+      const y = (parseInt(id) % rows) + 2
       this.write(key, x, y, 99, 3)
-      this.write(text, x + 2, y, 99, 10)
+      // Keep the text inside its column so columns never overlap
+      this.write(oper.info, x + 2, y, colW - 3, 10)
     }
   }
+
 
   this.drawSprite = (x, y, g, type) => {
     const theme = this.makeTheme(type)
     if (theme.bg) {
+      // Background-colored cells may be see-through, so wipe what is underneath first.
+      if (type === 10) { this.context.clearRect(x * this.tile.ws, (y) * this.tile.hs, this.tile.ws, this.tile.hs) }
       this.context.fillStyle = theme.bg
       this.context.fillRect(x * this.tile.ws, (y) * this.tile.hs, this.tile.ws, this.tile.hs)
     }
@@ -412,7 +441,7 @@ function Client () {
 
     this.context.textBaseline = 'bottom'
     this.context.textAlign = 'center'
-    this.context.font = `${this.tile.hs * 0.75}px input_mono_medium`
+    this.applyFont()
     this.update()
   }
 
@@ -460,9 +489,9 @@ function Client () {
     e.preventDefault()
     e.stopPropagation()
     for (const file of e.dataTransfer.files) {
-      if (/\.(song|orcasong|json)$/i.test(file.name)) {
+      if (/\.(song|orca-song|orcasong|json)$/i.test(file.name)) {
         if (this.song) {
-          this.source.read(file, (f, text) => this.song.use(text))
+          this.source.read(file, (f, text) => this.song.use(text, file.path))
         }
         return
       }

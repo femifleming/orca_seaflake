@@ -15,3 +15,18 @@ canvas.ready { opacity: 1; }
 /* Theme */
 
 body { background-color:var(--background) !important; }
+/* Settings */
+#settings { display: none; position: fixed; top: 30px; right: 30px; width: 260px; padding: 12px 14px 14px; background: var(--background); color: var(--f_high); border: 1px solid var(--b_med); font-size: 11px; line-height: 15px; text-transform: uppercase; -webkit-app-region: no-drag; z-index: 10; box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
+#settings.open { display: block; }
+#settings .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--b_inv); color: var(--f_inv); padding: 2px 6px; }
+#settings .head button { background: none; color: var(--f_inv); font-size: 15px; padding: 0 2px; cursor: pointer; }
+#settings label { display: block; margin-top: 10px; color: var(--f_med); }
+#settings label b { color: var(--f_high); float: right; }
+#settings input, #settings select { display: block; width: 100%; margin-top: 4px; font-family: inherit; font-size: 11px; color: var(--f_high); background: var(--b_low); border: 1px solid var(--f_low); padding: 3px 4px; text-transform: none; box-sizing: border-box; }
+#settings input[type=color] { height: 24px; padding: 1px 2px; cursor: pointer; }
+#settings input[type=range] { padding: 0; border: 0; background: none; accent-color: var(--b_med); cursor: pointer; }
+#settings input[type=range]:disabled { opacity: 0.4; cursor: default; }
+#settings .note { margin-top: 4px; color: var(--f_med); text-transform: none; min-height: 0; }
+#settings .note:empty { display: none; }
+#settings > button { margin-top: 14px; width: 100%; padding: 4px; background: var(--b_low); color: var(--f_high); border: 1px solid var(--f_low); font-family: inherit; font-size: 11px; text-transform: uppercase; cursor: pointer; }
+#settings > button:hover, #settings .head button:hover { color: var(--b_med); }

@@ -1,3 +1,49 @@
 #!/usr/bin/env node
 'use strict'
+
+const arg = process.argv[2]
+
+if (arg === '--version' || arg === '-v') {
+  console.log(require('../package.json').version)
+  process.exit(0)
+}
+
+if (arg === '--help' || arg === '-h') {
+  console.log(`Orca Seaflake ${require('../package.json').version} (terminal)
+
+Usage:
+  orca-seaflake                 open an empty grid sized to your window
+  orca-seaflake <file.orca>     open a patch
+  orca-seaflake --version       print the version
+  orca-seaflake --midi          list MIDI outputs and exit
+
+Inside the app:
+  Space play/stop   Ctrl-S save   Ctrl-O open   Ctrl-T song mode
+  Ctrl-K command (e.g. "midi: 1", "bpm: 120")   Ctrl-Q quit
+
+Patches save to ~/Documents/Orca Seaflake (set ORCA_SEAFLAKE_DIR to change).
+Docs: https://github.com/femifleming/orca_seaflake/tree/main/terminal`)
+  process.exit(0)
+}
+
+if (arg === '--midi') {
+  const platform = require('../src/platform')
+  const { midi, error } = platform.loadMidi()
+  if (!midi) {
+    console.error(`MIDI module failed to load: ${error.message.split('\n')[0]}`)
+    console.error('Reinstall with build tools available (see the README), or run `npm rebuild midi`.')
+    process.exit(1)
+  }
+  let out
+  try { out = new midi.Output() } catch (e) {
+    console.log(`Could not open the OS MIDI system: ${e.message.split('\n')[0]}`)
+    console.log(platform.midiSetupHint())
+    process.exit(0)
+  }
+  const n = out.getPortCount()
+  if (!n) console.log(`No MIDI outputs found. ${platform.midiSetupHint()}`)
+  for (let i = 0; i < n; i++) console.log(`${i}: ${out.getPortName(i)}`)
+  process.exit(0)
+}
+
 require('../src/index.js')

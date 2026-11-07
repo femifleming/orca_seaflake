@@ -1,5 +1,9 @@
 'use strict'
 
+// console.assert only prints a warning; make a failed check fail the run.
+let failures = 0
+console.assert = (ok, msg) => { if (!ok) { failures++; console.error('✘ FAILED:', msg) } }
+
 // Mock minimal DOM and Orca client environment for headless testing
 global.window = {
   localStorage: {
@@ -216,7 +220,7 @@ console.log('✔ Test 9: Loop OFF stopping passed')
 const packed = song.pack(song.d)
 console.assert(typeof packed === 'string', 'Pack produces valid JSON string')
 const parsed = JSON.parse(packed)
-console.assert(parsed.orcaSong === 1, 'Packed format has orcaSong = 1')
+console.assert(parsed.orcaSong === 2, 'Packed format has orcaSong = 2')
 console.assert(parsed.slots.filter(Boolean).length === 3, 'Packed format has 3 active slots')
 console.assert(parsed.slots[1].len === 2 && parsed.slots[1].mul === 4, 'Packed format preserves len: 2, mul: 4')
 
@@ -233,8 +237,29 @@ const cleanedLegacy = song.clean(legacySong)
 console.assert(cleanedLegacy.slots[0].len === 36, `Legacy bars*16+st (2*16+4 = 36) converted to len 36, got ${cleanedLegacy.slots[0].len}`)
 console.assert(cleanedLegacy.slots[0].mul === 1, 'Legacy mul defaults to 1')
 console.assert(cleanedLegacy.slots[0].bpm === 130, 'Legacy bpm preserved')
+// Desktop exports from before 0.8.0: orcaSong 1 but with len/mul fields
+const oldDesktop = song.clean({ orcaSong: 1, mode: 0, loop: 1, slots: [{ len: 12, mul: 3, bpm: 140, p: ['..D4..'] }] })
+console.assert(oldDesktop.slots[0].len === 12 && oldDesktop.slots[0].mul === 3, 'orcaSong 1 with len/mul keeps len 12, mul 3')
 console.log('✔ Test 10: Serialization & Legacy backward compatibility passed')
 
+// Test 11: real song files from the repo open (terminal export + early pattern format)
+const songsDir = path.resolve(__dirname, '../../patches/songs')
+const terminalSong = song.clean(JSON.parse(fs.readFileSync(path.join(songsDir, 'testingsequencing1.song'), 'utf8')))
+console.assert(terminalSong && terminalSong.slots.filter(Boolean).length > 0, 'Terminal-exported song opens')
+console.assert(terminalSong.slots[0].len === 16 && terminalSong.slots[0].mul === 3 && terminalSong.slots[0].bpm === 190, `Terminal song slot 1 is len 16, mul 3, bpm 190, got ${JSON.stringify(terminalSong.slots[0] && { len: terminalSong.slots[0].len, mul: terminalSong.slots[0].mul, bpm: terminalSong.slots[0].bpm })}`)
+const patternSong = song.clean(JSON.parse(fs.readFileSync(path.join(songsDir, 'testingsongmode-26V04-811047.orca-song'), 'utf8')))
+console.assert(patternSong && patternSong.slots.filter(Boolean).length === 6, 'Early pattern-format song opens with 6 slots')
+console.assert(patternSong.slots[0].len === 12 && patternSong.slots[0].bpm === 120, 'Pattern 01 becomes len 12 at 120 BPM')
+console.assert(patternSong.slots[5].bpm === 60, 'Pattern 06 keeps its own 60 BPM')
+console.assert(patternSong.slots[0].p.split('\n').length === 42 && patternSong.slots[0].p.split('\n')[0].length === 78, 'Pattern grid is cut back into 42 rows of 78')
+const barsSong = song.clean(JSON.parse(fs.readFileSync(path.join(songsDir, 'untitled2.song'), 'utf8')))
+console.assert(barsSong && barsSong.slots.filter(Boolean).length === 5 && barsSong.slots[0].len === 17 && barsSong.slots[0].bpm === 90, 'Oldest bars/16ths song opens: slot 1 is 17 frames at 90 BPM')
+console.log('✔ Test 11: Real song files from patches/songs open')
+
+if (failures) {
+  console.error(`\n${failures} CHECK(S) FAILED`)
+  process.exit(1)
+}
 console.log('\n=============================================')
-console.log('ALL SONG MODE TESTS PASSED SUCCESSFULLY! (10/10)')
+console.log('ALL SONG MODE TESTS PASSED SUCCESSFULLY! (11/11)')
 console.log('=============================================\n')
