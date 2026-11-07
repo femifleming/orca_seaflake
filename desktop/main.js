@@ -8,11 +8,12 @@ const path = require('path')
 
 let isShown = true
 
-// Electron 11 quits with "GPU process isn't usable" on machines without a
-// working GPU (virtual machines, some Linux drivers, some Raspberry Pi setups).
-// Orca draws a simple 2D grid, so software rendering is plenty. This matches
-// the --disable-gpu flag that `npm start` already passes.
-app.disableHardwareAcceleration()
+// On some Linux systems (e.g. Ubuntu 22.04) Electron 11's GPU-process sandbox
+// crashes at startup with "GPU process isn't usable. Goodbye." Turning off only
+// that sandbox fixes it; the rest of the app stays sandboxed. Tested in CI.
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('disable-gpu-sandbox')
+}
 
 app.win = null
 

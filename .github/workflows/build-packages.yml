@@ -186,19 +186,11 @@ jobs:
           sudo apt-get install -y ./artifacts/*.deb xvfb xauth
           command -v orca-seaflake
           test -f /usr/share/applications/orca-seaflake.desktop
-          launch () {
-            xvfb-run -a orca-seaflake "$@" > launch.log 2>&1 &
-            sleep 25
-            if pgrep -f /usr/lib/orca-seaflake/orca-seaflake > /dev/null; then pkill -f /usr/lib/orca-seaflake/orca-seaflake || true; sleep 2; return 0; fi
-            return 1
-          }
-          if launch; then echo "Launched and stayed running for 25s"; exit 0; fi
-          echo "App exited during launch:"; cat launch.log
-          # Diagnose: which Electron switches keep it running on this system?
-          for flags in "--disable-gpu-sandbox" "--in-process-gpu" "--disable-gpu --disable-software-rasterizer" "--no-sandbox"; do
-            if launch $flags; then echo "DIAGNOSTIC: survives with: $flags"; else echo "DIAGNOSTIC: still crashes with: $flags"; tail -3 launch.log; fi
-          done
-          exit 1
+          xvfb-run -a orca-seaflake > launch.log 2>&1 &
+          sleep 25
+          if ! pgrep -f /usr/lib/orca-seaflake/orca-seaflake > /dev/null; then echo "App exited during launch:"; cat launch.log; exit 1; fi
+          pkill -f /usr/lib/orca-seaflake/orca-seaflake || true
+          echo "Launched and stayed running for 25s"
 
   terminal:
     name: terminal ${{ matrix.os }} node ${{ matrix.node }}
