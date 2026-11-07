@@ -88,7 +88,7 @@ library['^'] = function OperatorProbability (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '^', true)
 
   this.name = 'probability'
-  this.info = 'Passes a bang according to a base36 probability'
+  this.info = 'Passes bangs at random'
   this.ports.chance = { x: 1, y: 0, default: 'i', clamp: { min: 0, max: 35 } }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
@@ -102,7 +102,7 @@ library['&'] = function OperatorPhase (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '&', true)
 
   this.name = 'phase clock'
-  this.info = 'Bangs at a selected step in a repeating clock cycle'
+  this.info = 'Bangs on one step of a cycle'
   this.ports.rate = { x: -1, y: 0, default: '1', clamp: { min: 1, max: 36 } }
   this.ports.length = { x: 1, y: 0, default: '4', clamp: { min: 1, max: 36 } }
   this.ports.phase = { x: 0, y: -1, default: '0', clamp: { min: 0, max: 35 } }
@@ -121,7 +121,7 @@ library['~'] = function OperatorBurst (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '~', true)
 
   this.name = 'burst'
-  this.info = 'Repeats a bang at a clock division or multiplication'
+  this.info = 'Repeats a bang over time'
   this.ports.repeats = { x: 1, y: 0, default: '4', clamp: { min: 0, max: 35 } }
   this.ports.division = { x: 2, y: 0, default: '1', clamp: { min: 1, max: 35 } }
   this.ports.multiplication = { x: 3, y: 0, default: '1', clamp: { min: 1, max: 35 } }
@@ -162,7 +162,7 @@ library['|'] = function OperatorMute (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '|', true)
 
   this.name = 'mute'
-  this.info = 'Hashes out the block below when banged; bang again to unmute'
+  this.info = 'Mutes or unmutes block below'
   this.ports.width = { x: -2, y: 0, default: '8', clamp: { min: 1, max: 35 } }
   this.ports.height = { x: -1, y: 0, default: '4', clamp: { min: 1, max: 35 } }
 
@@ -700,7 +700,7 @@ library['('] = function OperatorMidiJust (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '(', true)
 
   this.name = 'midi just'
-  this.info = 'Sends a MIDI note tuned to a just-intonation chromatic ratio'
+  this.info = 'Sends just-intonation note'
   this.ports.channel = { x: 1, y: 0, default: '0', clamp: { min: 0, max: 15 } }
   this.ports.octave = { x: 2, y: 0, default: '4', clamp: { min: 0, max: 8 } }
   this.ports.note = { x: 3, y: 0 }
@@ -730,7 +730,7 @@ library[')'] = function OperatorMidiScale (orca, x, y, passive) {
   Operator.call(this, orca, x, y, ')', true)
 
   this.name = 'midi scale'
-  this.info = 'Sends a MIDI note from a stored 12-note binary scale'
+  this.info = 'Sends a note from a scale'
   this.ports.channel = { x: 1, y: 0, default: '0', clamp: { min: 0, max: 15 } }
   this.ports.octave = { x: 2, y: 0, default: '4', clamp: { min: 0, max: 8 } }
   this.ports.degree = { x: 3, y: 0, default: '1', clamp: { min: 1, max: 35 } }
@@ -769,7 +769,7 @@ library['+'] = function OperatorBinaryScale (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '+', true)
 
   this.name = 'binary scale'
-  this.info = 'Stores a 12-note scale in an Orca variable'
+  this.info = 'Stores a 12-note scale'
   this.ports.key = { x: -1, y: 0, default: '0' }
 
   // Right inlets are ordered by chromatic pitch: C, C#, D, D#, E, F,
@@ -797,7 +797,7 @@ library['@'] = function OperatorMidiEnvelope (orca, x, y, passive) {
   Operator.call(this, orca, x, y, '@', true)
 
   this.name = 'midi envelope'
-  this.info = 'Triggers a shaped MIDI sequence over a clock division'
+  this.info = 'Sends shaped MIDI notes'
   this.ports.channel = { x: 1, y: 0, default: '0', clamp: { min: 0, max: 15 } }
   this.ports.octave = { x: 2, y: 0, default: '4', clamp: { min: 0, max: 8 } }
   this.ports.note = { x: 3, y: 0 }

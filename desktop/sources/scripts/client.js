@@ -371,17 +371,23 @@ function Client () {
   this.drawGuide = () => {
     if (this.guide !== true) { return }
     const operators = Object.keys(this.library).filter((val) => { return isNaN(val) })
+    // Fit the list in the visible window: as many rows as fit above the footer,
+    // then columns up to 32 cells wide, narrower when the window is narrow.
+    const visible = Math.min(this.orca.w, Math.floor((window.innerWidth - 60) / this.tile.w))
+    const rows = Math.max(1, this.footerRow() - 3)
+    const cols = Math.ceil(operators.length / rows)
+    const colW = Math.max(4, Math.min(32, Math.floor((visible - 2) / cols)))
     for (const id in operators) {
       const key = operators[id]
       const oper = new this.library[key]()
-      const text = oper.info
-      const frame = this.footerRow() - 4
-      const x = (Math.floor(parseInt(id) / frame) * 32) + 2
-      const y = (parseInt(id) % frame) + 2
+      const x = (Math.floor(parseInt(id) / rows) * colW) + 2
+      const y = (parseInt(id) % rows) + 2
       this.write(key, x, y, 99, 3)
-      this.write(text, x + 2, y, 99, 10)
+      // Keep the text inside its column so columns never overlap
+      this.write(oper.info, x + 2, y, colW - 3, 10)
     }
   }
+
 
   this.drawSprite = (x, y, g, type) => {
     const theme = this.makeTheme(type)

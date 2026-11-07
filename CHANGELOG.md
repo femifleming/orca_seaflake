@@ -26,6 +26,7 @@ Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seafla
 
 ### Desktop app
 
+- **The operator guide** shown at launch (and with `Cmd+G`) fits the window: no more overlapping text, and no operators cut off at the right edge. Seaflake's operator descriptions are now as short as Orca's.
 - **Settings panel** (`Cmd+Shift+P`, or **Settings…** in the app menu on macOS and the File menu on Windows and Linux): background color, background opacity (macOS) and grid font.
 
 ### Install
