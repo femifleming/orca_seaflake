@@ -6,11 +6,14 @@ Orca Seaflake is a version of [Orca](https://github.com/hundredrabbits/Orca), th
 
 This application **is not a synthesizer, but a livecoding environment** capable of sending MIDI, OSC & UDP to your audio/visual interfaces, like Ableton, Renoise, VCV Rack or SuperCollider.
 
-Seaflake keeps every original Orca operator exactly as it is (patches made for Orca play the same) and adds:
+Seaflake keeps every original Orca operator exactly as it is in the Orca app, defaults included (patches made for Orca play the same), and adds:
 
-- **New operators** for probability, phase clocks, timed bursts, just intonation, scales and shaped note runs.
-- **Song Mode**, a 32-slot arranger that chains patches together at 16th-note resolution.
+- **New operators** for probability, phase clocks, timed bursts, muting blocks, just intonation, scales and shaped note runs.
+- **Song Mode**, a 32-slot arranger that chains patches together at 16th-note resolution, saved as `.song` files.
 - **A terminal version** that runs in Terminal, Windows Terminal or over SSH on a Raspberry Pi.
+- **Settings** for the background color, window transparency and font.
+
+Everything Seaflake adds to Orca is listed in [What Seaflake adds to Orca](docs/WHATS_NEW.md); release notes are in the [changelog](CHANGELOG.md).
 
 Ways to use it:
 
@@ -37,7 +40,11 @@ Download the file for your computer, then follow the step next to it.
 
 Then open **Orca Seaflake** from Applications (macOS), the extracted folder (Windows), or your app menu / the `orca-seaflake` command (Linux).
 
-On a Mac you can also install with [Homebrew](https://brew.sh): `brew install --cask femifleming/orca_seaflake/orca-seaflake`
+On a Mac you can also install with [Homebrew](https://brew.sh), and update later with `brew upgrade`:
+
+```sh
+brew install --cask femifleming/orca_seaflake/orca-seaflake
+```
 
 **Not sure which one you need?**
 
@@ -61,6 +68,14 @@ The terminal version runs the same operators and Song Mode, without a window. It
 | --- | --- |
 | macOS, Windows | Install Node.js LTS from [nodejs.org](https://nodejs.org). |
 | Raspberry Pi OS, Ubuntu, Debian | `sudo apt update && sudo apt install -y nodejs npm alsa-utils` |
+
+On a Mac with [Homebrew](https://brew.sh), one command installs it, Node.js included:
+
+```sh
+brew install femifleming/orca_seaflake/orca-seaflake-terminal
+```
+
+Otherwise:
 
 **2. Install Orca Seaflake** (on Linux and Raspberry Pi, put `sudo` in front):
 
@@ -139,6 +154,7 @@ To display the list of operators inside of Orca Seaflake, use `CmdOrCtrl+G`. Inp
 - `^` **probability**(chance): Passes a bang at random. `z` always passes, `0` never does.
 - `&` **phase**(*rate* length, phase above): Bangs on one chosen step of a repeating cycle.
 - `~` **burst**(repeats division multiplication): Turns one bang into a timed run of bangs.
+- `|` **mute**(*width* *height*): Each bang hashes out the block below it, or un-hashes it, to mute and unmute a section.
 - `+` **scale**(*key* C C# D D# E F F# G G# A A# B): Stores a 12-note scale (`1` = in, `0` = out) in a variable.
 - `)` **scale note**(channel octave degree scale velocity length): Sends a MIDI note picked from a stored scale.
 - `(` **just note**(channel octave note velocity length): Sends a MIDI note in just intonation.
@@ -162,7 +178,7 @@ Song Mode chains patches into a song. Store a patch in a slot, give each slot a 
 
 - Each slot lasts **LEN × MUL frames**, and one frame is one 16th note. `LEN 16, MUL 1` is one bar; `LEN 16, MUL 4` is four bars.
 - Each slot remembers its own **BPM**. A `$bpm:140` command inside a patch overrides it while that slot plays.
-- Songs save as `.song` files that both the desktop app and the terminal version can open.
+- Songs save as `.song` files in `Documents/Orca Seaflake/songs`. The desktop app and the terminal version use the same files and the same keys.
 
 | | Desktop app | Terminal |
 | --- | --- | --- |
@@ -170,8 +186,8 @@ Song Mode chains patches into a song. Store a patch in a slot, give each slot a 
 | Store the grid in the selected slot | `Enter` | `Enter` |
 | Play / stop the song | `Space` | `Space` |
 | Order / reverse / random | `M` | `M` |
-| Loop on / off | `O` | `O` |
-| Export / import a `.song` file | `E` / `I` | `E` / `I` |
+| Loop on / off | `R` | `R` |
+| Save / open a `.song` file | `S` / `O` | `S` / `O` |
 
 See the [Song Mode guide](docs/SONG_MODE.md) for everything else.
 
@@ -186,11 +202,22 @@ See the [Song Mode guide](docs/SONG_MODE.md) for everything else.
 | New | `CmdOrCtrl+N` | `Ctrl+N` |
 | Command prompt | `CmdOrCtrl+K` | `Ctrl+K` |
 | Operator guide | `CmdOrCtrl+G` | — |
+| Settings (background color, transparency, font) | `CmdOrCtrl+Shift+P` | — |
 | Choose MIDI output | `CmdOrCtrl+.` | `Ctrl+K` then `midi: 1` |
 | Undo / redo | `CmdOrCtrl+Z` / `CmdOrCtrl+Shift+Z` | `Ctrl+Z` / `Ctrl+Shift+Z` (where the terminal sends it) |
 | Quit | `CmdOrCtrl+Q` or close the window | `Ctrl+Q` |
 
 The desktop app's full list is in its menus. The command prompt accepts Orca's [commands](https://github.com/hundredrabbits/Orca#commands), such as `bpm:140` or `frame:0`.
+
+### Settings
+
+Open **Settings…** from the app menu, or press `CmdOrCtrl+Shift+P`, to change:
+
+- **Background color**: any color; the rest of the theme stays the same.
+- **Background opacity**: lower it to see your desktop through the window while the grid text stays solid (macOS only).
+- **Font**: Input Mono (the default) or any monospace font installed on your computer. Only installed fonts appear in the list; type any other installed font's name into **Other installed font**.
+
+Settings are saved and come back the next time you open the app. **Reset to defaults** puts all three back.
 
 ## Base36 Table
 
@@ -223,6 +250,8 @@ Orca operates on a base of **36 increments**. Operators using numeric values wil
 
 - [Original Orca](https://github.com/hundredrabbits/Orca) by Hundred Rabbits
 - [Operator reference](docs/OPERATORS.md)
+- [What Seaflake adds to Orca](docs/WHATS_NEW.md)
+- [Changelog](CHANGELOG.md)
 - [Song Mode guide](docs/SONG_MODE.md)
 - [Terminal guide](terminal/README.md)
 - [Building packages yourself](docs/PACKAGING.md)

@@ -1,6 +1,6 @@
 # Operator reference
 
-Orca is a two-dimensional grid sequencer. Place an operator glyph in the grid and put its operands in the cells around it. Most operators read a value to their left and right and write below; the tables below give the exact positions for each operator. A `.` input uses the documented default when one exists. The original Orca operators (A–Z and `* # : % ! ? = ; $`) behave exactly as in upstream [Hundred Rabbits Orca](https://github.com/hundredrabbits/Orca): an empty input reads as `0`, except where a minimum or default is listed below.
+Orca is a two-dimensional grid sequencer. Place an operator glyph in the grid and put its operands in the cells around it. Most operators read a value to their left and right and write below; the tables below give the exact positions for each operator. A `.` input uses the documented default when one exists. The original Orca operators (A–Z and `* # : % ! ? = ; $`) behave exactly as in the classic [Hundred Rabbits Orca](https://github.com/hundredrabbits/Orca) app, including its defaults: a lone `D` bangs every 8 frames, a lone `C` counts 0–7, a lone `I` counts up by 1 and a lone `U` plays 1 of 8. Any other empty input reads as `0`, except where a minimum or default is listed below.
 
 ## Values and triggering
 
@@ -60,6 +60,30 @@ Trigger `~` with a neighboring bang. The interval is one quarter-note clock fram
 ```
 
 The operands must be adjacent cells to the right of `~`; spaces above are only for readability.
+
+### `|` — mute block
+
+| Position | Operand | Default | Meaning |
+| --- | --- | --- | --- |
+| Left 2 | width | `8` | Block width, 1–35 |
+| Left 1 | height | `4` | Block height, 1–35 |
+| Above or right | bang | — | Mutes or unmutes on each bang |
+
+The block starts one row below `|` and one column to its right. Each bang toggles it. Muting writes `#` in the column under `|` and in the column just past the block on every row, so Orca's `#` comments freeze everything in between: operators there stop running and MIDI notes there stop playing. The next bang removes those `#`s and the block runs again on that same frame. The two hash columns are highlighted so you can see the block's edges. Keep them empty: muting writes over whatever is there.
+
+```
+.D..........     D bangs | every 8 frames
+............
+62|.........     | mutes a block 6 wide, 2 tall
+...D2.......
+...*:03C....
+
+.D..........     after the bang: muted
+............
+62|.........
+..#D2....#..
+..#.:03C.#..
+```
 
 ### `+` — binary-scale definition
 
@@ -166,30 +190,30 @@ Uppercase forms evaluate every frame; lowercase forms evaluate on a bang.
 |---|---|---|
 | `A` | add | Left + right; result below |
 | `B` | subtract | Absolute difference of left and right; result below |
-| `C` | clock | Left = rate (minimum 1), right = modulus; outputs frame/rate modulo modulus below. An empty modulus outputs nothing |
-| `D` | delay | Left = rate (minimum 1), right = modulus (minimum 1); bangs below on the frame modulo `(rate × modulus)` boundary |
+| `C` | clock | Left = rate (minimum 1), right = modulus (default `8`); outputs frame/rate modulo modulus below |
+| `D` | delay | Left = rate (minimum 1), right = modulus (default `8`); bangs below every `rate × modulus` frames, so a lone `D` bangs every 8 frames |
 | `E` | east | Moves one cell east; bangs if blocked |
 | `F` | if | Bangs below when left and right glyphs match |
 | `G` | generator | Left 3 = x offset, left 2 = y offset, left 1 = length; copies the following operands to the target row |
 | `H` | halt | Reads and locks the operand below |
-| `I` | increment | Left = step, right = modulus; adds step to the value below, modulo modulus. An empty step or modulus leaves it at `0` |
+| `I` | increment | Left = step (default `1`), right = modulus (default 36); adds step to the value below, modulo modulus |
 | `J` | jumper | Outputs the glyph above below itself |
 | `K` | konkat | Left = count; reads that many variable keys on its right and writes their values below |
-| `L` | lesser | Outputs the smaller of left and right below |
+| `L` | lesser | Outputs the smaller of left and right below; outputs nothing if either side is empty |
 | `M` | multiply | Left × right; result below. An empty side is `0` |
 | `N` | north | Moves one cell north; bangs if blocked |
 | `O` | read | Left 2 = x offset, left 1 = y offset; outputs the referenced grid glyph below |
 | `P` | push | Left 2 = key, left 1 = list length, right = value; writes the value below at horizontal slot `key modulo length` |
 | `Q` | query | Left 3 = x offset, left 2 = y offset, left 1 = count; reads that many grid cells and writes results below |
-| `R` | random | Left/right = inclusive base-36 range (an empty side is `0`); result below |
+| `R` | random | Left = minimum, right = maximum (default 36); outputs a random value from minimum up to, not including, maximum below |
 | `S` | south | Moves one cell south; bangs if blocked |
 | `T` | track | Left 2 = index key, left 1 = list length; selects the eastward operand at `key modulo length` and outputs it below |
-| `U` | uclid | Left = step count, right = cycle length (minimum 1); bangs below on a Euclidean rhythm. An empty step count never bangs |
+| `U` | uclid | Left = step count (default `1`), right = cycle length (default `8`); bangs below on a Euclidean rhythm |
 | `V` | variable | Left = write value, right = read key; reads/writes the selected variable and outputs below |
 | `W` | west | Moves one cell west; bangs if blocked |
 | `X` | write | Left 2 = x offset, left 1 = y offset, right = value; writes the value at the selected grid location |
-| `Y` | jymper | Outputs the glyph to the left below itself |
-| `Z` | lerp | Left = transition rate, right = target, below = current value; moves the current value toward target. An empty rate does not move |
+| `Y` | jymper | Outputs the glyph on its left to its right |
+| `Z` | lerp | Left = transition rate (default `1`), right = target, below = current value; moves the current value toward target |
 
 ## Other built-in operators
 

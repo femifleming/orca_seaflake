@@ -12,6 +12,16 @@ function Song (client) {
   const FW = [3, 3, 3] // field widths: len (frames), mul (multiplier), bpm (tempo)
   const KEYS = ['len', 'mul', 'bpm']
   const MODES = ['ORD', 'REV', 'RND']
+  // Key help shown at the bottom of the panel. Short windows get two rows.
+  const HELP = [
+    [['ENT', 'store'], ['L', 'load'], ['DEL', 'clear']],
+    [['SPC', 'play'], ['M', 'mode'], ['R', 'loop']],
+    [['S', 'save song'], ['O', 'open song'], ['ESC', 'close']]
+  ]
+  const HELP_SHORT = [
+    [['ENT', 'store'], ['L', 'load'], ['SPC', 'play']],
+    [['S', 'save'], ['O', 'open'], ['M', 'mode'], ['R', 'loop']]
+  ]
   const pad = (v, n) => `${v}`.padStart(n, '0')
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
   const read = (k) => { try { return JSON.parse(localStorage.getItem(k)) } catch (e) { return null } }
@@ -78,7 +88,8 @@ function Song (client) {
       slots[i] = {
         len: frameLen,
         mul: mul,
-        bpm: clamp(s.bpm | 0, 60, 300),
+        bpm: clamp(s.bpm | 0 || 120, 60, 300),
+        notes: String(s.notes || ''),
         p: L.map((l) => l.padEnd(w, '.')).join('\n')
       }
     })
@@ -89,7 +100,7 @@ function Song (client) {
     orcaSong: 2,
     mode: d.mode,
     loop: d.loop,
-    slots: d.slots.map((s) => s && { len: s.len, mul: s.mul, bpm: s.bpm, p: s.p.split('\n') })
+    slots: d.slots.map((s) => s && { len: s.len, mul: s.mul, bpm: s.bpm, notes: s.notes || '', p: s.p.split('\n') })
   }, null, 1)
 
   this.cols = 0 // slide progress in tiles
@@ -99,7 +110,7 @@ function Song (client) {
   this.d = clean(read('song_work')) || blank()
   this.r = 0 // cursor row
   this.f = 0 // cursor field (0: len, 1: mul, 2: bpm)
-  this.n = 1 // song bank
+  this.file = localStorage.getItem('song_file') || '' // path of the open .song file, '' if never saved
   this.i = -1 // playing slot
   this.q = 0 // position in play order
   this.pos = 0 // frames played in slot
@@ -108,6 +119,12 @@ function Song (client) {
   this.msg = ''
 
   this.save = () => { localStorage.setItem('song_work', JSON.stringify(this.d)) }
+  this.setFile = (filePath) => {
+    this.file = filePath || ''
+    localStorage.setItem('song_file', this.file)
+  }
+  this.title = () => this.file ? this.file.split(/[\\/]/).pop().replace(/\.(song|orca-song|orcasong|json)$/i, '') : 'UNTITLED'
+  this.ipc = () => { try { return window.require && window.require('electron').ipcRenderer } catch (err) { return null } }
   this.clean = clean
   this.pack = pack
   this.duration = len
@@ -201,12 +218,12 @@ function Song (client) {
     this.commit()
     const content = pack(this.d)
     try {
-      const ipc = window.require && window.require('electron').ipcRenderer
+      const ipc = this.ipc()
       if (ipc) {
-        const result = await ipc.invoke('song:save-file', content)
+        const result = await ipc.invoke('song:save-file', content, this.file)
         if (!result.canceled) {
-          const name = result.filePath.split('/').pop().replace(/\.(song|json)$/i, '').toUpperCase()
-          this.msg = `SAVED ${name}`
+          this.setFile(result.filePath)
+          this.msg = `SAVED ${this.title().toUpperCase()}`
           client.update()
         }
         return
@@ -217,22 +234,27 @@ function Song (client) {
 
   this.importFile = async () => {
     try {
-      const ipc = window.require && window.require('electron').ipcRenderer
+      const ipc = this.ipc()
       if (ipc) {
-        const result = await ipc.invoke('song:open-file')
-        if (!result.canceled) this.use(result.content)
+        const result = await ipc.invoke('song:open-file', this.file)
+        if (!result.canceled) this.use(result.content, result.filePath)
         return
       }
     } catch (err) { console.warn('Song', 'Native open failed', err) }
     client.source.open('song', (file, text) => this.use(text))
   }
 
-  this.use = (text) => {
+  // Used by the song:mode, song:save and song:open commands (Cmd+K)
+  this.cycleMode = () => { this.d.mode = (this.d.mode + 1) % 3; this.save(); client.update() }
+  this.saveSong = () => this.exportFile()
+  this.openSong = () => this.importFile()
+
+  this.use = (text, filePath) => {
     let j = null
     try { j = JSON.parse(text) } catch (err) { j = null }
     const d = clean(j)
-    this.msg = d ? 'SONG LOADED' : 'NOT A SONG FILE'
-    if (d) { this.d = d; this.on = false; this.r = 0; this.save() }
+    if (d) { this.d = d; this.on = false; this.r = 0; this.save(); this.setFile(filePath) }
+    this.msg = d ? `OPENED ${this.title().toUpperCase()}` : 'NOT A SONG FILE'
     this.open = true
     this.focus = true
     this.slide()
@@ -240,6 +262,7 @@ function Song (client) {
 
   this.key = (e) => {
     if (!this.focus || e.metaKey || e.ctrlKey || e.altKey) { return }
+    if (client.settings && client.settings.isOpen) { return }
     stop(e)
     this.msg = ''
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key
@@ -271,16 +294,33 @@ function Song (client) {
     else if (k === ' ') { if (this.on) { this.on = false } else { this.begin() } }
     else if (k === 'l' && s) { this.load(this.r); this.msg = `LOADED ${pad(this.r + 1, 2)}` }
     else if (k === 'm') { this.d.mode = (this.d.mode + 1) % 3; this.save() }
-    else if (k === 'o') { this.d.loop ^= 1; this.save() }
-    else if (k === '[' || k === ']') { this.n = clamp(this.n + (k === ']' ? 1 : -1), 1, 16) }
-    else if (k === 'w') { localStorage.setItem(`song_${this.n}`, JSON.stringify(this.d)); this.msg = `SAVED SONG ${pad(this.n, 2)}` }
-    else if (k === 'r') {
-      const d = clean(read(`song_${this.n}`))
-      if (d) { this.d = d; this.on = false; this.save(); this.msg = `LOADED SONG ${pad(this.n, 2)}` } else { this.msg = 'EMPTY SONG' }
-    }
-    else if (k === 'e') { this.exportFile() }
-    else if (k === 'i') { this.importFile() }
+    else if (k === 'r') { this.d.loop ^= 1; this.save() }
+    else if (k === 's') { this.exportFile() }
+    else if (k === 'o') { this.importFile() }
     client.update()
+  }
+
+  // the panel stays inside the grid rows (0..o.h-1) so the footer below is never covered
+  this.help = (h) => h >= 15 ? 3 : 2
+  this.rows = (h) => Math.max(1, h - 5 - this.help(h))
+
+  this.moveBanks = async () => {
+    if (localStorage.getItem('song_banks_moved')) { return }
+    const banks = []
+    for (let n = 1; n <= 16; n++) {
+      const d = clean(read(`song_${n}`))
+      if (d && d.slots.some((sl) => sl)) { banks.push({ name: `bank-${pad(n, 2)}`, content: pack(d) }) }
+    }
+    const ipc = this.ipc()
+    if (!banks.length || !ipc) { localStorage.setItem('song_banks_moved', '1'); return }
+    try {
+      const result = await ipc.invoke('song:save-banks', banks)
+      localStorage.setItem('song_banks_moved', '1')
+      if (result.written.length) {
+        this.msg = `${result.written.length} OLD BANKS SAVED AS FILES`
+        console.info('Song', `Saved old song banks to ${result.dir}:`, result.written.join(', '))
+      }
+    } catch (err) { console.warn('Song', 'Could not save old banks', err) }
   }
 
   this.click = (e) => {
@@ -298,8 +338,9 @@ function Song (client) {
     }
     this.focus = true
     const rx = mx - (x0 + 1)
-    if (my >= 5 && my < o.h) {
-      const vr = Math.max(1, o.h - 7)
+    if (my >= o.h) { return }
+    if (my >= 5 && my < 5 + this.rows(o.h)) {
+      const vr = this.rows(o.h)
       const top = clamp(this.r - (vr >> 1), 0, Math.max(0, N - vr))
       const row = top + (my - 5)
       if (row >= 0 && row < N) {
@@ -328,12 +369,14 @@ function Song (client) {
     const vis = Math.min(o.w, Math.ceil((window.innerWidth - 60) / t.w))
     const x0 = Math.max(0, vis - this.cols)
     const w = (s, x, y, ty) => client.write(s, x0 + 1 + x, y, 99, ty)
-    client.context.clearRect(x0 * t.ws, 0, client.el.width, client.el.height)
+    client.context.clearRect(x0 * t.ws, 0, client.el.width, o.h * t.hs)
     // Draw cyan edge vertical dividing bar
-    for (let y = 0; y < o.h + 2; y++) { client.drawSprite(x0, y, ' ', 0) }
+    for (let y = 0; y < o.h; y++) { client.drawSprite(x0, y, ' ', 0) }
     const hd = this.focus ? 4 : 3
     w(' '.repeat(W - 1), 0, 0, hd)
-    w(`SONG ${pad(this.n, 2)} ${this.on ? 'PLAY' : 'STOP'}`, 1, 0, hd)
+    const state = this.on ? 'PLAY' : 'STOP'
+    w(`SONG ${this.title().toUpperCase()}`.slice(0, W - 8), 1, 0, hd)
+    w(state, W - 2 - state.length, 0, hd)
     w('MODE', 0, 1, 5); w(MODES[d.mode], 5, 1, 10)
     w('LOOP', 9, 1, 5); w(d.loop ? 'ON' : 'OFF', 14, 1, 10)
     const curLen = this.on && cur ? len(cur) : 0
@@ -344,7 +387,7 @@ function Song (client) {
     }
     w(this.msg, 0, 3, 11)
     w('  # LEN MUL BPM PATCH', 0, 4, 5)
-    const vr = Math.max(1, o.h - 7)
+    const vr = this.rows(o.h)
     const top = clamp(this.r - (vr >> 1), 0, Math.max(0, N - vr))
     for (let k = 0; k < vr && top + k < N; k++) {
       const i = top + k
@@ -358,18 +401,19 @@ function Song (client) {
       })
       if (s) { w(snip(s), 16, y, 5) }
     }
-    w('ENT store L load SPC play DEL clr', 0, o.h, 5)
-    w('M mode O loop [ ] song W save R load', 0, o.h + 1, 5)
-    if (o.h >= 15) { w('E save song file  I open song file', 0, o.h + 2, 5) }
+    // Key help: the key in bright text, what it does in dim text, in grid-aligned columns
+    const rows = this.help(o.h) === 3 ? HELP : HELP_SHORT
+    const hy = o.h - rows.length
+    rows.forEach((row, j) => {
+      const cw = Math.floor((W - 1) / row.length)
+      row.forEach(([key, label], c) => {
+        w(key, c * cw, hy + j, 2)
+        w(label, c * cw + key.length + 1, hy + j, 5)
+      })
+    })
   }
 
   window.addEventListener('keydown', this.key, true)
+  this.moveBanks()
   window.addEventListener('mousedown', this.click)
-  window.addEventListener('drop', (e) => {
-    for (const f of e.dataTransfer.files) {
-      if (/\.(song|orcasong|json)$/i.test(f.name)) {
-        client.source.read(f, (file, text) => this.use(text))
-      }
-    }
-  })
 }

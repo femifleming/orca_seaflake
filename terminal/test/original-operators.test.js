@@ -1,8 +1,9 @@
 'use strict'
 
-// The original Orca operators must behave exactly like upstream Hundred Rabbits
-// Orca, including when inputs are left empty. Expected outputs below were
-// recorded from upstream's engine (github.com/hundredrabbits/Orca).
+// The original Orca operators must behave exactly like classic Hundred Rabbits
+// Orca (the released desktop app), including its defaults for empty inputs:
+// C and D count to 8, I steps by 1 up to 36, U plays 1 of 8, Z moves by 1 and
+// R picks below 36. Expected outputs below were recorded from that engine.
 
 const test = require('node:test')
 const assert = require('node:assert')
@@ -44,29 +45,51 @@ function run (rows, frames = 1) {
 }
 const below = (r, frame = 0) => r.grids[frame][2][2]
 
-test('C with an empty modulus outputs nothing', () => {
-  assert.strictEqual(below(run(['.....', '.4C..', '.....'])), '.')
+test('D on its own bangs every 8 frames', () => {
+  const r = run(['.....', '..D..', '.....'], 17)
+  const bangs = r.grids.map((g, f) => g[2][2] === '*' ? f : -1).filter(f => f >= 0)
+  assert.deepStrictEqual(bangs, [0, 8, 16])
+})
+test('D with a rate of 2 bangs every 16 frames', () => {
+  const r = run(['.....', '.2D..', '.....'], 17)
+  const bangs = r.grids.map((g, f) => g[2][2] === '*' ? f : -1).filter(f => f >= 0)
+  assert.deepStrictEqual(bangs, [0, 16])
+})
+test('C with an empty modulus counts 0 to 7', () => {
+  const r = run(['.....', '..C..', '.....'], 9)
+  assert.deepStrictEqual(r.grids.map((g, f) => below(r, f)), ['0', '1', '2', '3', '4', '5', '6', '7', '0'])
 })
 test('M with an empty side multiplies by 0', () => {
   assert.strictEqual(below(run(['.....', '.3M..', '.....'])), '0')
 })
-test('I with empty step stays at 0', () => {
+test('I on its own counts up by 1', () => {
   const r = run(['.....', '..I..', '.....'], 3)
-  assert.deepStrictEqual([0, 1, 2].map(f => below(r, f)), ['0', '0', '0'])
+  assert.deepStrictEqual([0, 1, 2].map(f => below(r, f)), ['1', '2', '3'])
 })
-test('U with empty step never bangs', () => {
-  const r = run(['.....', '..U..', '.....'], 4)
-  assert.ok([0, 1, 2, 3].every(f => below(r, f) === '.'))
+test('I with an empty modulus wraps at 36', () => {
+  const r = run(['.....', '..I..', '..y..'], 2)
+  assert.deepStrictEqual([0, 1].map(f => below(r, f)), ['z', '0'])
 })
-test('Z with empty rate does not move', () => {
-  const r = run(['.....', '..Z3.', '.....'], 3)
-  assert.deepStrictEqual([0, 1, 2].map(f => below(r, f)), ['0', '0', '0'])
+test('U on its own bangs 1 of every 8 frames', () => {
+  const r = run(['.....', '..U..', '.....'], 16)
+  const bangs = r.grids.map((g, f) => g[2][2] === '*' ? f : -1).filter(f => f >= 0)
+  assert.deepStrictEqual(bangs, [0, 8])
 })
-test('R with an empty side picks within 0..left', () => {
-  for (let i = 0; i < 200; i++) {
+test('Z with an empty rate moves by 1', () => {
+  const r = run(['.....', '..Z3.', '.....'], 4)
+  assert.deepStrictEqual([0, 1, 2, 3].map(f => below(r, f)), ['1', '2', '3', '3'])
+})
+test('L with an empty side outputs nothing', () => {
+  assert.strictEqual(below(run(['.....', '.5L..', '.....'])), '.')
+})
+test('R with an empty max picks from min up to 35', () => {
+  const seen = new Set()
+  for (let i = 0; i < 400; i++) {
     const v = parseInt(below(run(['.....', '.5R..', '.....'])), 36)
-    assert.ok(v >= 0 && v <= 5, `got ${v}`)
+    assert.ok(v >= 5 && v <= 35, `got ${v}`)
+    seen.add(v)
   }
+  assert.ok(seen.size > 20)
 })
 test(': with an empty octave is silent', () => {
   assert.deepStrictEqual(run(['D........', '.........', ':0.C.....', '.........']).sent, [])

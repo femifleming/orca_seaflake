@@ -13,6 +13,7 @@ const { parseSong, serializeSong } = require('./song-file')
 const ROOT = path.resolve(__dirname, '..')
 const VERSION = require('../package.json').version
 const SAVE_DIR = platform.saveDir()
+const SONGS_DIR = path.join(SAVE_DIR, 'songs')
 const { midi, error: midiLoadError } = platform.loadMidi()
 
 // Stands in for midi.Output/Input when the native module could not load, so
@@ -28,7 +29,7 @@ class NoMidiPort {
 const undoStack = []
 const redoStack = []
 const HISTORY_LIMIT = 200
-const state = { x: 0, y: 0, bpm: 120, playing: false, insert: false, message: '', file: null, dirty: false, prompt: false, promptValue: '', songOpen: false, songFocus: false, song: { slots: Array(32).fill(null), mode: 0, loop: true }, gridBpmDirective: null, songRow: 0, songField: 0, songBuffer: '', songPlaying: false, songOrder: [], songIndex: 0, songPosition: 0, resizeCache: new Map(), gridW: 16, gridH: 8, selectionAnchor: null, selectionMode: false, clipboard: '' }
+const state = { x: 0, y: 0, bpm: 120, playing: false, insert: false, message: '', file: null, dirty: false, prompt: false, promptValue: '', songOpen: false, songFocus: false, song: { slots: Array(32).fill(null), mode: 0, loop: true }, songFile: null, gridBpmDirective: null, songRow: 0, songField: 0, songBuffer: '', songPlaying: false, songOrder: [], songIndex: 0, songPosition: 0, resizeCache: new Map(), gridW: 16, gridH: 8, selectionAnchor: null, selectionMode: false, clipboard: '' }
 
 class CoreMidi {
   constructor () {
@@ -205,7 +206,7 @@ function songOrder () {
 function storeSongSlot () {
   const i = state.songRow
   const old = state.song.slots[i]
-  state.song.slots[i] = { len: old?.len ?? 64, mul: old?.mul ?? 1, bpm: old?.bpm ?? state.bpm, notes: old?.notes ?? '', p: orca.format() }
+  state.song.slots[i] = { len: old?.len ?? 16, mul: old?.mul ?? 1, bpm: old?.bpm ?? state.bpm, notes: old?.notes ?? '', p: orca.format() }
   state.message = `STORED SLOT ${pad(i + 1, 2)}`
 }
 function loadSongSlot (i) {
@@ -278,7 +279,8 @@ function drawSong () {
   const top = Math.max(0, Math.min(32 - visible, state.songRow - Math.floor(visible / 2)))
   const active = state.songPlaying ? state.songOrder[state.songIndex] : -1
   let out = '\x1b[H\x1b[2J'
-  out += `\x1b[1;36m ORCA SEAFLAKE  /  SONG MODE ${VERSION}\x1b[0m\n`
+  const songName = state.songFile ? path.basename(state.songFile).replace(/\.(song|orca-song|json)$/i, '') : 'untitled'
+  out += `\x1b[1;36m ORCA SEAFLAKE  /  SONG ${songName.toUpperCase()}\x1b[0m\n`
   out += ` ${state.songPlaying ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  MODE ${SONG_MODES[state.song.mode]}  LOOP ${state.song.loop ? 'ON' : 'OFF'}  BPM ${state.bpm}\n`
   out += ' ┌' + '─'.repeat(width) + '┐\n'
   const heading = ' #  LEN MUL BPM  NOTES'.padEnd(width).slice(0, width)
@@ -293,10 +295,14 @@ function drawSong () {
     out += ' │' + (selected ? `\x1b[7m${line}\x1b[0m` : line) + '│\n'
   }
   out += ' └' + '─'.repeat(width) + '┘\n'
-  out += ' Enter store | L load | Backspace clear | N edit notes for selected slot\n'
-  out += ' Arrows select row/field | 0-9 edit | +/- adjust | Space play/stop | M mode | O loop\n'
-  out += ' E export song | I import song | Ctrl-T return to Orca grid\n'
-  out += ` Selected slot ${pad(state.songRow + 1, 2)}  Field ${SONG_FIELDS[state.songField].toUpperCase()}  ${state.message}` + '\n'
+  // Key in bold, what it does in plain text, in 15-column cells so the rows line up
+  const key = (k, label) => `\x1b[1m${k}\x1b[0m ${label}` + ' '.repeat(Math.max(1, 15 - k.length - 1 - label.length))
+  out += ' ' + [key('ENT', 'store'), key('L', 'load'), key('DEL', 'clear'), key('N', 'notes')].join('') + '\n'
+  out += ' ' + [key('SPC', 'play'), key('M', 'mode'), key('R', 'loop'), key('0-9 +/-', 'edit')].join('') + '\n'
+  out += ' ' + [key('S', 'save song'), key('O', 'open song'), key('ESC', 'close')].join('') + '\n'
+  // While asking for a file name or notes, the bottom line shows the question and what is typed
+  if (state.prompt) out += ` ${state.promptLabel || 'Path'}: ${state.promptValue}_  (Enter to confirm, Esc to cancel)\n`
+  else out += ` Selected slot ${pad(state.songRow + 1, 2)}  Field ${SONG_FIELDS[state.songField].toUpperCase()}  ${state.message}` + '\n'
   process.stdout.write(out)
 }
 function draw () { if (state.songOpen) drawSong(); else drawGrid() }
@@ -542,7 +548,7 @@ process.stdin.on('keypress', (str, key) => {
   if (action === 'quit') return shutdown()
   if (state.prompt) {
     if (key.name === 'escape' || (key.ctrl && key.name === 'c')) { state.prompt = false; state.message = state.promptAction === 'command' ? 'COMMAND CANCELLED' : 'Open cancelled'; state.promptAction = null; draw(); return }
-    if (key.name === 'return' || key.name === 'enter') { try { const value = state.promptValue.trim(); if (state.promptAction === 'command') { runGridCommand(value) } else if (state.promptAction === 'song-note') { const slot = state.song.slots[state.songRow]; if (slot) { slot.notes = value; state.message = `NOTES UPDATED FOR SLOT ${pad(state.songRow + 1, 2)}` } } else if (state.promptAction === 'song-save') { fs.mkdirSync(path.dirname(path.resolve(value)), { recursive: true }); fs.writeFileSync(path.resolve(value), serializeSong(state.song)); state.message = `SAVED ${value}` } else if (state.promptAction === 'song-open') { state.song = parseSong(JSON.parse(fs.readFileSync(path.resolve(value), 'utf8'))); state.message = `LOADED ${value}` } else openFile(value) } catch (e) { state.message = e.message }; state.prompt = false; state.promptAction = null; draw(); return }
+    if (key.name === 'return' || key.name === 'enter') { try { const value = state.promptValue.trim(); if (state.promptAction === 'command') { runGridCommand(value) } else if (state.promptAction === 'song-note') { const slot = state.song.slots[state.songRow]; if (slot) { slot.notes = value; state.message = `NOTES UPDATED FOR SLOT ${pad(state.songRow + 1, 2)}` } } else if (state.promptAction === 'song-save') { const file = path.resolve(/\.(song|orca-song|json)$/i.test(value) ? value : value + '.song'); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, serializeSong(state.song)); state.songFile = file; state.message = `SAVED ${file}` } else if (state.promptAction === 'song-open') { const file = path.resolve(value); state.song = parseSong(JSON.parse(fs.readFileSync(file, 'utf8'))); state.songFile = file; state.message = `OPENED ${file}` } else openFile(value) } catch (e) { state.message = e.message }; state.prompt = false; state.promptAction = null; draw(); return }
     if (key.name === 'backspace') state.promptValue = state.promptValue.slice(0, -1)
     else if (str && str.length === 1 && !key.ctrl) state.promptValue += str
     draw(); return
@@ -571,9 +577,9 @@ process.stdin.on('keypress', (str, key) => {
     else if (str === 'l' || str === 'L') loadSongSlot(state.songRow)
     else if (str === 'n' || str === 'N') { const slot = state.song.slots[state.songRow]; if (slot) { state.prompt = true; state.promptLabel = `Notes for slot ${pad(state.songRow + 1, 2)}`; state.promptAction = 'song-note'; state.promptValue = slot.notes || '' } else state.message = 'STORE A PATCH IN THIS SLOT FIRST' }
     else if (str === 'm' || str === 'M') state.song.mode = (state.song.mode + 1) % 3
-    else if (str === 'o' || str === 'O') state.song.loop = !state.song.loop
-    else if (str === 'e' || str === 'E') { state.prompt = true; state.promptLabel = 'Export song path'; state.promptAction = 'song-save'; state.promptValue = path.join(SAVE_DIR, 'untitled.song') }
-    else if (str === 'i' || str === 'I') { state.prompt = true; state.promptLabel = 'Import song path'; state.promptAction = 'song-open'; state.promptValue = '' }
+    else if (str === 'r' || str === 'R') state.song.loop = !state.song.loop
+    else if (str === 's' || str === 'S') { state.prompt = true; state.promptLabel = 'Save song as'; state.promptAction = 'song-save'; state.promptValue = state.songFile || path.join(SONGS_DIR, 'untitled.song') }
+    else if (str === 'o' || str === 'O') { state.prompt = true; state.promptLabel = 'Open song'; state.promptAction = 'song-open'; state.promptValue = state.songFile ? path.dirname(state.songFile) + path.sep : SONGS_DIR + path.sep }
     else if (/^\d$/.test(str || '') && state.song.slots[state.songRow]) { const slot = state.song.slots[state.songRow], field = SONG_FIELDS[state.songField]; state.songBuffer = (state.songBuffer + str).slice(-SONG_WIDTHS[state.songField]); slot[field] = Number(state.songBuffer); state.message = `EDIT ${field.toUpperCase()} SLOT ${pad(state.songRow + 1, 2)}` }
     else if ((str === '+' || str === '=' || str === '-') && state.song.slots[state.songRow]) { const slot = state.song.slots[state.songRow], field = SONG_FIELDS[state.songField]; slot[field] = Math.max(field === 'bpm' ? 60 : 1, Math.min(field === 'bpm' ? 300 : 999, slot[field] + (str === '-' ? -1 : 1))); state.songBuffer = '' }
     draw(); return

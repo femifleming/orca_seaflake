@@ -55,7 +55,7 @@ library.c = function OperatorC (orca, x, y, passive) {
   this.info = 'Outputs modulo of frame'
 
   this.ports.rate = { x: -1, y: 0, clamp: { min: 1 } }
-  this.ports.mod = { x: 1, y: 0 }
+  this.ports.mod = { x: 1, y: 0, default: '8' }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
@@ -73,7 +73,7 @@ library.d = function OperatorD (orca, x, y, passive) {
   this.info = 'Bangs on modulo of frame'
 
   this.ports.rate = { x: -1, y: 0, clamp: { min: 1 } }
-  this.ports.mod = { x: 1, y: 0, clamp: { min: 1 } }
+  this.ports.mod = { x: 1, y: 0, default: '8' }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
   this.operation = function (force = false) {
@@ -158,6 +158,48 @@ library['~'] = function OperatorBurst (orca, x, y, passive) {
   }
 }
 
+library['|'] = function OperatorMute (orca, x, y, passive) {
+  Operator.call(this, orca, x, y, '|', true)
+
+  this.name = 'mute'
+  this.info = 'Hashes out the block below when banged; bang again to unmute'
+  this.ports.width = { x: -2, y: 0, default: '8', clamp: { min: 1, max: 35 } }
+  this.ports.height = { x: -1, y: 0, default: '4', clamp: { min: 1, max: 35 } }
+
+  // The block is `width` columns wide and `height` rows tall, starting one cell
+  // right of the operator, one row down. Muting writes a # in the column under
+  // the operator and in the column just past the block on each row, so classic
+  // # comments freeze everything in between. The hash columns are shown as ports
+  // but never locked, so the # operators in them still run.
+  const size = () => ({ w: this.listen(this.ports.width, true), h: this.listen(this.ports.height, true) })
+  // The operator guide builds operators without a grid, so only read it when there is one.
+  const edges = orca ? size() : { w: 0, h: 0 }
+  for (let k = 1; k <= edges.h; k++) {
+    this.addPort(`left${k}`, { x: 0, y: k, bang: true })
+    this.addPort(`right${k}`, { x: edges.w + 1, y: k, bang: true })
+  }
+
+  this.operation = function (force = false) {
+    if (!this.hasNeighbor('*') && force === false) { return }
+    const { w, h } = size()
+    const muted = orca.glyphAt(this.x, this.y + 1) === '#'
+    for (let k = 1; k <= h; k++) {
+      const gy = this.y + k
+      for (const dx of [0, w + 1]) {
+        const gx = this.x + dx
+        if (!orca.inBounds(gx, gy)) { continue }
+        if (!muted) { orca.write(gx, gy, '#') } else if (orca.glyphAt(gx, gy) === '#') {
+          orca.write(gx, gy, '.')
+          // The # was already queued to run this frame; lock it so the row runs now.
+          orca.lock(gx, gy)
+        }
+      }
+      // Lock the block too, so muting takes effect this frame rather than the next.
+      if (!muted) { for (let dx = 1; dx <= w; dx++) { if (orca.inBounds(this.x + dx, gy)) { orca.lock(this.x + dx, gy) } } }
+    }
+  }
+}
+
 library.e = function OperatorE (orca, x, y, passive) {
   Operator.call(this, orca, x, y, 'e', passive)
 
@@ -233,7 +275,7 @@ library.i = function OperatorI (orca, x, y, passive) {
   this.name = 'increment'
   this.info = 'Increments southward operand'
 
-  this.ports.step = { x: -1, y: 0 }
+  this.ports.step = { x: -1, y: 0, default: '1' }
   this.ports.mod = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, reader: true, output: true }
 
@@ -241,7 +283,7 @@ library.i = function OperatorI (orca, x, y, passive) {
     const step = this.listen(this.ports.step, true)
     const mod = this.listen(this.ports.mod, true)
     const val = this.listen(this.ports.output, true)
-    return mod ? orca.keyOf((val + step) % mod) : '0'
+    return orca.keyOf((val + step) % (mod > 0 ? mod : 36))
   }
 }
 
@@ -252,8 +294,8 @@ library.j = function OperatorJ (orca, x, y, passive) {
   this.info = 'Outputs northward operand'
 
   this.operation = function (force = false) {
-    const val = this.listen({ x: 0, y: -1 })
-    if (val != "J") {
+    const val = this.listen({ x: 0, y: -1, output: true })
+    if (val != this.glyph) {
       let i = 0
       while (orca.inBounds(this.x, this.y + i)) {
         if (this.listen({ x: 0, y: ++i }) != this.glyph) { break }
@@ -300,9 +342,9 @@ library.l = function OperatorL (orca, x, y, passive) {
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
-    const a = this.listen(this.ports.a, true)
-    const b = this.listen(this.ports.b, true)
-    return orca.keyOf(a > b ? b : a)
+    const a = this.listen(this.ports.a)
+    const b = this.listen(this.ports.b)
+    return a !== '.' && b !== '.' ? orca.keyOf(Math.min(orca.valueOf(a), orca.valueOf(b))) : '.'
   }
 }
 
@@ -406,18 +448,15 @@ library.r = function OperatorR (orca, x, y, passive) {
   this.name = 'random'
   this.info = 'Outputs random value'
 
-  this.ports.a = { x: -1, y: 0 }
-  this.ports.b = { x: 1, y: 0 }
+  this.ports.min = { x: -1, y: 0 }
+  this.ports.max = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, output: true }
 
   this.operation = function (force = false) {
-    const a = this.listen(this.ports.a, true)
-    const b = this.listen(this.ports.b, true)
-    if(a == b)
-        return orca.keyOf(a)
-    if(a > b)
-        return orca.keyOf(parseInt(Math.random() * (a - b + 1) + b))
-    return orca.keyOf(parseInt(Math.random() * (b - a + 1) + a))
+    const min = this.listen(this.ports.min, true)
+    const max = this.listen(this.ports.max, true)
+    const val = parseInt((Math.random() * ((max > 0 ? max : 36) - min)) + min)
+    return orca.keyOf(val)
   }
 }
 
@@ -461,8 +500,8 @@ library.u = function OperatorU (orca, x, y, passive) {
   this.name = 'uclid'
   this.info = 'Bangs on Euclidean rhythm'
 
-  this.ports.step = { x: -1, y: 0, clamp: { min: 0 } }
-  this.ports.max = { x: 1, y: 0, clamp: { min: 1 } }
+  this.ports.step = { x: -1, y: 0, clamp: { min: 0 }, default: '1' }
+  this.ports.max = { x: 1, y: 0, clamp: { min: 1 }, default: '8' }
   this.ports.output = { x: 0, y: 1, bang: true, output: true }
 
   this.operation = function (force = false) {
@@ -535,7 +574,7 @@ library.y = function OperatorY (orca, x, y, passive) {
 
   this.operation = function (force = false) {
     const val = this.listen({ x: -1, y: 0, output: true })
-    if (val != "Y") {
+    if (val != this.glyph) {
       let i = 0
       while (orca.inBounds(this.x + i, this.y)) {
         if (this.listen({ x: ++i, y: 0 }) != this.glyph) { break }
@@ -553,7 +592,7 @@ library.z = function OperatorZ (orca, x, y, passive) {
   this.name = 'lerp'
   this.info = 'Transitions operand to target'
 
-  this.ports.rate = { x: -1, y: 0 }
+  this.ports.rate = { x: -1, y: 0, default: '1' }
   this.ports.target = { x: 1, y: 0 }
   this.ports.output = { x: 0, y: 1, sensitive: true, reader: true, output: true }
 

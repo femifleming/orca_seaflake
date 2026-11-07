@@ -11,16 +11,22 @@ It sequences through distinct Orca patches with per-slot frame lengths (`LEN`), 
 The song tracker slides smoothly into view from the right side of the canvas with a 1-tile cyan edge divider and an orange header bar:
 
 ```
-  SONG 01 STOP
-MODE  ORD  LOOP ON
+ SONG MY-SONG                    STOP
+MODE ORD  LOOP ON
 POS 0000/0016 SLOT 01
 
   # LEN MUL BPM PATCH
- 01 016 001 120 . . . . R . . . . . . . .
- 02 002 004 120 . . . . . . . R g . R g R . .
- 03 008 002 140 . . D 4 . . . . . . . . .
- 04 . . . . . . . . .
+ 01 016 001 120 ....R........
+ 02 002 004 120 .......Rg.RgR
+ 03 008 002 140 ..D4.........
+ 04 ... ... ...
+ ...
+ENT store   L   load    DEL clear
+SPC play    M   mode    R   loop
+S   save song O open song ESC close
 ```
+
+The header shows the name of the open song file (`UNTITLED` until you save it). The bottom rows list the keys; in a short window they shrink to two rows.
 
 ### Table Columns
 - `#`: Slot index (`01` to `32`). A `>` cursor marks the currently playing slot.
@@ -95,12 +101,9 @@ Examples:
 | `Backspace` / `Del` | Clear selected slot |
 | `Space` (`SPC`) | Play / Stop Song Mode sequencing |
 | `M` | Cycle play mode (`ORD` $\rightarrow$ `REV` $\rightarrow$ `RND`) |
-| `O` | Toggle loop (`ON` $\leftrightarrow$ `OFF`) |
-| `[` / `]` | Select song bank (1 to 16) |
-| `W` | Save current song to selected bank in local storage |
-| `R` | Recall song from selected bank in local storage |
-| `E` | Export song as a `.song` file (opens a save dialog) |
-| `I` | Import song from a `.song` file (opens a file dialog) |
+| `R` | Toggle loop (`ON` $\leftrightarrow$ `OFF`) |
+| `S` | Save the song as a `.song` file |
+| `O` | Open a `.song` file |
 | `Escape` | Unfocus and slide song tracker away |
 
 ---
@@ -109,7 +112,7 @@ Examples:
 
 | Action | Shortcut | Commander Command |
 | --- | --- | --- |
-| Toggle Song Tracker Drawer | `Cmd/Ctrl+T` or `Cmd/Ctrl+M` | `song` or `song:toggle` |
+| Toggle Song Tracker Drawer | `Cmd/Ctrl+T` | `song` or `song:toggle` |
 | Save Song File | `Cmd/Ctrl+Shift+E` | `song:save` |
 | Open Song File | `Cmd/Ctrl+Shift+I` | `song:open` |
 | Start Song Sequencing | - | `song:play` |
@@ -120,5 +123,9 @@ Examples:
 ---
 
 ## Song Files
+
+Songs are saved only as `.song` files. Save and open them with `S` and `O` in Song Mode; the same keys work in the desktop app and the terminal version. Files go in `Documents/Orca Seaflake/songs` unless you pick another folder, and saving again offers the file you last opened or saved.
+
+Earlier desktop builds also had 16 song banks inside the app (`W`/`R`). Those are gone. The first time this version starts, any bank that holds a song is saved to the songs folder as `bank-01.song`, `bank-02.song` and so on. Existing files are never overwritten.
 
 `.song` files are plain JSON and open in both the desktop app and the [terminal version](../terminal/README.md). Older files open too: songs saved with bars and 16ths are converted to `LEN`, and `.orca-song` files from early Song Mode builds load with one slot per pattern.

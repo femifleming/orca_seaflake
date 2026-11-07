@@ -64,8 +64,8 @@ npm install -g ./orca-seaflake-terminal-<version>.tgz
 2. Commit, then push a matching tag:
 
    ```sh
-   git tag v0.8.0
-   git push origin v0.8.0
+   git tag v0.9.0
+   git push origin v0.9.0
    ```
 
 The workflow builds everything, runs every check above, and publishes a GitHub Release **only if all of them pass**. It refuses to publish if the tag doesn't match both versions.
@@ -77,7 +77,18 @@ The workflow builds everything, runs every check above, and publishes a GitHub R
 
 ## Homebrew
 
-`Casks/orca-seaflake.rb` here is a copy of the cask in [femifleming/homebrew-orca_seaflake](https://github.com/femifleming/homebrew-orca_seaflake), which is what `brew install` uses. It downloads the fixed-name macOS zips from the latest release, so new releases need no cask change.
+The tap [femifleming/homebrew-orca_seaflake](https://github.com/femifleming/homebrew-orca_seaflake) is what `brew install` uses. Copies of its files are kept here:
+
+- `Casks/orca-seaflake.rb`, the desktop app. It downloads the release's macOS `.zip` for the Mac's chip.
+- `Formula/orca-seaflake-terminal.rb`, the terminal version. It installs the release's `orca-seaflake-terminal-<version>.tgz` with Homebrew's Node.js.
+
+Both name the version and the file checksums, so `brew upgrade` finds new releases. After a release is published, update them:
+
+```sh
+scripts/update-homebrew.sh 0.9.0
+```
+
+The script downloads the release's files, writes the new version and checksums into both files here and in the tap, and pushes the tap. Commit the copies here too.
 
 ## Platform notes
 

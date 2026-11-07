@@ -11,6 +11,7 @@
 /* global Clock */
 /* global Theme */
 /* global Song */
+/* global Settings */
 
 function Client () {
   this.version = 178
@@ -27,6 +28,7 @@ function Client () {
   this.commander = new Commander(this)
   this.clock = new Clock(this)
   this.song = new Song(this)
+  this.settings = new Settings(this)
 
   // Settings
   this.scale = window.devicePixelRatio
@@ -43,6 +45,8 @@ function Client () {
   this.install = (host) => {
     host.appendChild(this.el)
     this.theme.install(host)
+    this.settings.install(host)
+    this.theme.onLoad = () => { if (this.isStarted) { this.settings.apply() } }
 
     this.theme.default = { background: '#000000', f_high: '#ffffff', f_med: '#777777', f_low: '#444444', f_inv: '#000000', b_high: '#eeeeee', b_med: '#72dec2', b_low: '#444444', b_inv: '#ffb545' }
 
@@ -124,7 +128,6 @@ function Client () {
     this.acels.set('Communication', 'Choose UDP Port', 'alt+U', () => { this.commander.start('udp:') })
 
     this.acels.set('Song', 'Toggle Song Panel', 'CmdOrCtrl+T', () => { this.song.toggle() })
-    this.acels.set('Song', 'Toggle Song Panel (Alt)', 'CmdOrCtrl+M', () => { this.song.toggle() })
     this.acels.set('Song', 'Save Song File', 'CmdOrCtrl+Shift+E', () => { this.song.exportFile() })
     this.acels.set('Song', 'Open Song File', 'CmdOrCtrl+Shift+I', () => { this.song.importFile() })
 
@@ -144,7 +147,8 @@ function Client () {
 
     this.reset()
     this.modZoom()
-    this.update()
+    this.isStarted = true
+    this.settings.start()
     this.el.className = 'ready'
 
     this.toggleGuide()
@@ -287,7 +291,7 @@ function Client () {
     // Output Reader
     if (type === 9) { return { bg: this.theme.active.b_inv, fg: this.theme.active.background } }
     // Reader+Background
-    if (type === 10) { return { bg: this.theme.active.background, fg: this.theme.active.f_high } }
+    if (type === 10) { return { bg: this.settings.background(), fg: this.theme.active.f_high } }
     // Clock(yellow fg)
     if (type === 11) { return { fg: this.theme.active.b_inv } }
     // Default
@@ -295,6 +299,11 @@ function Client () {
   }
 
   // Canvas
+
+  this.applyFont = () => {
+    if (!this.tile.hs) { return }
+    this.context.font = `${this.tile.hs * 0.75}px ${this.settings.fontStack()}`
+  }
 
   this.clear = () => {
     this.context.clearRect(0, 0, this.el.width, this.el.height)
@@ -365,6 +374,8 @@ function Client () {
   this.drawSprite = (x, y, g, type) => {
     const theme = this.makeTheme(type)
     if (theme.bg) {
+      // Background-colored cells may be see-through, so wipe what is underneath first.
+      if (type === 10) { this.context.clearRect(x * this.tile.ws, (y) * this.tile.hs, this.tile.ws, this.tile.hs) }
       this.context.fillStyle = theme.bg
       this.context.fillRect(x * this.tile.ws, (y) * this.tile.hs, this.tile.ws, this.tile.hs)
     }
@@ -412,7 +423,7 @@ function Client () {
 
     this.context.textBaseline = 'bottom'
     this.context.textAlign = 'center'
-    this.context.font = `${this.tile.hs * 0.75}px input_mono_medium`
+    this.applyFont()
     this.update()
   }
 
@@ -460,9 +471,9 @@ function Client () {
     e.preventDefault()
     e.stopPropagation()
     for (const file of e.dataTransfer.files) {
-      if (/\.(song|orcasong|json)$/i.test(file.name)) {
+      if (/\.(song|orca-song|orcasong|json)$/i.test(file.name)) {
         if (this.song) {
-          this.source.read(file, (f, text) => this.song.use(text))
+          this.source.read(file, (f, text) => this.song.use(text, file.path))
         }
         return
       }

@@ -23,7 +23,13 @@ Raspberry Pi: tested on 32-bit and 64-bit Raspberry Pi OS for the Pi 2, 3, 4, 5 
 
 ### 2. Install Orca Seaflake
 
-On macOS and Windows:
+On a Mac with [Homebrew](https://brew.sh), this one command installs Orca Seaflake and Node.js, so you can skip step 1:
+
+```sh
+brew install femifleming/orca_seaflake/orca-seaflake-terminal
+```
+
+Otherwise, on macOS and Windows:
 
 ```sh
 npm install -g https://github.com/femifleming/orca_seaflake/releases/latest/download/orca-seaflake-terminal.tgz
@@ -131,8 +137,8 @@ Press `Ctrl+T` to switch between the grid and Song Mode.
 | `N` | Write a note for the slot |
 | `Space` | Play / stop the song |
 | `M` | Order: forward, reverse, random |
-| `O` | Loop on / off |
-| `E` / `I` | Export / import a `.song` file |
+| `R` | Loop on / off |
+| `S` / `O` | Save / open a `.song` file (in `Documents/Orca Seaflake/songs`) |
 | `Ctrl+T` or `Esc` | Back to the grid |
 
 A slot plays for **LEN × MUL frames**, and one frame is one 16th note: `LEN 16, MUL 1` is one bar. `.song` files open in both the terminal and the desktop app.

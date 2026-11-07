@@ -1,6 +1,6 @@
 {
   "name": "orca-seaflake-terminal",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Terminal Orca Seaflake for macOS, Windows and Linux / Raspberry Pi OS, with Song Mode and MIDI output",
   "license": "MIT",
   "repository": {
