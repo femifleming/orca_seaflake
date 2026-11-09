@@ -1,7 +1,7 @@
 'use strict'
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { shortcutAction, movementDistance } = require('../src/keys')
+const { shortcutAction, movementDistance, arrowDirection } = require('../src/keys')
 
 test('Ctrl+C and Command+C map only to copy, never quit', () => {
   assert.equal(shortcutAction({ ctrl: true, name: 'c' }), 'copy')
@@ -30,14 +30,16 @@ test('file and song shortcuts accept Control and Command', () => {
   }
 })
 
-test('Shift and Control/Command arrows fast-travel eight cells outside selection mode', () => {
-  assert.equal(movementDistance({ shift: true }, { shift: true }, false), 8)
-  assert.equal(movementDistance({ ctrl: true }, {}, false), 8)
-  assert.equal(movementDistance({ meta: true }, {}, false), 8)
-  assert.equal(movementDistance({}, {}, false), 1)
+test('Shift, Ctrl and Option/Alt arrows leap eight cells; plain arrows move one', () => {
+  assert.equal(movementDistance({ name: 'right', shift: true }), 8)
+  assert.equal(movementDistance({ name: 'right', ctrl: true }), 8)
+  assert.equal(movementDistance({ name: 'right', meta: true }), 8)
+  assert.equal(movementDistance({ name: 'right' }), 1)
 })
 
-test('selection mode keeps arrow movement one cell at a time', () => {
-  assert.equal(movementDistance({ shift: true }, { shift: true }, true), 1)
-  assert.equal(movementDistance({ ctrl: true }, {}, true), 1)
+test('Option+Left/Right sent as ESC b / ESC f count as arrows', () => {
+  assert.equal(arrowDirection({ name: 'b', meta: true }), 'left')
+  assert.equal(arrowDirection({ name: 'f', meta: true }), 'right')
+  assert.equal(arrowDirection({ name: 'b' }), null)
+  assert.equal(arrowDirection({ name: 'up' }), 'up')
 })

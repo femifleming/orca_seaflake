@@ -3,10 +3,11 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const vm = require('node:vm')
-const readline = require('node:readline')
-const { bounds: getSelectionBounds, clearBlock, normalizedArrow, toggleBlockComment } = require('./selection')
+const { bounds: getSelectionBounds, clearBlock, toggleBlockComment } = require('./selection')
 const { performance } = require('node:perf_hooks')
-const { shortcutAction, movementDistance } = require('./keys')
+const { shortcutAction, movementDistance, arrowDirection } = require('./keys')
+const input = require('./input')
+const screen = require('./screen')
 const platform = require('./platform')
 const { parseSong, serializeSong } = require('./song-file')
 
@@ -29,7 +30,7 @@ class NoMidiPort {
 const undoStack = []
 const redoStack = []
 const HISTORY_LIMIT = 200
-const state = { x: 0, y: 0, bpm: 120, playing: false, insert: false, message: '', file: null, dirty: false, prompt: false, promptValue: '', songOpen: false, songFocus: false, song: { slots: Array(32).fill(null), mode: 0, loop: true }, songFile: null, gridBpmDirective: null, songRow: 0, songField: 0, songBuffer: '', songPlaying: false, songOrder: [], songIndex: 0, songPosition: 0, resizeCache: new Map(), gridW: 16, gridH: 8, selectionAnchor: null, selectionMode: false, clipboard: '' }
+const state = { x: 0, y: 0, bpm: 120, playing: false, insert: false, message: '', file: null, dirty: false, prompt: false, promptValue: '', songOpen: false, songFocus: false, song: { slots: Array(32).fill(null), mode: 0, loop: true }, songFile: null, gridBpmDirective: null, songRow: 0, songField: 0, songBuffer: '', songPlaying: false, songOrder: [], songIndex: 0, songPosition: 0, gridW: 16, gridH: 8, selectionAnchor: null, selectionMode: false, clipboard: '' }
 
 class CoreMidi {
   constructor () {
@@ -167,26 +168,40 @@ function loadEngine () {
   return { orca: new context.Orca(context.library), library: context.library }
 }
 const { orca } = loadEngine()
-// Size the grid to the terminal on startup. Grid contents are cached by
-// coordinate when the terminal is resized, so shrinking never destroys cells.
+// The grid starts at the size of the terminal. It grows when the window grows
+// but never shrinks, so making the window smaller (or opening a patch larger
+// than the window) never loses cells: the view scrolls to follow the cursor.
 function terminalGridSize () {
   return { w: Math.max(8, (process.stdout.columns || 80) - 4), h: Math.max(4, (process.stdout.rows || 24) - 8) }
 }
 function resizeGrid () {
   const size = terminalGridSize()
-  if (size.w === orca.w && size.h === orca.h) return
-  for (let y = 0; y < orca.h; y++) for (let x = 0; x < orca.w; x++) {
-    state.resizeCache.set(`${x},${y}`, orca.glyphAt(x, y) || '.')
-  }
+  const w = Math.max(size.w, orca.w), h = Math.max(size.h, orca.h)
+  if (w === orca.w && h === orca.h) return
   const lines = []
-  for (let y = 0; y < size.h; y++) {
+  for (let y = 0; y < h; y++) {
     let line = ''
-    for (let x = 0; x < size.w; x++) line += state.resizeCache.get(`${x},${y}`) || (x < orca.w && y < orca.h ? orca.glyphAt(x, y) : '.')
+    for (let x = 0; x < w; x++) line += x < orca.w && y < orca.h ? (orca.glyphAt(x, y) || '.') : '.'
     lines.push(line)
   }
-  orca.load(size.w, size.h, lines.join(''), orca.f)
-  state.gridW = size.w; state.gridH = size.h
+  orca.load(w, h, lines.join(''), orca.f)
+  state.gridW = w; state.gridH = h
   state.x = Math.min(state.x, orca.w - 1); state.y = Math.min(state.y, orca.h - 1)
+}
+// Which part of the grid is on screen. Scrolls just enough to keep the
+// cursor visible.
+function gridView () {
+  const cols = process.stdout.columns || 80
+  const rows = process.stdout.rows || 24
+  const w = Math.min(orca.w, Math.max(8, cols - 4))
+  const h = Math.min(orca.h, Math.max(4, rows - 8))
+  let vx = Math.min(state.viewX || 0, orca.w - w), vy = Math.min(state.viewY || 0, orca.h - h)
+  if (state.x < vx) vx = state.x
+  if (state.x >= vx + w) vx = state.x - w + 1
+  if (state.y < vy) vy = state.y
+  if (state.y >= vy + h) vy = state.y - h + 1
+  state.viewX = Math.max(0, vx); state.viewY = Math.max(0, vy)
+  return { x: state.viewX, y: state.viewY, w, h }
 }
 const initial = terminalGridSize()
 orca.reset(initial.w, initial.h)
@@ -245,31 +260,32 @@ function songTick () {
   state.songPosition++
 }
 function drawGrid () {
-  const cols = process.stdout.columns || 80
-  const rows = process.stdout.rows || 24
-  const viewW = Math.min(orca.w, Math.max(8, cols - 4))
-  state.viewStartX = 0
-  const viewH = Math.min(orca.h, Math.max(4, rows - 8))
-  let out = '\x1b[H\x1b[2J'
-  out += `\x1b[1;36m ORCA SEAFLAKE  /  TERMINAL ${VERSION}\x1b[0m\n`
-  out += ` ${state.playing ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  BPM ${state.bpm}  FRAME ${orca.f}  GRID ${orca.w}x${orca.h}  MIDI: ${midiOut.statusLabel()}\n`
-  out += ' ┌' + '─'.repeat(viewW) + '┐\n'
-  for (let y = 0; y < viewH; y++) {
-    out += ' │'
-    for (let x = 0; x < viewW; x++) {
+  const view = gridView()
+  const lines = []
+  lines.push(`\x1b[1;36m ORCA SEAFLAKE  /  TERMINAL ${VERSION}\x1b[0m`)
+  lines.push(` ${state.playing ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  BPM ${state.bpm}  FRAME ${orca.f}  ${pad(state.x, 3)},${pad(state.y, 3)}  GRID ${orca.w}x${orca.h}${state.selectionMode ? '  \x1b[36mSELECT\x1b[0m' : ''}  MIDI: ${midiOut.statusLabel()}`)
+  // Arrows on the frame show there is more grid beyond the edge of the view
+  const more = (cond, ch, fill) => cond ? `\x1b[33m${ch}\x1b[0m` : fill
+  lines.push(' ┌' + '─'.repeat(view.w) + '┐' + more(view.y > 0, '▲', ''))
+  for (let row = 0; row < view.h; row++) {
+    const y = view.y + row
+    let line = row === Math.floor(view.h / 2) ? more(view.x > 0, '◀', ' ') + '│' : ' │'
+    for (let col = 0; col < view.w; col++) {
+      const x = view.x + col
       const g = orca.glyphAt(x, y) || '.'
       const selected = isCellSelected(x, y)
       const cursor = x === state.x && y === state.y
-      out += selected ? `\x1b[7;36m${g}\x1b[0m` : cursor ? `\x1b[7m${g}\x1b[0m` : (g === '.' ? '\x1b[90m.\x1b[0m' : `\x1b[1;37m${g}\x1b[0m`)
+      line += cursor ? `\x1b[7m${g}\x1b[0m` : selected ? `\x1b[7;36m${g}\x1b[0m` : (g === '.' ? (x % 8 === 0 && y % 8 === 0 ? '\x1b[90m+\x1b[0m' : '\x1b[90m.\x1b[0m') : `\x1b[1;37m${g}\x1b[0m`)
     }
-    out += '│\n'
+    line += '│' + (row === Math.floor(view.h / 2) ? more(view.x + view.w < orca.w, '▶', '') : '')
+    lines.push(line)
   }
-  out += ' └' + '─'.repeat(viewW) + '┘\n'
-  out += ` Arrows move  |  Shift/Ctrl+Arrows fast (8 cells)  |  Tab select  |  Mouse drag select  |  Ctrl-C copy Ctrl-V paste\n`
-  const inlet = inletAtCursor()
-  const status = inlet || state.message
-  out += ' Ctrl-S save  Ctrl-O open  Ctrl-N new  Ctrl-T song mode  Ctrl-K command  Ctrl-Q quit  |  ' + (state.prompt ? `${state.promptLabel || 'Path'}: ${state.promptValue}` : status) + '\n'
-  process.stdout.write(out)
+  lines.push(' └' + '─'.repeat(view.w) + '┘' + more(view.y + view.h < orca.h, '▼', ''))
+  lines.push(' Arrows move  Shift/Opt+Arrows leap 8  PgUp/PgDn/Home/End jump  Tab select  Ctrl-C/V copy/paste  < > tempo')
+  const status = inletAtCursor() || state.message
+  if (state.prompt) lines.push(` ${state.promptLabel || 'Path'}: ${state.promptValue}_  (Enter to confirm, Esc to cancel)`)
+  else lines.push(' Ctrl-S save  Ctrl-O open  Ctrl-N new  Ctrl-T song  Ctrl-K command  Ctrl-Q quit  |  ' + status)
+  screen.render(lines)
 }
 function drawSong () {
   const cols = process.stdout.columns || 80
@@ -278,7 +294,7 @@ function drawSong () {
   const visible = Math.max(1, Math.min(32, rows - 10))
   const top = Math.max(0, Math.min(32 - visible, state.songRow - Math.floor(visible / 2)))
   const active = state.songPlaying ? state.songOrder[state.songIndex] : -1
-  let out = '\x1b[H\x1b[2J'
+  let out = ''
   const songName = state.songFile ? path.basename(state.songFile).replace(/\.(song|orca-song|json)$/i, '') : 'untitled'
   out += `\x1b[1;36m ORCA SEAFLAKE  /  SONG ${songName.toUpperCase()}\x1b[0m\n`
   out += ` ${state.songPlaying ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  MODE ${SONG_MODES[state.song.mode]}  LOOP ${state.song.loop ? 'ON' : 'OFF'}  BPM ${state.bpm}\n`
@@ -303,7 +319,7 @@ function drawSong () {
   // While asking for a file name or notes, the bottom line shows the question and what is typed
   if (state.prompt) out += ` ${state.promptLabel || 'Path'}: ${state.promptValue}_  (Enter to confirm, Esc to cancel)\n`
   else out += ` Selected slot ${pad(state.songRow + 1, 2)}  Field ${SONG_FIELDS[state.songField].toUpperCase()}  ${state.message}` + '\n'
-  process.stdout.write(out)
+  screen.render(out.replace(/\n$/, '').split('\n'))
 }
 function draw () { if (state.songOpen) drawSong(); else drawGrid() }
 
@@ -345,12 +361,6 @@ function isCellSelected (x, y) {
   return !!b && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom
 }
 function clearSelection () { state.selectionAnchor = null }
-function moveCursor (dx, dy, extend = false, distance = 1) {
-  if (extend && !state.selectionAnchor) state.selectionAnchor = { x: state.x, y: state.y }
-  if (!extend) clearSelection()
-  state.x = Math.max(0, Math.min(orca.w - 1, state.x + dx * distance))
-  state.y = Math.max(0, Math.min(orca.h - 1, state.y + dy * distance))
-}
 function selectedText () {
   const b = selectionBounds()
   if (!b) return ''
@@ -493,11 +503,9 @@ function openPatchText (raw) {
   const w = Math.max(1, ...lines.map(x => x.length)); const h = lines.length
   const size = terminalGridSize()
   const targetW = Math.max(w, size.w), targetH = Math.max(h, size.h)
-  state.resizeCache.clear()
   const padded = Array.from({ length: targetH }, (_, y) => (lines[y] || '').padEnd(targetW, '.').slice(0, targetW)).join('')
-  orca.load(targetW, targetH, padded); state.x = 0; state.y = 0
-  for (let y = 0; y < orca.h; y++) for (let x = 0; x < orca.w; x++) state.resizeCache.set(`${x},${y}`, orca.glyphAt(x, y) || '.')
-  resizeGrid()
+  orca.load(targetW, targetH, padded); state.x = 0; state.y = 0; state.viewX = 0; state.viewY = 0
+  state.gridW = orca.w; state.gridH = orca.h
 }
 function openFile (name) {
   openPatchText(fs.readFileSync(path.resolve(name), 'utf8'))
@@ -505,92 +513,155 @@ function openFile (name) {
   resetHistory()
   state.message = `Opened ${state.file}`
 }
-function beginOpenPrompt (label = 'Open patch') { state.prompt = true; state.promptLabel = label; state.promptValue = ''; draw() }
-function shutdown () { clearInterval(timer); midiOut.close(); process.stdout.write('\x1b[0m\x1b[?1003l\x1b[?1006l\x1b[?2004l\x1b[?25h\n'); process.exit(0) }
+function beginPrompt (label, action, value = '') { state.prompt = true; state.promptLabel = label; state.promptAction = action; state.promptValue = value }
+function finishPrompt () {
+  try {
+    const value = state.promptValue.trim()
+    if (state.promptAction === 'command') runGridCommand(value)
+    else if (state.promptAction === 'song-note') {
+      const slot = state.song.slots[state.songRow]
+      if (slot) { slot.notes = value; state.message = `NOTES UPDATED FOR SLOT ${pad(state.songRow + 1, 2)}` }
+    } else if (state.promptAction === 'song-save') {
+      const file = path.resolve(expandHome(/\.(song|orca-song|json)$/i.test(value) ? value : value + '.song'))
+      fs.mkdirSync(path.dirname(file), { recursive: true })
+      fs.writeFileSync(file, serializeSong(state.song))
+      state.songFile = file; state.message = `SAVED ${file}`
+    } else if (state.promptAction === 'song-open') {
+      const file = path.resolve(expandHome(value))
+      state.song = parseSong(JSON.parse(fs.readFileSync(file, 'utf8')))
+      state.songFile = file; state.message = `OPENED ${file}`
+    } else if (value) openFile(expandHome(value))
+    else state.message = 'Open cancelled'
+  } catch (e) { state.message = e.message }
+  state.prompt = false; state.promptAction = null
+}
+// Paths typed or dragged into the prompt: expand ~, and strip the quotes or
+// backslash escapes terminals add when a file is dropped onto the window.
+function expandHome (value) {
+  let v = String(value).trim()
+  if (/^(['"]).*\1$/.test(v)) v = v.slice(1, -1)
+  else v = v.replace(/\\(.)/g, '$1')
+  if (v === '~' || v.startsWith('~/') || v.startsWith('~\\')) v = path.join(require('node:os').homedir(), v.slice(1))
+  return v
+}
 
-readline.emitKeypressEvents(process.stdin)
-if (process.stdin.isTTY) process.stdin.setRawMode(true)
-process.stdout.write('\x1b[?25l\x1b[?2004h\x1b[?1003h\x1b[?1006h')
+let shuttingDown = false
+function restoreTerminal () {
+  screen.leave()
+  try { if (process.stdin.isTTY) process.stdin.setRawMode(false) } catch {}
+}
+function shutdown (code = 0) {
+  if (shuttingDown) return
+  shuttingDown = true
+  clearInterval(timer)
+  try { midiOut.close() } catch {}
+  restoreTerminal()
+  process.exit(code)
+}
+
+// Grid-mode cursor movement
+function moveTo (x, y, extend) {
+  if (extend && !state.selectionAnchor) state.selectionAnchor = { x: state.x, y: state.y }
+  if (!extend) clearSelection()
+  state.x = Math.max(0, Math.min(orca.w - 1, x))
+  state.y = Math.max(0, Math.min(orca.h - 1, y))
+}
+function jumpKey (key, extend) {
+  const page = gridView().h
+  const corner = key.ctrl || key.meta
+  if (key.name === 'pageup') moveTo(state.x, state.y - page, extend)
+  else if (key.name === 'pagedown') moveTo(state.x, state.y + page, extend)
+  else if (key.name === 'home') moveTo(0, corner ? 0 : state.y, extend)
+  else if (key.name === 'end') moveTo(orca.w - 1, corner ? orca.h - 1 : state.y, extend)
+  else return false
+  return true
+}
+
 let mouseDragAnchor = null
-process.stdin.on('data', chunk => {
-  const input = chunk.toString('utf8')
-  const re = /\x1b\[<(\d+);(\d+);(\d+)([Mm])/g
-  let match
-  while ((match = re.exec(input))) {
-    if (state.songOpen || state.prompt) continue
-    const button = Number(match[1]) & 3
-    const col = Number(match[2]), row = Number(match[3])
-    const x = col - 3 + (state.viewStartX || 0), y = row - 4
-    if (x < 0 || x >= orca.w || y < 0 || y >= orca.h) continue
-    if (match[4] === 'M' && button === 0) {
-      if (!mouseDragAnchor) mouseDragAnchor = { x, y }
-      state.selectionAnchor = { ...mouseDragAnchor }
-      state.x = x; state.y = y
-    } else if (match[4] === 'm' && mouseDragAnchor) {
-      state.selectionAnchor = { ...mouseDragAnchor }
-      state.x = x; state.y = y
-      mouseDragAnchor = null
-    } else if (match[4] === 'M' && (button === 1 || button === 2)) {
-      state.x = x; state.y = y; clearSelection()
-    }
-    draw()
-  }
-})
-process.stdin.on('keypress', (str, key) => {
-  // Terminal bracketed-paste mode lets Cmd+V insert a rectangular text block.
-  if (typeof str === 'string' && str.startsWith('\x1b[200~') && str.includes('\x1b[201~')) {
-    const value = str.slice(6, str.lastIndexOf('\x1b[201~'))
-    if (!state.songOpen && !state.prompt) pasteText(value)
-    draw(); return
-  }
-  const arrow = normalizedArrow(key, str)
+function handleMouse (e) {
+  if (state.songOpen || state.prompt || e.wheel) return
+  const view = gridView()
+  // Grid cells start at screen column 3 and row 4 (1-based).
+  const col = e.x - 3, row = e.y - 4
+  const inside = col >= 0 && col < view.w && row >= 0 && row < view.h
+  // Clicks outside the grid are ignored; a drag that leaves it scrolls the view.
+  if (!inside && !mouseDragAnchor) return
+  const x = Math.max(0, Math.min(orca.w - 1, view.x + col))
+  const y = Math.max(0, Math.min(orca.h - 1, view.y + row))
+  if (e.release) {
+    if (!mouseDragAnchor) return
+    state.x = x; state.y = y
+    // A click without a drag just moves the cursor.
+    if (mouseDragAnchor.x === x && mouseDragAnchor.y === y && !state.selectionMode) clearSelection()
+    else state.selectionAnchor = { ...mouseDragAnchor }
+    mouseDragAnchor = null
+  } else if (e.button === 0) {
+    if (!e.drag || !mouseDragAnchor) mouseDragAnchor = { x, y }
+    state.selectionAnchor = { ...mouseDragAnchor }
+    state.x = x; state.y = y
+  } else return
+  draw()
+}
+
+function handlePaste (text) {
+  if (state.prompt) state.promptValue += text.replace(/\r?\n[\s\S]*$/, '')
+  else if (!state.songOpen) pasteText(text)
+  draw()
+}
+
+function handleKey (key) {
+  const str = key.str
   const action = shortcutAction(key)
   if (action === 'quit') return shutdown()
   if (state.prompt) {
-    if (key.name === 'escape' || (key.ctrl && key.name === 'c')) { state.prompt = false; state.message = state.promptAction === 'command' ? 'COMMAND CANCELLED' : 'Open cancelled'; state.promptAction = null; draw(); return }
-    if (key.name === 'return' || key.name === 'enter') { try { const value = state.promptValue.trim(); if (state.promptAction === 'command') { runGridCommand(value) } else if (state.promptAction === 'song-note') { const slot = state.song.slots[state.songRow]; if (slot) { slot.notes = value; state.message = `NOTES UPDATED FOR SLOT ${pad(state.songRow + 1, 2)}` } } else if (state.promptAction === 'song-save') { const file = path.resolve(/\.(song|orca-song|json)$/i.test(value) ? value : value + '.song'); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, serializeSong(state.song)); state.songFile = file; state.message = `SAVED ${file}` } else if (state.promptAction === 'song-open') { const file = path.resolve(value); state.song = parseSong(JSON.parse(fs.readFileSync(file, 'utf8'))); state.songFile = file; state.message = `OPENED ${file}` } else openFile(value) } catch (e) { state.message = e.message }; state.prompt = false; state.promptAction = null; draw(); return }
+    if (key.name === 'escape' || (key.ctrl && key.name === 'c')) { state.prompt = false; state.message = state.promptAction === 'command' ? 'COMMAND CANCELLED' : 'Cancelled'; state.promptAction = null; draw(); return }
+    if (key.name === 'return' || key.name === 'enter') { finishPrompt(); draw(); return }
     if (key.name === 'backspace') state.promptValue = state.promptValue.slice(0, -1)
-    else if (str && str.length === 1 && !key.ctrl) state.promptValue += str
+    else if (str && !key.ctrl && !key.meta && [...str].length === 1) state.promptValue += str
     draw(); return
   }
   // Control+C is exclusively copy. It never terminates the application.
   // Command shortcuts are accepted too when the terminal forwards them.
   if (action === 'copy') {
-    if (!state.songOpen && !state.prompt) copySelection()
+    if (!state.songOpen) copySelection()
     else state.message = 'COPY IS AVAILABLE IN GRID MODE'
     draw(); return
   }
   if (!state.songOpen && action === 'undo') { undo(); draw(); return }
   if (!state.songOpen && action === 'redo') { redo(); draw(); return }
-  if (action === 'command') { state.prompt = true; state.promptLabel = 'Command'; state.promptAction = 'command'; state.promptValue = ''; draw(); return }
-  const songShortcut = action === 'song'
-  if (songShortcut) { state.songOpen = !state.songOpen; state.songFocus = state.songOpen; draw(); return }
+  if (action === 'command') { beginPrompt('Command', 'command'); draw(); return }
+  if (action === 'song') { state.songOpen = !state.songOpen; state.songFocus = state.songOpen; draw(); return }
+  const direction = arrowDirection(key)
   if (state.songOpen) {
+    const step = movementDistance(key)
     if (key.name === 'escape') { state.songOpen = false; draw(); return }
-    if (arrow.name === 'up') { state.songRow = Math.max(0, state.songRow - 1); state.songBuffer = '' }
-    else if (arrow.name === 'down') { state.songRow = Math.min(31, state.songRow + 1); state.songBuffer = '' }
-    else if (arrow.name === 'left') { state.songField = Math.max(0, state.songField - 1); state.songBuffer = '' }
-    else if (arrow.name === 'right') { state.songField = Math.min(2, state.songField + 1); state.songBuffer = '' }
+    if (direction === 'up') { state.songRow = Math.max(0, state.songRow - step); state.songBuffer = '' }
+    else if (direction === 'down') { state.songRow = Math.min(31, state.songRow + step); state.songBuffer = '' }
+    else if (direction === 'left') { state.songField = Math.max(0, state.songField - 1); state.songBuffer = '' }
+    else if (direction === 'right') { state.songField = Math.min(2, state.songField + 1); state.songBuffer = '' }
+    else if (key.name === 'pageup' || key.name === 'home') { state.songRow = key.name === 'home' ? 0 : Math.max(0, state.songRow - 8); state.songBuffer = '' }
+    else if (key.name === 'pagedown' || key.name === 'end') { state.songRow = key.name === 'end' ? 31 : Math.min(31, state.songRow + 8); state.songBuffer = '' }
     else if (key.name === 'return' || key.name === 'enter') storeSongSlot()
     else if (key.name === 'backspace' || key.name === 'delete') { state.song.slots[state.songRow] = null; state.message = `CLEARED SLOT ${pad(state.songRow + 1, 2)}` }
     else if (key.name === 'space') { if (state.songPlaying) { state.songPlaying = false; playToggle(false) } else startSong() }
+    else if (action) { /* other shortcuts do nothing in Song Mode */ }
     else if (str === 'l' || str === 'L') loadSongSlot(state.songRow)
-    else if (str === 'n' || str === 'N') { const slot = state.song.slots[state.songRow]; if (slot) { state.prompt = true; state.promptLabel = `Notes for slot ${pad(state.songRow + 1, 2)}`; state.promptAction = 'song-note'; state.promptValue = slot.notes || '' } else state.message = 'STORE A PATCH IN THIS SLOT FIRST' }
+    else if (str === 'n' || str === 'N') { const slot = state.song.slots[state.songRow]; if (slot) beginPrompt(`Notes for slot ${pad(state.songRow + 1, 2)}`, 'song-note', slot.notes || ''); else state.message = 'STORE A PATCH IN THIS SLOT FIRST' }
     else if (str === 'm' || str === 'M') state.song.mode = (state.song.mode + 1) % 3
     else if (str === 'r' || str === 'R') state.song.loop = !state.song.loop
-    else if (str === 's' || str === 'S') { state.prompt = true; state.promptLabel = 'Save song as'; state.promptAction = 'song-save'; state.promptValue = state.songFile || path.join(SONGS_DIR, 'untitled.song') }
-    else if (str === 'o' || str === 'O') { state.prompt = true; state.promptLabel = 'Open song'; state.promptAction = 'song-open'; state.promptValue = state.songFile ? path.dirname(state.songFile) + path.sep : SONGS_DIR + path.sep }
+    else if (str === 's' || str === 'S') beginPrompt('Save song as', 'song-save', state.songFile || path.join(SONGS_DIR, 'untitled.song'))
+    else if (str === 'o' || str === 'O') beginPrompt('Open song', 'song-open', state.songFile ? path.dirname(state.songFile) + path.sep : SONGS_DIR + path.sep)
     else if (/^\d$/.test(str || '') && state.song.slots[state.songRow]) { const slot = state.song.slots[state.songRow], field = SONG_FIELDS[state.songField]; state.songBuffer = (state.songBuffer + str).slice(-SONG_WIDTHS[state.songField]); slot[field] = Number(state.songBuffer); state.message = `EDIT ${field.toUpperCase()} SLOT ${pad(state.songRow + 1, 2)}` }
     else if ((str === '+' || str === '=' || str === '-') && state.song.slots[state.songRow]) { const slot = state.song.slots[state.songRow], field = SONG_FIELDS[state.songField]; slot[field] = Math.max(field === 'bpm' ? 60 : 1, Math.min(field === 'bpm' ? 300 : 999, slot[field] + (str === '-' ? -1 : 1))); state.songBuffer = '' }
     draw(); return
   }
-  // Tab starts a terminal-independent selection mode. In this mode ordinary
-  // arrow keys extend the rectangle, even when the terminal strips Shift.
-  if (key.name === 'tab' || str === '\t') {
+  // Tab starts a terminal-independent selection mode. In this mode arrows
+  // (and leaps, PgUp/PgDn, Home/End) grow the rectangle.
+  if (key.name === 'tab' && !key.shift) {
     if (!state.selectionMode) {
       state.selectionMode = true
       state.selectionAnchor = { x: state.x, y: state.y }
-      state.message = 'SELECTION MODE: ARROWS OR MOUSE DRAG EXTEND, TAB OR F2 EXITS'
+      state.message = 'SELECTION MODE: ARROWS OR MOUSE DRAG EXTEND, TAB OR ESC EXITS'
     } else {
       state.selectionMode = false
       clearSelection()
@@ -598,32 +669,55 @@ process.stdin.on('keypress', (str, key) => {
     }
     draw(); return
   }
-  if (key.name === 'f2') { state.selectionMode = false; clearSelection(); state.message = 'SELECTION MODE OFF'; draw(); return }
-  if (key.name === 'escape') { if (state.selectionMode) { state.selectionMode = false; clearSelection(); state.message = 'SELECTION MODE OFF' }; draw(); return }
-  const extendSelection = state.selectionMode || arrow.shift
-  const travel = movementDistance(key, arrow, state.selectionMode)
-  if (arrow.name === 'up') moveCursor(0, -1, extendSelection, travel)
-  else if (arrow.name === 'down') moveCursor(0, 1, extendSelection, travel)
-  else if (arrow.name === 'left') moveCursor(-1, 0, extendSelection, travel)
-  else if (arrow.name === 'right') moveCursor(1, 0, extendSelection, travel)
+  if (key.name === 'f2' || key.name === 'escape') {
+    if (state.selectionMode || state.selectionAnchor) { state.selectionMode = false; clearSelection(); state.message = 'SELECTION MODE OFF' }
+    draw(); return
+  }
+  const extend = state.selectionMode
+  if (direction) {
+    const d = movementDistance(key)
+    const [dx, dy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[direction]
+    moveTo(state.x + dx * d, state.y + dy * d, extend)
+  } else if (jumpKey(key, extend)) { /* moved */ }
   else if (action === 'paste') pasteClipboard()
+  else if (action === 'select-all') { state.selectionAnchor = { x: 0, y: 0 }; state.x = orca.w - 1; state.y = orca.h - 1; state.message = 'SELECTED ALL' }
   else if ((str === '#' && state.selectionAnchor) || action === 'comment') commentSelection()
-  else if (key.name === 'space') return playToggle()
-  else if (key.name === 'backspace' || key.name === 'delete' || str === '\x7f') {
+  else if (key.name === 'space' && !key.ctrl && !key.meta) return playToggle()
+  else if (key.name === 'backspace' || key.name === 'delete') {
     if (!deleteSelection()) edit('.')
   }
-  else if (str === '.') edit('.')
-  else if (str === '+') setBpm(state.bpm + 1)
-  else if (str === '-') setBpm(state.bpm - 1)
   else if (action === 'save') save()
-  else if (action === 'open') return beginOpenPrompt()
-  else if (action === 'new') { const z = terminalGridSize(); orca.reset(z.w, z.h); state.file = null; state.dirty = false; state.resizeCache.clear(); state.gridBpmDirective = null; state.x = 0; state.y = 0; resetHistory() }
-  else if (str && str.length === 1 && orca.isAllowed(str)) edit(str)
+  else if (action === 'open') beginPrompt('Open patch', 'open')
+  else if (action === 'new') { recordUndo(); const z = terminalGridSize(); orca.reset(z.w, z.h); state.file = null; state.dirty = false; state.gridBpmDirective = null; state.x = 0; state.y = 0; state.viewX = 0; state.viewY = 0; clearSelection(); state.selectionMode = false; state.message = 'NEW GRID' }
+  else if (key.ctrl || key.meta) { /* unbound shortcut: never type it */ }
+  else if (str === '>') { setBpm(state.bpm + 1); state.message = `BPM ${state.bpm}` }
+  else if (str === '<') { setBpm(state.bpm - 1); state.message = `BPM ${state.bpm}` }
+  else if (str === '.') edit('.')
+  else if (str && [...str].length === 1 && orca.isAllowed(str)) edit(str)
   draw()
+}
+
+// A crash must never leave the terminal in raw/mouse-reporting mode, or every
+// later mouse movement types escape codes into the shell.
+process.on('uncaughtException', e => {
+  restoreTerminal()
+  try { midiOut.close() } catch {}
+  console.error(`Orca Seaflake crashed: ${e && e.stack ? e.stack : e}`)
+  process.exit(1)
+})
+for (const signal of ['SIGTERM', 'SIGHUP', 'SIGINT']) process.on(signal, () => shutdown(0))
+process.on('exit', () => { restoreTerminal(); try { midiOut.close() } catch {} })
+
+if (process.stdin.isTTY) process.stdin.setRawMode(true)
+process.stdin.resume()
+screen.enter(process.stdout)
+input.attach(process.stdin, e => {
+  if (shuttingDown) return
+  if (e.type === 'mouse') handleMouse(e)
+  else if (e.type === 'paste') handlePaste(e.text)
+  else if (e.type === 'key') handleKey(e)
 })
 process.stdout.on('resize', () => { resizeGrid(); draw() })
-process.on('SIGTERM', shutdown)
-process.on('exit', () => { try { midiOut.close() } catch {} })
 if (!midi) state.message = `NO MIDI: native module failed to load. Run \`npm rebuild midi\` in the terminal folder. Editing still works.`
 else if (midiOut.devices.length && !midiOut.outputDevice()) state.message = `COULD NOT OPEN ANY MIDI OUTPUT (another app may be using it). Ctrl-K then "midi: -1" to retry.`
 else if (midiOut.openError) state.message = `NO MIDI: ${midiOut.openError.message.split('\n')[0]}. Editing still works.`

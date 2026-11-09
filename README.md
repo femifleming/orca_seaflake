@@ -196,7 +196,8 @@ See the [Song Mode guide](docs/SONG_MODE.md) for everything else.
 | Action | Desktop app | Terminal |
 | --- | --- | --- |
 | Play / pause | `Space` | `Space` |
-| Tempo up / down | `>` / `<` | `+` / `-` |
+| Tempo up / down | `>` / `<` | `>` / `<` |
+| Leap 8 cells | `CmdOrCtrl+Arrow` | `Shift`, `Option`/`Alt` or `Ctrl` + arrow |
 | Save | `CmdOrCtrl+S` | `Ctrl+S` |
 | Open | `CmdOrCtrl+O` | `Ctrl+O` |
 | New | `CmdOrCtrl+N` | `Ctrl+N` |
@@ -204,7 +205,7 @@ See the [Song Mode guide](docs/SONG_MODE.md) for everything else.
 | Operator guide | `CmdOrCtrl+G` | — |
 | Settings (background color, transparency, font) | `CmdOrCtrl+Shift+P` | — |
 | Choose MIDI output | `CmdOrCtrl+.` | `Ctrl+K` then `midi: 1` |
-| Undo / redo | `CmdOrCtrl+Z` / `CmdOrCtrl+Shift+Z` | `Ctrl+Z` / `Ctrl+Shift+Z` (where the terminal sends it) |
+| Undo / redo | `CmdOrCtrl+Z` / `CmdOrCtrl+Shift+Z` | `Ctrl+Z` / `Ctrl+Y` |
 | Quit | `CmdOrCtrl+Q` or close the window | `Ctrl+Q` |
 
 The desktop app's full list is in its menus. The command prompt accepts Orca's [commands](https://github.com/hundredrabbits/Orca#commands), such as `bpm:140` or `frame:0`.

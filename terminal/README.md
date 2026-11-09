@@ -83,30 +83,38 @@ To create a virtual MIDI port that reaches other software:
 | Key | Action |
 | --- | --- |
 | Arrow keys | Move the cursor |
-| `Shift` or `Ctrl` + arrow | Move 8 cells |
+| `Shift`, `Option`/`Alt` or `Ctrl` + arrow | Leap 8 cells |
+| `Page Up` / `Page Down` | Jump a screen up / down (`fn` + `↑`/`↓` on a Mac laptop) |
+| `Home` / `End` | Jump to the start / end of the row (`fn` + `←`/`→` on a Mac laptop) |
+| `Ctrl` + `Home` / `End` | Jump to the top-left / bottom-right corner |
 | Any operator or value | Write it at the cursor |
 | `.` or `Backspace` | Erase |
 | `Space` | Play / stop |
-| `+` / `-` | Tempo up / down (60–300 BPM) |
+| `>` / `<` | Tempo up / down (60–300 BPM) |
 | `Ctrl+S` | Save |
 | `Ctrl+O` | Open a file (type its path) |
 | `Ctrl+N` | New, empty grid |
 | `Ctrl+K` | Command prompt (see below) |
 | `Ctrl+T` | Song Mode |
 | `Ctrl+Z` | Undo (200 steps) |
-| `Ctrl+Shift+Z` | Redo, in terminals that send it |
+| `Ctrl+Y` | Redo (`Ctrl+Shift+Z` also works in terminals that send it) |
 | `Ctrl+Q` | Quit (also silences all MIDI notes) |
 
 `Ctrl+C` copies and never quits; `Esc` never quits either. The grid runs one frame per 16th note.
+
+The grid starts at the size of the window and grows if you make the window bigger. A patch larger than the window scrolls to follow the cursor; arrows on the frame (`▲ ▼ ◀ ▶`) show there's more grid in that direction. The cursor position is shown at the top. `+` marks every 8th cell, so leaps line up with the marks.
+
+**Leaping on a Mac:** `Shift` + arrow works in every terminal. macOS uses `Ctrl` + arrow for Mission Control, so that only works if you turn those shortcuts off in System Settings → Keyboard → Keyboard Shortcuts → Mission Control. `Option` + arrow works in Terminal and iTerm2.
 
 ### Selecting, copying and pasting
 
 | Key | Action |
 | --- | --- |
-| `Tab` | Start selecting; arrows grow the box. `Tab` or `F2` stops. |
+| `Tab` | Start selecting; arrows (and leaps and jumps) grow the box. `Tab`, `Esc` or `F2` stops. |
+| `Ctrl+A` | Select the whole grid |
 | Mouse drag | Select a box, in terminals with mouse support |
 | `Ctrl+C` | Copy the box (to the system clipboard where available) |
-| `Ctrl+V` | Paste at the cursor |
+| `Ctrl+V` or `Cmd+V` | Paste at the cursor |
 | `Backspace` | Clear the box |
 | `#` | Comment / uncomment the box |
 
@@ -128,7 +136,7 @@ Press `Ctrl+T` to switch between the grid and Song Mode.
 
 | Key | Action |
 | --- | --- |
-| `↑` / `↓` | Choose a slot (32 in total) |
+| `↑` / `↓` | Choose a slot (32 in total); `Shift` + arrow, `Page Up` / `Page Down` move 8 |
 | `←` / `→` | Choose the LEN, MUL or BPM column |
 | `0`–`9`, `+` / `-` | Change the value |
 | `Enter` | Store the current grid in the slot |
@@ -162,6 +170,7 @@ The terminal version sends **MIDI notes**: `:` and Seaflake's `(`, `)` and `@`. 
 - **The status line says `NO MIDI`:** the app still works for editing. Run `orca-seaflake --midi` to see why, and create a MIDI port as described above.
 - **Linux: `npm install -g` says permission denied:** put `sudo` in front.
 - **`Cmd+T` opens a new terminal tab:** use `Ctrl+T`. macOS terminals keep the Cmd shortcuts for themselves.
+- **Letters and numbers appear in the terminal when you move the mouse after quitting:** an older version crashed or was closed without switching mouse reporting off. Run `orca-seaflake` once and quit with `Ctrl+Q`, or run `reset`. Version 0.9.1 and later always switch it off, even when they crash.
 - **Copy and paste only work inside the app on Linux:** install `wl-clipboard` (Wayland) or `xclip` (X11). Over SSH there's no system clipboard, so the app uses its own.
 
 ## Run from source

@@ -2,6 +2,21 @@
 
 Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seaflake adds to Orca](docs/WHATS_NEW.md).
 
+## 0.9.1
+
+Fixes for the terminal version. The desktop app is unchanged.
+
+- **Fixed: moving the mouse typed random characters into the grid.** The terminal reported every mouse movement, and those reports were read as typed keys (`3`, `5`, `;`, `M`...). The app now reads all terminal input with its own parser: mouse reports, terminal replies and keys it doesn't know are never typed, and mouse reporting only covers clicks and drags.
+- **Fixed: the terminal kept typing escape codes after the app quit or crashed.** Mouse reporting, raw mode and the hidden cursor are now always switched off on the way out, including after a crash or when the window is closed.
+- **Fast travel works in every terminal.** `Shift`, `Option`/`Alt` and `Ctrl` + arrow leap 8 cells, in all the ways terminals send them (including Option+arrow in macOS Terminal and iTerm2). `Shift` + arrow no longer starts a selection as well. New: `Page Up` / `Page Down` jump a screen, `Home` / `End` jump to the ends of the row, and `Ctrl` + `Home` / `End` to the corners.
+- **Patches larger than the window scroll** to follow the cursor instead of being cut off, and nothing is lost when the window is made smaller. Arrows on the frame show where there's more grid; the cursor position is shown at the top; `+` marks every 8th cell like the desktop app.
+- **`+` writes the `+` operator.** Tempo is now `>` / `<`, as in the desktop app.
+- Pasting with `Cmd+V` places the whole block at the cursor (it used to write every character into the same cell), and pasting into the command or file prompt works.
+- iTerm2, kitty, WezTerm and foot's extended key reports (CSI u) are understood, so shortcuts work there.
+- No more flicker while playing, and narrow windows no longer scroll the screen: long lines are cut to fit. The app uses the terminal's alternate screen, so your scrollback is left as it was.
+- `Ctrl+A` selects the whole grid, `Ctrl+Y` redoes, `Esc` also ends a selection, and clicking without dragging just moves the cursor.
+- File paths in the Open prompt accept `~` and files dragged onto the window.
+
 ## 0.9.0
 
 ### Operators
