@@ -81,3 +81,10 @@ Every request typed while this was being designed and built with Claude Code, in
 
 > cd
 
+## 2026-11-12
+
+> add rosc, renv, and refx to the teletype thats in pilot seaflake
+
+> https://www.whimsicalraps.com/products/just-friends ~/Desktop/JF-Manual-web.pdf ~/Desktop/JFv2-Manual-6x17-web.pdf add just friends as a mode for pilot seaflake and make sure the teletype just friends i2c operands work with it.
+
+> when ur done, package orca seaflake and pilor seaflake together on github and homebrew, dont have them be seperate repos, but allow people to download them seperately if they want to from that repo, update readmes and manuals, make sure they both work on mac windows and linus.

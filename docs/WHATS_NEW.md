@@ -78,8 +78,8 @@ The same operators and Song Mode in a terminal, with no window. It runs in Termi
 
 | How | Command or file |
 | --- | --- |
-| Mac app with Homebrew | `brew install --cask femifleming/orca_seaflake/orca-seaflake` |
-| Terminal version with Homebrew | `brew install femifleming/orca_seaflake/orca-seaflake-terminal` |
+| Mac app with Homebrew | `brew install --cask femifleming/tap/orca-seaflake` |
+| Terminal version with Homebrew | `brew install femifleming/tap/orca-seaflake-terminal` |
 | Mac installer | `.pkg` for Apple Silicon or Intel |
 | Windows | `.zip` |
 | Ubuntu, Debian, Raspberry Pi OS 64-bit | `.deb` for x64 and ARM64 |

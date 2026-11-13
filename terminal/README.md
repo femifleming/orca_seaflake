@@ -26,7 +26,7 @@ Raspberry Pi: tested on 32-bit and 64-bit Raspberry Pi OS for the Pi 2, 3, 4, 5 
 On a Mac with [Homebrew](https://brew.sh), this one command installs Orca Seaflake and Node.js, so you can skip step 1:
 
 ```sh
-brew install femifleming/orca_seaflake/orca-seaflake-terminal
+brew install femifleming/tap/orca-seaflake-terminal
 ```
 
 Otherwise, on macOS and Windows:

@@ -2,6 +2,18 @@
 
 Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seaflake adds to Orca](docs/WHATS_NEW.md).
 
+## 0.10.0
+
+**Pilot Sealflake joins the repository.** The synth Orca plays with `;` is now built and released here, next to Orca Seaflake, for macOS, Windows and Linux. The two still download and install separately ([Orca Seaflake](README.md#desktop-app), [Pilot Sealflake](README.md#pilot-sealflake)).
+
+- **Pilot Sealflake 1.1.0**, new in this release:
+  - **Just Friends engine** (`0ENGj`, `PI.ENG ch 8`): six slopes with TIME, INTONE, RAMP, CURVE, FM, shape/sound range, transient/sustain/cycle and every RUN mode (SHIFT, STRATA, VOLLEY, SPILL, PLUME, FLOOM), plus Just Type synthesis and Geode. Teletype's own `JF.*` ops play it over emulated i2c (first JF channel = JF1, second = JF2), and Pilot notes play it like `JF.NOTE`. See the [Just Friends reference](pilot/COMMANDS.md#just-friends--engine-j-and-teletypes-jf-ops).
+  - `RENV`, `ROSC` and `REFX` work in the Teletype as well as `PI.RENV`, `PI.ROSC` and `PI.REFX`.
+  - Windows and Linux builds (standalone + VST3, LV2 on Linux) next to macOS (standalone + VST3 + AU, now universal: Apple Silicon and Intel). On Windows and Linux the menus are on right-click, and Pilot's shortcuts inside the Teletype screen are `Ctrl+Shift`.
+  - Fixed: Teletype's `JF.PITCH` sent two bytes past its message.
+- **Homebrew moved to one tap**: `brew install --cask femifleming/tap/orca-seaflake`, `brew install femifleming/tap/orca-seaflake-terminal`, and new: `brew install --cask femifleming/tap/pilot-sealflake`.
+- Includes the 0.9.1 terminal fixes below (0.9.1 was not released on its own).
+
 ## 0.9.1
 
 Fixes for the terminal version. The desktop app is unchanged.

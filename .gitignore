@@ -5,3 +5,7 @@ artifacts/
 .DS_Store
 *.log
 terminal/node_modules/
+
+# Pilot Sealflake build output and local JUCE checkout
+pilot/build/
+pilot/JUCE

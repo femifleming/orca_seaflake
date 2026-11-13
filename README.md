@@ -15,9 +15,12 @@ Seaflake keeps every original Orca operator exactly as it is in the Orca app, de
 
 Everything Seaflake adds to Orca is listed in [What Seaflake adds to Orca](docs/WHATS_NEW.md); release notes are in the [changelog](CHANGELOG.md).
 
+**This repository also holds [Pilot Sealflake](pilot/README.md)**, the synthesizer Orca plays with `;` (UDP port 49161): a rewrite of Hundred Rabbits' [Pilot](https://github.com/hundredrabbits/pilot) with new synth engines and effects, monome Teletype built in, and a [Just Friends](pilot/COMMANDS.md#just-friends--engine-j-and-teletypes-jf-ops) engine. It's a standalone app plus VST3 / AU / LV2 plug-ins. The two are released together but download and install separately: take either one, or both.
+
 Ways to use it:
 
 - [Download the app](#desktop-app) for **macOS, Windows, Linux and Raspberry Pi**.
+- [Download Pilot Sealflake](#pilot-sealflake), the synth for Orca, for **macOS, Windows and Linux**.
 - [Use it in a terminal](#terminal-version) on **macOS, Windows, Linux and Raspberry Pi**.
 - [Run from source](#run-from-source) with Node.js.
 
@@ -43,7 +46,8 @@ Then open **Orca Seaflake** from Applications (macOS), the extracted folder (Win
 On a Mac you can also install with [Homebrew](https://brew.sh), and update later with `brew upgrade`:
 
 ```sh
-brew install --cask femifleming/orca_seaflake/orca-seaflake
+brew tap femifleming/tap && brew trust --tap femifleming/tap
+brew install --cask femifleming/tap/orca-seaflake
 ```
 
 **Not sure which one you need?**
@@ -72,7 +76,7 @@ The terminal version runs the same operators and Song Mode, without a window. It
 On a Mac with [Homebrew](https://brew.sh), one command installs it, Node.js included:
 
 ```sh
-brew install femifleming/orca_seaflake/orca-seaflake-terminal
+brew install femifleming/tap/orca-seaflake-terminal
 ```
 
 Otherwise:
@@ -104,6 +108,27 @@ npm start
 
 For the terminal version from source, run `npm install` and then `npm link` in the `terminal` folder instead.
 
+### Pilot Sealflake
+
+The synth that answers Orca's `;` operator. Download it on its own, without Orca, if you like:
+
+| Your computer | Download | Then |
+| --- | --- | --- |
+| Mac (Apple Silicon or Intel) | [Pilot-Sealflake-macos.pkg](https://github.com/femifleming/orca_seaflake/releases/latest/download/Pilot-Sealflake-macos.pkg) | Double-click it: installs the app, the VST3 and the AU. |
+| Mac, without an installer | [Pilot-Sealflake-macos.zip](https://github.com/femifleming/orca_seaflake/releases/latest/download/Pilot-Sealflake-macos.zip) | Drag the app to Applications; plug-ins go in `~/Library/Audio/Plug-Ins/VST3` and `Components`. |
+| Windows 10 or 11 (64-bit) | [Pilot-Sealflake-windows-x64.zip](https://github.com/femifleming/orca_seaflake/releases/latest/download/Pilot-Sealflake-windows-x64.zip) | Extract it, run `Pilot Sealflake.exe`. Copy `Pilot Sealflake.vst3` to `C:\Program Files\Common Files\VST3` for your DAW. |
+| Ubuntu / Debian (Intel or AMD) | [pilot-sealflake_amd64.deb](https://github.com/femifleming/orca_seaflake/releases/latest/download/pilot-sealflake_amd64.deb) | `sudo apt install ./pilot-sealflake_amd64.deb`, then run `pilot-sealflake` (VST3 and LV2 included). |
+| Raspberry Pi OS 64-bit, Ubuntu / Debian on ARM | [pilot-sealflake_arm64.deb](https://github.com/femifleming/orca_seaflake/releases/latest/download/pilot-sealflake_arm64.deb) | `sudo apt install ./pilot-sealflake_arm64.deb` |
+| Other Linux | [x64 .tar.gz](https://github.com/femifleming/orca_seaflake/releases/latest/download/Pilot-Sealflake-linux-x64.tar.gz) · [arm64 .tar.gz](https://github.com/femifleming/orca_seaflake/releases/latest/download/Pilot-Sealflake-linux-arm64.tar.gz) | Extract it and run `./install.sh` (installs for your user), or run `./pilot-sealflake` in place. |
+
+With Homebrew on a Mac:
+
+```sh
+brew install --cask femifleming/tap/pilot-sealflake
+```
+
+Start Pilot Sealflake, then in Orca write `;` with a Pilot command, for example `;04C` (channel 0, octave 4, C). Everything Pilot understands, including its Teletype and the Just Friends engine, is in the [Pilot Sealflake guide](pilot/README.md) and the [command reference](pilot/COMMANDS.md).
+
 ## Connect it to a synth
 
 Orca Seaflake sends MIDI notes out; something else makes the sound. Plug in a MIDI device, or create a virtual MIDI port to reach software like Ableton, VCV Rack or GarageBand:
@@ -113,6 +138,8 @@ Orca Seaflake sends MIDI notes out; something else makes the sound. Plug in a MI
 | macOS | Open **Audio MIDI Setup** → **Window → Show MIDI Studio** → double-click **IAC Driver** → tick **Device is online**. |
 | Windows | Install [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) and click **+** to create a port. |
 | Linux / Raspberry Pi | A USB MIDI device appears automatically. `aconnect -l` lists ports; `sudo modprobe snd-virmidi` adds virtual ones. |
+
+Or skip MIDI: [Pilot Sealflake](#pilot-sealflake) is a synth that listens to Orca's `;` operator directly (UDP port 49161), no setup needed.
 
 Then choose the output. In the **desktop app**, press `CmdOrCtrl+.` until your device shows at the bottom of the window. In the **terminal version**, press `Ctrl+K`, type `midi: -1` and press Enter to list outputs, then use `midi: 2` to pick output 2.
 
@@ -242,7 +269,7 @@ Orca operates on a base of **36 increments**. Operators using numeric values wil
 
 ## Companion Applications
 
-- [Pilot](https://github.com/hundredrabbits/pilot), a companion synth tool.
+- [Pilot Sealflake](pilot/README.md), the companion synth, in this repository ([original Pilot](https://github.com/hundredrabbits/pilot)).
 - [Aioi](https://github.com/MAKIO135/aioi), a companion to send complex OSC messages.
 - [Sonic Pi](https://sonic-pi.net/), a livecoding environment.
 - [VCV Rack](https://vcvrack.com/), a virtual modular synth.
@@ -255,11 +282,16 @@ Orca operates on a base of **36 increments**. Operators using numeric values wil
 - [Changelog](CHANGELOG.md)
 - [Song Mode guide](docs/SONG_MODE.md)
 - [Terminal guide](terminal/README.md)
+- [Pilot Sealflake guide](pilot/README.md) and [command reference](pilot/COMMANDS.md)
 - [Building packages yourself](docs/PACKAGING.md)
 - [All releases](https://github.com/femifleming/orca_seaflake/releases)
 
 ## Extras
 
 - Orca Seaflake is derived from [Hundred Rabbits' Orca](https://github.com/hundredrabbits/Orca). Support the original through [Patreon](https://www.patreon.com/hundredrabbits).
-- See the [License](LICENSE.md) file for license rights and limitations (MIT).
+- See the [License](LICENSE.md) file for license rights and limitations (MIT). Pilot Sealflake (`pilot/`) is licensed separately: see [pilot/LICENSE.md](pilot/LICENSE.md).
 - Pull Requests are welcome!
+
+## Request log
+
+Everything that was asked for while this was designed and built is in [REQUESTS.md](REQUESTS.md).
