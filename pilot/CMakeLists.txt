@@ -107,6 +107,9 @@ endif()
 juce_add_console_app(PilotRender PRODUCT_NAME "PilotRender")
 target_sources(PilotRender PRIVATE tools/Render.cpp Source/PilotEngine.cpp Source/Lang.cpp Source/TeletypeHost.cpp)
 target_compile_definitions(PilotRender PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+if(WIN32)   # the tests keep whole PilotEngines on the stack (~2 MB); Windows' default stack is 1 MB
+  target_link_options(PilotRender PRIVATE /STACK:16777216)
+endif()
 target_link_libraries(PilotRender PRIVATE TeletypeFirmware juce::juce_dsp juce::juce_audio_formats juce::juce_audio_devices juce::juce_graphics PUBLIC juce::juce_recommended_config_flags)
 
 # DAW-style host smoke test for the built VST3 (not shipped)
