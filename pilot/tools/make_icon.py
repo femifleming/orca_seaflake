@@ -30,6 +30,7 @@ ICONS = {  # product: (glyph, letter colour, background)
  "ObliqSonic":           ("c", "#c8d6a0", "#1f3a2c"),
  "Pinkie Pies Balloon Shop":   ("b", "#ffffff", "#ff6fb5"),
  "Pinkie Pies Balloon Palace": ("a", "#ff6fb5", "#fff0f7"),
+ "AERIA Flasher":        ("A", "#ffffff", "#4a5d73"),
 }
 
 def icon(name, size=S, full=False):
