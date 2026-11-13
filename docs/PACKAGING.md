@@ -105,7 +105,7 @@ The workflow builds everything, runs every check above, and publishes a GitHub R
 
 ## Homebrew and Scoop
 
-Everything installs from one tap, [femifleming/homebrew-tap](https://github.com/femifleming/homebrew-tap) (`brew tap femifleming/tap`), which is also a Scoop bucket for Windows. Copies of its files for this repo are kept here:
+Everything installs from one tap, [femifleming/homebrew-tap](https://github.com/femifleming/homebrew-tap) (`brew tap femifleming/tap`), which is also a Scoop bucket for Windows. This repo's entries there:
 
 | File | Installs |
 | --- | --- |
@@ -121,7 +121,7 @@ After a release is published, update them all:
 scripts/update-homebrew.sh 0.10.0
 ```
 
-The script reads the release's checksums from GitHub, writes the new versions here and in the tap, and pushes the tap. Commit the copies here too. The old tap `femifleming/homebrew-orca_seaflake` is no longer updated.
+The script reads the release's checksums from GitHub, writes the new versions into a fresh clone of the tap and pushes it. No copies are kept in this repo.
 
 ## Platform notes
 

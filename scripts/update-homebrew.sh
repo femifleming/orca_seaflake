@@ -5,14 +5,13 @@
 #   Casks/pilot-sealflake.rb           Pilot Sealflake app + VST3 + AU (macOS)
 #   Formula/pilot-sealflake.rb         Pilot Sealflake app + VST3 + LV2 (Linux)
 #   bucket/orca-seaflake.json, bucket/pilot-sealflake.json   Scoop (Windows)
-# Checksums come from the release's asset digests (nothing is downloaded). Copies are kept here in
-# Casks/, Formula/ and bucket/.
+# Checksums come from the release's asset digests (nothing is downloaded). The tap is the only copy.
 #
-#   scripts/update-homebrew.sh 0.10.0           update here and push the tap
-#   scripts/update-homebrew.sh 0.10.0 --local   update the files here only
+#   scripts/update-homebrew.sh 0.10.0           update the tap and push it
+#   scripts/update-homebrew.sh 0.10.0 --dry-run write the files into a temporary clone, don't push
 set -eu
 
-version="${1:?usage: scripts/update-homebrew.sh <version> [--local]}"
+version="${1:?usage: scripts/update-homebrew.sh <version> [--dry-run]}"
 repo="femifleming/orca_seaflake"
 tap="femifleming/homebrew-tap"
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,9 +32,13 @@ pmac="$(sha "Pilot-Sealflake-$pilot-macos.zip")"
 pwin="$(sha "Pilot-Sealflake-$pilot-windows-x64.zip")"
 plx="$(sha "Pilot-Sealflake-$pilot-linux-x64.tar.gz")"
 pla="$(sha "Pilot-Sealflake-$pilot-linux-arm64.tar.gz")"
-mkdir -p "$root/Casks" "$root/Formula" "$root/bucket"
+work="$(mktemp -d)"
+[ "${2:-}" = "--dry-run" ] || trap 'rm -rf "$work"' EXIT
+gh repo clone "$tap" "$work/tap" -- --quiet
+out="$work/tap"
+mkdir -p "$out/Casks" "$out/Formula" "$out/bucket"
 
-cat > "$root/Casks/orca-seaflake.rb" <<CASK
+cat > "$out/Casks/orca-seaflake.rb" <<CASK
 cask "orca-seaflake" do
   arch arm: "arm64", intel: "x64"
 
@@ -72,7 +75,7 @@ cask "orca-seaflake" do
 end
 CASK
 
-cat > "$root/Formula/orca-seaflake-terminal.rb" <<FORMULA
+cat > "$out/Formula/orca-seaflake-terminal.rb" <<FORMULA
 class OrcaSeaflakeTerminal < Formula
   desc "Orca Seaflake live-coding grid sequencer for the terminal, with Song Mode"
   homepage "https://github.com/$repo/tree/main/terminal"
@@ -98,7 +101,7 @@ class OrcaSeaflakeTerminal < Formula
 end
 FORMULA
 
-cat > "$root/Casks/pilot-sealflake.rb" <<CASK
+cat > "$out/Casks/pilot-sealflake.rb" <<CASK
 cask "pilot-sealflake" do
   version "$pilot,$version"
   sha256 "$pmac"
@@ -134,7 +137,7 @@ cask "pilot-sealflake" do
 end
 CASK
 
-cat > "$root/Formula/pilot-sealflake.rb" <<FORMULA
+cat > "$out/Formula/pilot-sealflake.rb" <<FORMULA
 class PilotSealflake < Formula
   desc "Synth for Orca with Teletype and Just Friends built in (app, VST3, LV2)"
   homepage "https://github.com/$repo/tree/main/pilot"
@@ -178,7 +181,7 @@ class PilotSealflake < Formula
 end
 FORMULA
 
-cat > "$root/bucket/orca-seaflake.json" <<JSON
+cat > "$out/bucket/orca-seaflake.json" <<JSON
 {
     "version": "$version",
     "description": "Orca Seaflake: live-coding grid sequencer for MIDI, OSC and UDP, with Song Mode",
@@ -202,7 +205,7 @@ cat > "$root/bucket/orca-seaflake.json" <<JSON
 }
 JSON
 
-cat > "$root/bucket/pilot-sealflake.json" <<JSON
+cat > "$out/bucket/pilot-sealflake.json" <<JSON
 {
     "version": "$pilot",
     "description": "Pilot Sealflake: synth for Orca with Teletype and Just Friends built in (app + VST3)",
@@ -224,17 +227,10 @@ cat > "$root/bucket/pilot-sealflake.json" <<JSON
 }
 JSON
 
-echo "Updated Orca Seaflake $version and Pilot Sealflake $pilot in Casks/, Formula/ and bucket/"
-[ "${2:-}" = "--local" ] && exit 0
+echo "Wrote Orca Seaflake $version and Pilot Sealflake $pilot into $out"
+[ "${2:-}" = "--dry-run" ] && exit 0
 
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
-gh repo clone "$tap" "$work/tap" -- --quiet
-mkdir -p "$work/tap/Casks" "$work/tap/Formula" "$work/tap/bucket"
-cp "$root/Casks/orca-seaflake.rb" "$root/Casks/pilot-sealflake.rb" "$work/tap/Casks/"
-cp "$root/Formula/orca-seaflake-terminal.rb" "$root/Formula/pilot-sealflake.rb" "$work/tap/Formula/"
-cp "$root/bucket/orca-seaflake.json" "$root/bucket/pilot-sealflake.json" "$work/tap/bucket/"
-cd "$work/tap"
+cd "$out"
 git add Casks Formula bucket
 if git diff --cached --quiet; then echo "Tap already up to date"; exit 0; fi
 git commit -q -m "Orca Seaflake $version, Pilot Sealflake $pilot"

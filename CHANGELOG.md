@@ -58,7 +58,7 @@ Fixes for the terminal version. The desktop app is unchanged.
 
 ### Install
 
-- **Homebrew formula for the terminal version:** `brew install femifleming/orca_seaflake/orca-seaflake-terminal`.
+- **Homebrew formula for the terminal version:** `brew install femifleming/orca_seaflake/orca-seaflake-terminal` (today: `brew install femifleming/tap/orca-seaflake-terminal`).
 - The Homebrew cask for the app now names its version, so `brew upgrade` picks up new releases.
 
 ### Docs
