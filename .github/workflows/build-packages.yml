@@ -310,7 +310,12 @@ jobs:
           set -euo pipefail
           extra=()
           if [[ "${{ matrix.kind }}" == mac ]]; then extra+=(-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"); fi
-          if [[ "${{ matrix.kind }}" == windows ]]; then extra+=(-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl); fi
+          if [[ "${{ matrix.kind }}" == windows ]]; then
+            # clang-cl, with debug info so a crash in CI comes with a stack
+            extra+=(-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+                    "-DCMAKE_C_FLAGS=/DWIN32 /D_WINDOWS /Z7" "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /Z7"
+                    -DCMAKE_EXE_LINKER_FLAGS=/DEBUG -DCMAKE_MODULE_LINKER_FLAGS=/DEBUG -DCMAKE_SHARED_LINKER_FLAGS=/DEBUG)
+          fi
           cmake -S pilot -B pilot/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPILOT_COPY_PLUGINS=OFF "${extra[@]}"
 
       - name: Build
@@ -322,7 +327,12 @@ jobs:
           set -euo pipefail
           if [[ "${{ matrix.kind }}" == windows ]]; then
             R="$R.exe"; ls -l "$R"
-            "$R" ref > /dev/null || { echo "PilotRender failed to start ($?); its DLLs:"; dumpbin //dependents "$R" || true; exit 1; }
+            if ! "$R" ref > /dev/null; then
+              echo "PilotRender failed to start; stack:"
+              cdb="/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
+              "$cdb" -lines -c "g; .ecxr; kn 40; q" "$R" ref 2>&1 | tail -60 || true
+              exit 1
+            fi
           fi
           for m in jf pi legacy lang rr; do echo "== $m"; "$R" $m; done
 
