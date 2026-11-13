@@ -1,4 +1,4 @@
-# ORCΛ SEΛFLΛKE
+# orcλ seλflλke
 
 <img src="desktop/icon.png" width="300" alt="Orca Seaflake icon"/>
 
@@ -108,7 +108,7 @@ npm start
 
 For the terminal version from source, run `npm install` and then `npm link` in the `terminal` folder instead.
 
-### Pilot Sealflake
+### pilot sealflake
 
 The synth that answers Orca's `;` operator. Download it on its own, without Orca, if you like:
 
