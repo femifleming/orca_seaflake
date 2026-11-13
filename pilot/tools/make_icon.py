@@ -18,9 +18,6 @@ ICONS = {  # product: (glyph, letter colour, background)
  "EX Macro Oscillator 2":("A", "#141414", "#e0e0e0"),
  "ConvoSolution":        ("v", "#ffff00", "#0000aa"),
  "Cloudfin":             ("D", "#ffffff", "#29a8e0"),
- "openprocess":          ("e", "#ff5a1f", "#f4efe4"),
- "opensphere":           ("h", "#f4efe4", "#ff5a1f"),
- "Quell":                ("Q", "#c9ff3d", "#1d1d24"),
  "Partials":             ("a", "#e9e9e9", "#141414"),
  "Nabra":                ("n", "#f5ead6", "#8a3b1e"),
  "Leitner":              ("t", "#111111", "#e6e6e6"),
@@ -31,6 +28,15 @@ ICONS = {  # product: (glyph, letter colour, background)
  "Pinkie Pies Balloon Shop":   ("b", "#ffffff", "#ff6fb5"),
  "Pinkie Pies Balloon Palace": ("a", "#ff6fb5", "#fff0f7"),
  "AERIA Flasher":        ("A", "#ffffff", "#4a5d73"),
+ "Sleepcousonique":      ("e", "#f4efe4", "#1f2a5a"),
+ "MIDI Scribe":          ("d", "#1b1a18", "#f6f1e3"),
+ "Oneirophone":          ("h", "#e8d9ff", "#3b2a6b"),
+ "Orca Seaflake TT":     ("r", "#000000", "#72dec2"),
+ "UNIQLO SCREENSAVER":   ("Q", "#ffffff", "#e60012"),
+ "Cassetter":            ("t", "#e9d7b0", "#4a3426"),
+ "Nabruh":               ("n", "#8a3b1e", "#f5ead6"),
+ "MIDI LFO":             ("f", "#ffffff", "#2e7d32"),
+ "MIDI LFO 2":           ("f", "#2e7d32", "#e8f5e9"),
 }
 
 def icon(name, size=S, full=False):
