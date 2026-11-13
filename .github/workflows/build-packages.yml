@@ -306,6 +306,8 @@ jobs:
 
       - name: Configure
         shell: bash
+        env:
+          MSYS_NO_PATHCONV: '1'   # keep Git Bash from turning /DWIN32 into a path
         run: |
           set -euo pipefail
           extra=()
