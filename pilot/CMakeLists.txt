@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
+cmake_policy(SET CMP0091 NEW)
 project(PilotSealflake VERSION 1.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,6 +8,10 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "")
 if(APPLE AND NOT CMAKE_OSX_ARCHITECTURES)
   set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "")   # release builds pass "arm64;x86_64"
 endif()
+
+# Windows: link the C/C++ runtime statically, so the app and VST3 need no Visual C++ redistributable
+# (and never pick up an older msvcp140.dll than the one they were built against)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # JUCE 8.0.10: a local ./JUCE checkout if there is one, otherwise downloaded at configure time
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JUCE/CMakeLists.txt")
