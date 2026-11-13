@@ -88,3 +88,5 @@ Every request typed while this was being designed and built with Claude Code, in
 > https://www.whimsicalraps.com/products/just-friends ~/Desktop/JF-Manual-web.pdf ~/Desktop/JFv2-Manual-6x17-web.pdf add just friends as a mode for pilot seaflake and make sure the teletype just friends i2c operands work with it.
 
 > when ur done, package orca seaflake and pilor seaflake together on github and homebrew, dont have them be seperate repos, but allow people to download them seperately if they want to from that repo, update readmes and manuals, make sure they both work on mac windows and linus.
+
+1. "for every single app and vst on my github, just make the app logo icon extremely minimal, a letter from this font [Septambres Neau] in some color, on some color background, update all the app icons." (New app icons: one Septambres Neau glyph, one colour on one colour.)
