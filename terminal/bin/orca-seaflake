@@ -18,7 +18,9 @@ Usage:
   orca-seaflake --midi          list MIDI outputs and exit
 
 Inside the app:
-  Space play/stop   Ctrl-S save   Ctrl-O open   Ctrl-T song mode
+  Arrows move              Shift/Option/Ctrl + arrow leap 8 cells
+  PgUp/PgDn/Home/End jump  Tab select   Ctrl-C copy   Ctrl-V paste
+  Space play/stop   < > tempo   Ctrl-S save   Ctrl-O open   Ctrl-T song mode
   Ctrl-K command (e.g. "midi: 1", "bpm: 120")   Ctrl-Q quit
 
 Patches save to ~/Documents/Orca Seaflake (set ORCA_SEAFLAKE_DIR to change).

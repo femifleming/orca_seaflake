@@ -1,7 +1,7 @@
 'use strict'
 const test = require('node:test')
 const assert = require('node:assert/strict')
-const { bounds, clearBlock, normalizedArrow, toggleBlockComment } = require('../src/selection')
+const { bounds, clearBlock, toggleBlockComment } = require('../src/selection')
 
 test('selection bounds expand in both axes from a fixed anchor', () => {
   const anchor = { x: 3, y: 4 }
@@ -19,30 +19,6 @@ test('block comment toggles the boundary hashes back off', () => {
   assert.equal(toggleBlockComment('#BCD#\n#234#'), '.BCD.\n.234.')
 })
 
-
-test('modified down-arrow sequences are recognized as shifted arrows', () => {
-  assert.deepEqual(normalizedArrow({ name: 'down' }, '\x1b[1;2B'), { name: 'down', shift: true })
-  assert.deepEqual(normalizedArrow({ name: 'down' }, '\x1b[;2B'), { name: 'down', shift: true })
-  assert.deepEqual(normalizedArrow({ name: 'down', shift: true }, '\x1b[B'), { name: 'down', shift: true })
-})
-
-test('unmodified down arrow remains a cursor move', () => {
-  assert.deepEqual(normalizedArrow({ name: 'down' }, '\x1b[B'), { name: 'down', shift: false })
-})
-
-test('Shift+Down is recognized from Node readline key.sequence when str is undefined', () => {
-  assert.deepEqual(
-    normalizedArrow({ sequence: '\x1b[1;2B', name: 'down', shift: true }, undefined),
-    { name: 'down', shift: true }
-  )
-})
-
-test('application-cursor down is not mistaken for Shift+Down', () => {
-  assert.deepEqual(
-    normalizedArrow({ sequence: '\x1bOB', name: 'down', shift: false }, undefined),
-    { name: 'down', shift: false }
-  )
-})
 
 test('backspace clears every cell in the rectangular selection and nothing outside it', () => {
   const cells = new Map()

@@ -271,10 +271,180 @@ jobs:
             orca-seaflake --midi
           '
 
+  pilot:
+    name: pilot ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'macOS (universal)', runner: macos-15, kind: mac, arch: universal }
+          - { name: 'Windows x64', runner: windows-latest, kind: windows, arch: x64 }
+          - { name: 'Linux x64', runner: ubuntu-22.04, kind: linux, arch: x64 }
+          - { name: 'Linux arm64', runner: ubuntu-22.04-arm, kind: linux, arch: arm64 }
+    env:
+      R: pilot/build/PilotRender_artefacts/Release/PilotRender
+      HT: pilot/build/PilotHostTest_artefacts/Release/PilotHostTest
+      VST3: pilot/build/PilotSealflake_artefacts/Release/VST3/Pilot Sealflake.vst3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build tools (Linux)
+        if: matrix.kind == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build pkg-config libasound2-dev libjack-jackd2-dev libfreetype-dev libfontconfig1-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libgl1-mesa-dev xvfb xauth
+
+      - name: Build tools (macOS)
+        if: matrix.kind == 'mac'
+        run: brew install ninja || true
+
+      - name: Visual Studio environment (Windows)
+        if: matrix.kind == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        shell: bash
+        env:
+          MSYS_NO_PATHCONV: '1'   # keep Git Bash from turning /DWIN32 into a path
+        run: |
+          set -euo pipefail
+          extra=()
+          if [[ "${{ matrix.kind }}" == mac ]]; then extra+=(-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"); fi
+          if [[ "${{ matrix.kind }}" == windows ]]; then
+            # clang-cl, with debug info so a crash in CI comes with a stack
+            extra+=(-DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+                    "-DCMAKE_C_FLAGS=/DWIN32 /D_WINDOWS /Z7" "-DCMAKE_CXX_FLAGS=/DWIN32 /D_WINDOWS /EHsc /Z7"
+                    -DCMAKE_EXE_LINKER_FLAGS=/DEBUG -DCMAKE_MODULE_LINKER_FLAGS=/DEBUG -DCMAKE_SHARED_LINKER_FLAGS=/DEBUG)
+          fi
+          cmake -S pilot -B pilot/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPILOT_COPY_PLUGINS=OFF "${extra[@]}"
+
+      - name: Build
+        run: cmake --build pilot/build --parallel 4
+
+      - name: Test (Just Friends, Teletype + PI.*, classic Pilot, language, round robin)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.kind }}" == windows ]]; then
+            R="$R.exe"; ls -l "$R"
+            if ! "$R" ref > /dev/null; then
+              echo "PilotRender failed to start; stack:"
+              cdb="/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
+              "$cdb" -lines -c "g; .ecxr; kn 40; q" "$R" ref 2>&1 | tail -60 || true
+              exit 1
+            fi
+          fi
+          for m in jf pi legacy lang rr; do echo "== $m"; "$R" $m; done
+
+      - name: Load the VST3 like a DAW
+        shell: bash
+        run: |
+          if [[ "${{ matrix.kind }}" == linux ]]; then xvfb-run -a "$HT" "$VST3"
+          elif [[ "${{ matrix.kind }}" == windows ]]; then "$HT.exe" "$VST3"
+          else "$HT" "$VST3"; fi
+
+      - name: Validate the Audio Unit (macOS)
+        if: matrix.kind == 'mac'
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R "pilot/build/PilotSealflake_artefacts/Release/AU/Pilot Sealflake.component" ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar 2>/dev/null || true
+          auval -v aumu Pslf Slfk
+
+      - name: Package (macOS)
+        if: matrix.kind == 'mac'
+        run: pilot/scripts/package-mac.sh pilot/build artifacts
+
+      - name: Package (Windows)
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: pilot/scripts/package-windows.ps1 -Build pilot/build -Out artifacts
+
+      - name: Package (Linux)
+        if: matrix.kind == 'linux'
+        run: pilot/scripts/package-linux.sh pilot/build artifacts ${{ matrix.arch }}
+
+      - name: Install the .pkg and launch the app (macOS)
+        if: matrix.kind == 'mac'
+        run: |
+          set -euo pipefail
+          sudo installer -pkg artifacts/*.pkg -target /
+          test -d "/Library/Audio/Plug-Ins/VST3/Pilot Sealflake.vst3"
+          "/Applications/Pilot Sealflake.app/Contents/MacOS/Pilot Sealflake" > launch.log 2>&1 &
+          pid=$!; sleep 20
+          if ! kill -0 "$pid" 2>/dev/null; then echo "App exited during launch:"; cat launch.log; exit 1; fi
+          kill "$pid"; echo "Launched and stayed running for 20s"
+
+      - name: Unzip and launch the app (Windows)
+        if: matrix.kind == 'windows'
+        shell: pwsh
+        run: |
+          Expand-Archive -Path (Get-Item artifacts/*.zip).FullName -DestinationPath "$env:RUNNER_TEMP/pilot"
+          $exe = Get-ChildItem -Path "$env:RUNNER_TEMP/pilot" -Recurse -Filter 'Pilot Sealflake.exe' | Select-Object -First 1
+          if (-not $exe) { throw 'Pilot Sealflake.exe not found in the zip' }
+          $p = Start-Process -FilePath $exe.FullName -PassThru
+          Start-Sleep -Seconds 20
+          if ($p.HasExited) { throw "App exited during launch with code $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+          Write-Output 'Launched and stayed running for 20s'
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pilot-Sealflake-${{ matrix.kind }}-${{ matrix.arch }}-${{ github.run_number }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+
+  pilot-linux-install:
+    name: pilot install .deb on ${{ matrix.runner }}
+    needs: pilot
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-22.04, arch: x64 }
+          - { runner: ubuntu-24.04, arch: x64 }
+          - { runner: ubuntu-22.04-arm, arch: arm64 }
+          - { runner: ubuntu-24.04-arm, arch: arm64 }
+    steps:
+      - name: Download the Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          name: Pilot-Sealflake-linux-${{ matrix.arch }}-${{ github.run_number }}
+          path: artifacts
+
+      - name: Install with apt, exactly as the README says, and launch
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y ./artifacts/*.deb xvfb xauth
+          command -v pilot-sealflake
+          test -d "/usr/lib/vst3/Pilot Sealflake.vst3"
+          test -d "/usr/lib/lv2/Pilot Sealflake.lv2"
+          xvfb-run -a pilot-sealflake > launch.log 2>&1 &
+          sleep 20
+          if ! pgrep -x pilot-sealflake > /dev/null; then echo "App exited during launch:"; cat launch.log; exit 1; fi
+          pkill -x pilot-sealflake || true
+          echo "Launched and stayed running for 20s"
+
+      - name: The tar.gz installs for one user with install.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf artifacts/*.tar.gz -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP"/Pilot-Sealflake-*/install.sh
+          test -x ~/.local/bin/pilot-sealflake
+          test -d ~/.vst3/"Pilot Sealflake.vst3"
+
   release:
     name: Publish release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [package, desktop-linux-install, terminal, terminal-raspberry-pi]
+    needs: [package, desktop-linux-install, terminal, terminal-raspberry-pi, pilot, pilot-linux-install]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -301,6 +471,13 @@ jobs:
           done
           cp "orca-seaflake_${version}_amd64.deb" "orca-seaflake_amd64.deb"
           cp "orca-seaflake_${version}_arm64.deb" "orca-seaflake_arm64.deb"
+          # Pilot Sealflake has its own version (pilot/CMakeLists.txt)
+          pv="$(sed -n 's/^project(PilotSealflake VERSION \([0-9.]*\).*/\1/p' ../pilot/CMakeLists.txt)"
+          for f in macos.zip macos.pkg windows-x64.zip linux-x64.tar.gz linux-arm64.tar.gz; do
+            cp "Pilot-Sealflake-${pv}-${f}" "Pilot-Sealflake-${f}"
+          done
+          cp "pilot-sealflake_${pv}_amd64.deb" "pilot-sealflake_amd64.deb"
+          cp "pilot-sealflake_${pv}_arm64.deb" "pilot-sealflake_arm64.deb"
 
       - name: Pack the terminal version
         shell: bash
