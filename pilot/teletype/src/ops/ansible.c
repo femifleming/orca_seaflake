@@ -251,9 +251,9 @@ static void op_ANS_G_get(const void *data, scene_state_t *ss, exec_state_t *es,
     int16_t y = cs_pop(cs);
 
     uint8_t d[] = { II_GRID_KEY | II_GET, x, y };
-    tele_ii_tx(II_KR_ADDR, d, 4);
-    tele_ii_tx(II_MP_ADDR, d, 4);
-    tele_ii_tx(ES, d, 4);
+    tele_ii_tx(II_KR_ADDR, d, 3);
+    tele_ii_tx(II_MP_ADDR, d, 3);
+    tele_ii_tx(ES, d, 3);
 
     d[0] = 0;
     tele_ii_rx(II_KR_ADDR, d, 1);

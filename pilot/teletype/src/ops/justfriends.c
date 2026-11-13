@@ -356,7 +356,7 @@ static void op_JF_TSC_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
 static void op_JF_RAMP_get(const void *NOTUSED(data),
                            scene_state_t *NOTUSED(ss),
                            exec_state_t *NOTUSED(es), command_state_t *cs) {
-    uint8_t d[] = { JF_RAMP | II_GET };
+    uint8_t d[2] = { JF_RAMP | II_GET, 0 };  // 2-byte reply (upstream had a 1-byte buffer)
     tele_ii_tx(unit, d, 1);
     d[0] = 0;
     tele_ii_rx(unit, d, 2);
@@ -366,7 +366,7 @@ static void op_JF_RAMP_get(const void *NOTUSED(data),
 static void op_JF_CURVE_get(const void *NOTUSED(data),
                             scene_state_t *NOTUSED(ss),
                             exec_state_t *NOTUSED(es), command_state_t *cs) {
-    uint8_t d[] = { JF_CURVE | II_GET };
+    uint8_t d[2] = { JF_CURVE | II_GET, 0 };  // 2-byte reply (upstream had a 1-byte buffer)
     tele_ii_tx(unit, d, 1);
     d[0] = 0;
     tele_ii_rx(unit, d, 2);
@@ -375,7 +375,7 @@ static void op_JF_CURVE_get(const void *NOTUSED(data),
 
 static void op_JF_FM_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
                          exec_state_t *NOTUSED(es), command_state_t *cs) {
-    uint8_t d[] = { JF_FM | II_GET };
+    uint8_t d[2] = { JF_FM | II_GET, 0 };  // 2-byte reply (upstream had a 1-byte buffer)
     tele_ii_tx(unit, d, 1);
     d[0] = 0;
     tele_ii_rx(unit, d, 2);
@@ -385,7 +385,7 @@ static void op_JF_FM_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
 static void op_JF_TIME_get(const void *NOTUSED(data),
                            scene_state_t *NOTUSED(ss),
                            exec_state_t *NOTUSED(es), command_state_t *cs) {
-    uint8_t d[] = { JF_TIME | II_GET };
+    uint8_t d[2] = { JF_TIME | II_GET, 0 };  // 2-byte reply (upstream had a 1-byte buffer)
     tele_ii_tx(unit, d, 1);
     d[0] = 0;
     tele_ii_rx(unit, d, 2);
@@ -395,7 +395,7 @@ static void op_JF_TIME_get(const void *NOTUSED(data),
 static void op_JF_INTONE_get(const void *NOTUSED(data),
                              scene_state_t *NOTUSED(ss),
                              exec_state_t *NOTUSED(es), command_state_t *cs) {
-    uint8_t d[] = { JF_INTONE | II_GET };
+    uint8_t d[2] = { JF_INTONE | II_GET, 0 };  // 2-byte reply (upstream had a 1-byte buffer)
     tele_ii_tx(unit, d, 1);
     d[0] = 0;
     tele_ii_rx(unit, d, 2);

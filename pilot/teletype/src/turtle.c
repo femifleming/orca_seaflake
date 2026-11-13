@@ -200,7 +200,7 @@ void turtle_step(scene_turtle_t *st) {
     st->stepping = false;
 }
 
-inline void turtle_correct_fence(scene_turtle_t *st) {
+void turtle_correct_fence(scene_turtle_t *st) {
     int16_t t;
     st->fence.x1 = min(3, max(0, st->fence.x1));
     st->fence.x2 = min(3, max(0, st->fence.x2));

@@ -447,9 +447,16 @@ int main (int argc, char** argv)
         check ("Z", "7"); check ("SCRIPT 1; Z", "42");
         ok ("scene text round-trips", TeletypeHost::get().sceneText().find ("Z 42") != std::string::npos);
         TeletypeHost::get().loadSceneText ("#1\nDEL 30: $ $\nC ADD C 1\nPI.N 0 60 100\n", false);
-        check ("C 0", ""); check ("$ 1", "");
+        check ("C 0", "");
+        const auto loopStart = std::chrono::steady_clock::now();
+        check ("$ 1", "");
         std::this_thread::sleep_for (std::chrono::milliseconds (200));
-        { const int c = std::atoi (e.submit ("C").c_str()); ok ("DEL 30: $ $ loops script 1 (" + std::to_string (c) + " runs in 200 ms)", c >= 6 && c <= 8); }
+        {   // one run every 30 ms, measured against the time that really passed (CI machines oversleep)
+            const int c = std::atoi (e.submit ("C").c_str());
+            const double ms = std::chrono::duration<double, std::milli> (std::chrono::steady_clock::now() - loopStart).count();
+            const int expect = 1 + (int) (ms / 30.0);
+            ok ("DEL 30: $ $ loops script 1 (" + std::to_string (c) + " runs in " + std::to_string ((int) ms) + " ms)", std::abs (c - expect) <= 1);
+        }
         check ("DEL.CLR", "");
         check ("M.ACT 1; M 50; M.RESET", "");
         TeletypeHost::get().loadSceneText ("#M\nB ADD B 1\n", false);
