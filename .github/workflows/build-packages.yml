@@ -320,12 +320,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [[ "${{ matrix.kind }}" == windows ]]; then
+            R="$R.exe"; ls -l "$R"
+            "$R" ref > /dev/null || { echo "PilotRender failed to start ($?); its DLLs:"; dumpbin //dependents "$R" || true; exit 1; }
+          fi
           for m in jf pi legacy lang rr; do echo "== $m"; "$R" $m; done
 
       - name: Load the VST3 like a DAW
         shell: bash
         run: |
-          if [[ "${{ matrix.kind }}" == linux ]]; then xvfb-run -a "$HT" "$VST3"; else "$HT" "$VST3"; fi
+          if [[ "${{ matrix.kind }}" == linux ]]; then xvfb-run -a "$HT" "$VST3"
+          elif [[ "${{ matrix.kind }}" == windows ]]; then "$HT.exe" "$VST3"
+          else "$HT" "$VST3"; fi
 
       - name: Validate the Audio Unit (macOS)
         if: matrix.kind == 'mac'
