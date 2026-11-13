@@ -1,0 +1,19 @@
+{
+    "version": "1.1.0",
+    "description": "Pilot Sealflake: synth for Orca with Teletype and Just Friends built in (app + VST3)",
+    "homepage": "https://github.com/femifleming/orca_seaflake/tree/main/pilot",
+    "license": "GPL-2.0-only",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/femifleming/orca_seaflake/releases/download/v0.10.0/Pilot-Sealflake-1.1.0-windows-x64.zip",
+            "hash": "b1075f72581dc2f3bc0e84cfce443aad355c163cc76a6884e6c9f5f1053d132a",
+            "extract_dir": "Pilot-Sealflake-1.1.0-windows-x64"
+        }
+    },
+    "bin": [["Pilot Sealflake.exe", "pilot-sealflake"]],
+    "shortcuts": [["Pilot Sealflake.exe", "Pilot Sealflake"]],
+    "notes": [
+        "The VST3 plug-in is at $dir\\Pilot Sealflake.vst3.",
+        "Copy it to C:\\Program Files\\Common Files\\VST3 (needs admin), or add $dir to your DAW's VST3 search paths."
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "version": "0.10.0",
+    "description": "Orca Seaflake: live-coding grid sequencer for MIDI, OSC and UDP, with Song Mode",
+    "homepage": "https://github.com/femifleming/orca_seaflake",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/femifleming/orca_seaflake/releases/download/v0.10.0/Orca-Seaflake-0.10.0-win32-x64.zip",
+            "hash": "ab8efeee38a2407f29152af50683fdf96f241b59559cafc4c203c65881bd6f55",
+            "extract_dir": "Orca-Seaflake-win32-x64"
+        }
+    },
+    "bin": "orca-seaflake.exe",
+    "shortcuts": [["orca-seaflake.exe", "Orca Seaflake"]],
+    "checkver": { "github": "https://github.com/femifleming/orca_seaflake" },
+    "autoupdate": {
+        "architecture": {
+            "64bit": { "url": "https://github.com/femifleming/orca_seaflake/releases/download/v$version/Orca-Seaflake-$version-win32-x64.zip" }
+        }
+    }
+}

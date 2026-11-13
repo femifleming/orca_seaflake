@@ -122,7 +122,7 @@ cask "pilot-sealflake" do
   # ad-hoc signed, not notarised: clear the download quarantine (before they're moved into place) so they open
   preflight_steps do
     run "/usr/bin/xattr",
-        args:         ["-dr", "com.apple.quarantine", "Pilot Sealflake #{version.csv.first}"],
+        args:         ["-dr", "com.apple.quarantine", "."],
         chdir:        ".",
         must_succeed: false
   end
@@ -141,6 +141,9 @@ class PilotSealflake < Formula
   version "$pilot"
   license "GPL-2.0-only"
 
+  # macOS users: brew install --cask femifleming/tap/pilot-sealflake
+  depends_on :linux
+
   on_linux do
     on_intel do
       url "https://github.com/$repo/releases/download/v$version/Pilot-Sealflake-$pilot-linux-x64.tar.gz"
@@ -151,9 +154,6 @@ class PilotSealflake < Formula
       sha256 "$pla"
     end
   end
-
-  # macOS users: brew install --cask femifleming/tap/pilot-sealflake
-  depends_on :linux
 
   def install
     libexec.install Dir["*"]
