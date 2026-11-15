@@ -1,10 +1,12 @@
-# orcλ seλflλke
+<p align="center"><img src="desktop/icon.png" width="128" alt="orca seaflake icon"></p>
 
-<img src="desktop/icon.png" width="300" alt="Orca Seaflake icon"/>
+# orcλ seλflλke
 
 Orca Seaflake is a version of [Orca](https://github.com/hundredrabbits/Orca), the [esoteric programming language](https://en.wikipedia.org/wiki/Esoteric_programming_language) designed to quickly create procedural sequencers, in which every letter of the alphabet is an operation, where lowercase letters operate on bang, uppercase letters operate each frame.
 
 This application **is not a synthesizer, but a livecoding environment** capable of sending MIDI, OSC & UDP to your audio/visual interfaces, like Ableton, Renoise, VCV Rack or SuperCollider.
+
+**[The manual (PDF)](docs/manual/orca%20seaflake%20Manual.pdf)**: installing, the grid, every operator, Song Mode, the terminal version and the whole Pilot Sealflake command reference.
 
 Seaflake keeps every original Orca operator exactly as it is in the Orca app, defaults included (patches made for Orca play the same), and adds:
 
@@ -277,6 +279,7 @@ Orca operates on a base of **36 increments**. Operators using numeric values wil
 ## Links
 
 - [Original Orca](https://github.com/hundredrabbits/Orca) by Hundred Rabbits
+- [The manual (PDF)](docs/manual/orca%20seaflake%20Manual.pdf)
 - [Operator reference](docs/OPERATORS.md)
 - [What Seaflake adds to Orca](docs/WHATS_NEW.md)
 - [Changelog](CHANGELOG.md)
