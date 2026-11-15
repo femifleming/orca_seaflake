@@ -47,7 +47,7 @@ cask "orca-seaflake" do
          intel: "$intel"
 
   url "https://github.com/$repo/releases/download/v#{version}/Orca-Seaflake-#{version}-darwin-#{arch}.zip"
-  name "Orca Seaflake"
+  name "orca seaflake"
   desc "Live-coding grid sequencer for MIDI, OSC and UDP"
   homepage "https://github.com/$repo"
 
@@ -107,7 +107,7 @@ cask "pilot-sealflake" do
   sha256 "$pmac"
 
   url "https://github.com/$repo/releases/download/v#{version.csv.second}/Pilot-Sealflake-#{version.csv.first}-macos.zip"
-  name "Pilot Sealflake"
+  name "pilot sealflake"
   desc "Synth for Orca with Teletype and Just Friends built in"
   homepage "https://github.com/$repo/tree/main/pilot"
 
