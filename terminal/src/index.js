@@ -10,6 +10,7 @@ const input = require('./input')
 const screen = require('./screen')
 const platform = require('./platform')
 const { parseSong, serializeSong } = require('./song-file')
+const { Udp, Osc, MidiCC, Mono, DEFAULT_IP } = require('./io')
 
 const ROOT = path.resolve(__dirname, '..')
 const VERSION = require('../package.json').version
@@ -120,7 +121,7 @@ class CoreMidi {
   }
   run () { for (const item of [...this.stack]) this.runItem(item) }
   allNotesOff () { for (let ch = 0; ch < 16; ch++) this.send([0xB0 + ch, 123, 0]) }
-  silence () { for (const item of this.stack) this.trigger(item, false); this.stack = []; for (const id of this.sequences.keys()) this.cancelSequence(id); this.allNotesOff() }
+  silence () { for (const item of this.stack) this.trigger(item, false); this.stack = []; for (const id of this.sequences.keys()) this.cancelSequence(id); try { io.mono.silence() } catch {}; this.allNotesOff() }
   scheduleSequence (id, sequence) {
     this.cancelSequence(id)
     const frameMs = 60000 / state.bpm / 4
@@ -140,7 +141,7 @@ class CoreMidi {
   }
   updateSequence () {}
   cancelSequence (id) { const t = this.sequences.get(id); if (t) t.forEach(clearTimeout); this.sequences.delete(id) }
-  close () { this.silence(); try { this.output.closePort() } catch {}; try { this.input.closePort() } catch {} }
+  close () { this.silence(); try { this.output.closePort() } catch {}; try { this.input.closePort() } catch {}; try { io.udp.close(); io.osc.close() } catch {} }
 }
 
 const clock = {
@@ -150,8 +151,11 @@ const clock = {
   bursts: new Map()
 }
 const midiOut = new CoreMidi()
-const io = { midi: midiOut, cc: { stack: [], run () {} }, mono: { push () {}, run () {} }, udp: { push () {}, run () {} }, osc: { push () {}, run () {} } }
-const client = { clock, io, commander: { trigger () {} }, update () {} }
+const target = { ip: DEFAULT_IP }
+// The engine is loaded below; the OSC client looks its valueOf up lazily.
+const io = { midi: midiOut, cc: new MidiCC(midiOut), mono: new Mono(midiOut), udp: new Udp(target), osc: new Osc(target, g => orca.valueOf(g)), target }
+// `$` runs a command (bpm:140, udp:49161 ...) from the grid
+const client = { clock, io, commander: { trigger (msg) { runGridCommand(msg) } }, update () {} }
 
 function loadEngine () {
   const context = vm.createContext({ console, Math, Number, String, Object, Array, Set, Map, Date, performance, setTimeout, clearTimeout, setInterval, clearInterval, client })
@@ -263,7 +267,7 @@ function drawGrid () {
   const view = gridView()
   const lines = []
   lines.push(`\x1b[1;36m ORCA SEAFLAKE  /  TERMINAL ${VERSION}\x1b[0m`)
-  lines.push(` ${state.playing ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  BPM ${state.bpm}  FRAME ${orca.f}  ${pad(state.x, 3)},${pad(state.y, 3)}  GRID ${orca.w}x${orca.h}${state.selectionMode ? '  \x1b[36mSELECT\x1b[0m' : ''}  MIDI: ${midiOut.statusLabel()}`)
+  lines.push(` ${state.playing ? '\x1b[32mPLAY' : '\x1b[33mSTOP'}\x1b[0m  BPM ${state.bpm}  FRAME ${orca.f}  ${pad(state.x, 3)},${pad(state.y, 3)}  GRID ${orca.w}x${orca.h}${state.selectionMode ? '  \x1b[36mSELECT\x1b[0m' : ''}  UDP ${io.udp.port}  OSC ${io.osc.port}  MIDI: ${midiOut.statusLabel()}`)
   // Arrows on the frame show there is more grid beyond the edge of the view
   const more = (cond, ch, fill) => cond ? `\x1b[33m${ch}\x1b[0m` : fill
   lines.push(' ┌' + '─'.repeat(view.w) + '┐' + more(view.y > 0, '▲', ''))
@@ -282,9 +286,15 @@ function drawGrid () {
   }
   lines.push(' └' + '─'.repeat(view.w) + '┘' + more(view.y + view.h < orca.h, '▼', ''))
   lines.push(' Arrows move  Shift/Opt+Arrows leap 8  PgUp/PgDn/Home/End jump  Tab select  Ctrl-C/V copy/paste  < > tempo')
-  const status = inletAtCursor() || state.message
+  // A new message (Saved, MIDI OUTPUT 2, ...) shows for a few seconds even
+  // when the cursor sits on an operator; after that the inlet's info returns.
+  if (state.message !== state.lastMessage) { state.lastMessage = state.message; state.messageAt = Date.now() }
+  const fresh = state.message && Date.now() - (state.messageAt || 0) < 4000
+  const status = fresh ? state.message : (inletAtCursor() || state.message)
+  lines.push(' Ctrl-S save  Ctrl-O open  Ctrl-N new  Ctrl-T song  Ctrl-K command  Ctrl-Q quit')
+  // The message has a line of its own, so it is never clipped in an 80-column window
   if (state.prompt) lines.push(` ${state.promptLabel || 'Path'}: ${state.promptValue}_  (Enter to confirm, Esc to cancel)`)
-  else lines.push(' Ctrl-S save  Ctrl-O open  Ctrl-N new  Ctrl-T song  Ctrl-K command  Ctrl-Q quit  |  ' + status)
+  else lines.push(' ' + status)
   screen.render(lines)
 }
 function drawSong () {
@@ -458,6 +468,8 @@ function playToggle (forceOn = false) { state.playing = forceOn ? true : !state.
 function setBpm (n) { state.bpm = Math.max(60, Math.min(300, n)); clock.speed.value = state.bpm; if (state.playing) { clearInterval(timer); timer = setInterval(tick, 60000 / state.bpm / 4) } }
 function runGridCommand (input) {
   const command = String(input || '').trim().replace(/^\$/, '')
+  const ip = command.match(/^ip\s*:\s*(\d{1,3}(?:\.\d{1,3}){3})$/i)
+  if (ip) { io.target.ip = ip[1]; state.message = `UDP AND OSC GO TO ${ip[1]}`; return true }
   const match = command.match(/^([a-z]+)\s*:\s*(-?\d+)$/i)
   if (!match) { state.message = `UNKNOWN COMMAND: ${input}`; return false }
   const name = match[1].toLowerCase()
@@ -482,6 +494,11 @@ function runGridCommand (input) {
     midiOut.silence()
     if (!midiOut.selectOutput(value)) { state.message = `COULD NOT OPEN ${midiOut.devices[value]}. IS ANOTHER APP USING IT?`; return false }
     state.message = `MIDI OUTPUT ${value}: ${midiOut.devices[value]}`
+    return true
+  }
+  if (name === 'udp' || name === 'osc') {
+    if (!io[name].select(value)) { state.message = `${name.toUpperCase()} PORT MUST BE BETWEEN 1000 AND 65535`; return false }
+    state.message = `${name.toUpperCase()} OUTPUT PORT ${value} (${io.target.ip})`
     return true
   }
   if (name === 'frame') { orca.f = Math.max(0, value); state.message = `FRAME SET TO ${orca.f}`; return true }

@@ -102,6 +102,8 @@ To create a virtual MIDI port that reaches other software:
 
 `Ctrl+C` copies and never quits; `Esc` never quits either. The grid runs one frame per 16th note.
 
+Messages (what was saved, which MIDI output was picked, an error) show on the bottom line for a few seconds; then the line describes the operator or inlet under the cursor.
+
 The grid starts at the size of the window and grows if you make the window bigger. A patch larger than the window scrolls to follow the cursor; arrows on the frame (`▲ ▼ ◀ ▶`) show there's more grid in that direction. The cursor position is shown at the top. `+` marks every 8th cell, so leaps line up with the marks.
 
 **Leaping on a Mac:** `Shift` + arrow works in every terminal. macOS uses `Ctrl` + arrow for Mission Control, so that only works if you turn those shortcuts off in System Settings → Keyboard → Keyboard Shortcuts → Mission Control. `Option` + arrow works in Terminal and iTerm2.
@@ -127,6 +129,8 @@ The grid starts at the size of the window and grows if you make the window bigge
 | `midi: -1` / `midi: 2` | List MIDI outputs / use output 2 |
 | `frame: 0` | Jump to frame 0 |
 | `skip: 16` / `rewind: 16` | Move forward / back 16 frames |
+| `udp: 49161` / `osc: 49162` | Port the `;` UDP / `=` OSC messages go to |
+| `ip: 192.168.1.20` | Computer the UDP and OSC messages go to (`127.0.0.1`, this one, to start with) |
 
 You can also type `$bpm: 140` straight into the grid. While playing, it sets the tempo, and in Song Mode it overrides the slot's BPM.
 
@@ -153,12 +157,15 @@ A slot plays for **LEN × MUL frames**, and one frame is one 16th note: `LEN 16,
 
 ## What the terminal version sends
 
-The terminal version sends **MIDI notes**: `:` and Seaflake's `(`, `)` and `@`. These other operators are accepted in the grid but **don't send anything yet** in the terminal; use the desktop app for them:
+Everything the desktop app sends:
 
-- `%` mono notes
-- `!` control change and `?` pitch bend
-- `=` OSC and `;` UDP
-- `$` commands (except `$bpm`, which works)
+- **MIDI notes**: `:`, mono notes `%`, and Seaflake's `(`, `)` and `@`, to the MIDI output chosen above.
+- **MIDI control change `!` and pitch bend `?`**, to the same output.
+- **UDP `;`**, to port 49161 on this computer, where [Pilot Sealflake](../pilot/README.md) listens: `;04C` plays a note on it with no MIDI set-up at all.
+- **OSC `=`**, to port 49162 on this computer (the desktop app's default).
+- **`$` runs a command from the grid** when it is banged: `$bpm:140`, `$udp:49162`, `$midi:1`.
+
+The ports show at the top of the screen. To change them, or to send to another computer, use the commands below (`udp: 49162`, `osc: 57120`, `ip: 192.168.1.20`).
 
 ## Troubleshooting
 

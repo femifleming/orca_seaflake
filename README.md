@@ -66,7 +66,7 @@ brew install --cask femifleming/tap/orca-seaflake
 
 ### Terminal version
 
-The terminal version runs the same operators and Song Mode, without a window. It's light enough to run on a Raspberry Pi over SSH. It sends MIDI notes; for MIDI CC, pitch bend, mono notes, OSC and UDP, use the desktop app ([details](terminal/README.md#what-the-terminal-version-sends)).
+The terminal version runs the same operators and Song Mode, without a window. It's light enough to run on a Raspberry Pi over SSH. It sends everything the desktop app sends: MIDI notes, control change and pitch bend, UDP (so Pilot Sealflake plays from it) and OSC ([details](terminal/README.md#what-the-terminal-version-sends)).
 
 **1. Install Node.js:**
 

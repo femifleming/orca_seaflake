@@ -60,7 +60,7 @@ Song Mode chains patches into a song, like a hardware tracker. It works the same
 The same operators and Song Mode in a terminal, with no window. It runs in Terminal on macOS, Windows Terminal, any Linux terminal, and over SSH on a Raspberry Pi, including 32-bit Raspberry Pi OS. Full guide: [terminal version](../terminal/README.md).
 
 - Install with `npm` or Homebrew; run with `orca-seaflake`.
-- Sends MIDI notes, and lists and picks MIDI outputs with the `midi:` command.
+- Sends MIDI notes, control change and pitch bend, UDP (Pilot Sealflake) and OSC; lists and picks MIDI outputs with the `midi:` command, and sets the UDP and OSC ports with `udp:`, `osc:` and `ip:`.
 - Selecting, copying and pasting with your system clipboard.
 - Saves `.orca` files in `Documents/Orca Seaflake`.
 - Starts without MIDI if the MIDI module can't load, so you can still edit.
