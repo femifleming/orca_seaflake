@@ -233,6 +233,6 @@ echo "Wrote Orca Seaflake $version and Pilot Sealflake $pilot into $out"
 cd "$out"
 git add Casks Formula bucket
 if git diff --cached --quiet; then echo "Tap already up to date"; exit 0; fi
-git commit -q -m "Orca Seaflake $version, Pilot Sealflake $pilot"
+git commit -q -m "orca seaflake $version, pilot sealflake $pilot" -m "Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 git push -q
 echo "Pushed $tap"
