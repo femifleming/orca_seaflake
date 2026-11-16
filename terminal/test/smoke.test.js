@@ -133,7 +133,11 @@ test('app takes a typed patch, sends its UDP and OSC messages, saves and quits w
     await type('\x11') // Ctrl-Q
     const code = await Promise.race([exited, sleep(5000).then(() => 'timeout')])
     assert.equal(code, 0, `exits with 0 (stderr: ${err.trim()})`)
-    assert.equal(err.trim(), '', 'nothing on stderr')
+    // The MIDI library (RtMidi) prints its own note when a computer has no
+    // MIDI at all, as CI runners do: no ALSA sequencer, no openable Windows
+    // port. Nothing else may reach stderr.
+    const ours = err.split(/\r?\n/).filter(l => l.trim() && !/^(Midi(In|Out)\w*::|ALSA lib )/.test(l))
+    assert.deepEqual(ours, [], 'nothing of ours on stderr')
   } finally {
     if (app.exitCode === null) app.kill('SIGKILL')
     udp.close(); osc.close()

@@ -39,11 +39,9 @@ class CoreMidi {
     // sequencer (/dev/snd/seq). Fall back to no MIDI instead of crashing.
     try {
       this.output = midi ? new midi.Output() : new NoMidiPort()
-      this.input = midi ? new midi.Input() : new NoMidiPort()
     } catch (e) {
       this.openError = e
       this.output = new NoMidiPort()
-      this.input = new NoMidiPort()
     }
     this.stack = []
     this.sequences = new Map()
@@ -141,7 +139,7 @@ class CoreMidi {
   }
   updateSequence () {}
   cancelSequence (id) { const t = this.sequences.get(id); if (t) t.forEach(clearTimeout); this.sequences.delete(id) }
-  close () { this.silence(); try { this.output.closePort() } catch {}; try { this.input.closePort() } catch {}; try { io.udp.close(); io.osc.close() } catch {} }
+  close () { this.silence(); try { this.output.closePort() } catch {}; try { io.udp.close(); io.osc.close() } catch {} }
 }
 
 const clock = {

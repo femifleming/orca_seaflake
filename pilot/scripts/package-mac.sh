@@ -40,6 +40,14 @@ mkdir -p "$work/root/Applications" "$work/root/Library/Audio/Plug-Ins/VST3" "$wo
 ditto "$app" "$work/root/Applications/Pilot Sealflake.app"
 ditto "$vst3" "$work/root/Library/Audio/Plug-Ins/VST3/Pilot Sealflake.vst3"
 ditto "$au" "$work/root/Library/Audio/Plug-Ins/Components/Pilot Sealflake.component"
-pkgbuild --root "$work/root" --install-location / --identifier com.sealflake.pilot --version "$version" "$out/Pilot-Sealflake-$version-macos.pkg"
+# Installer "relocates" a bundle onto any copy with the same bundle id it finds
+# through Spotlight (the build folder on this same machine, say) instead of the
+# install path, and reports success; a component list with relocation off
+# keeps the app and the plug-ins where the pkg says.
+pkgbuild --analyze --root "$work/root" "$work/components.plist"
+plutil -replace 0.BundleIsRelocatable -bool NO "$work/components.plist"
+plutil -replace 1.BundleIsRelocatable -bool NO "$work/components.plist"
+plutil -replace 2.BundleIsRelocatable -bool NO "$work/components.plist"
+pkgbuild --root "$work/root" --component-plist "$work/components.plist" --install-location / --identifier com.sealflake.pilot --version "$version" "$out/Pilot-Sealflake-$version-macos.pkg"
 pkgutil --payload-files "$out/Pilot-Sealflake-$version-macos.pkg" | grep -Fq './Applications/Pilot Sealflake.app/Contents/Info.plist'
 ls -l "$out"

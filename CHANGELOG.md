@@ -2,9 +2,11 @@
 
 Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seaflake adds to Orca](docs/WHATS_NEW.md).
 
-## 0.10.3
+## 0.10.4
 
-Terminal version only. The desktop app and Pilot Sealflake are unchanged.
+Terminal version. The desktop app is unchanged; Pilot Sealflake's macOS installer is fixed. (0.10.3 was tagged but never published: its release check failed.)
+
+- **Fixed: Pilot Sealflake's `.pkg` could install nothing.** macOS Installer "relocates" an app or plug-in onto any copy with the same bundle id it finds on the disk, and reports success; the installer now refuses to relocate, so the app lands in `/Applications` and the plug-ins in `/Library/Audio/Plug-Ins`.
 
 - **The terminal version sends everything the desktop app sends.** UDP `;` (so Pilot Sealflake plays from the terminal with no MIDI set-up), OSC `=`, MIDI control change `!`, pitch bend `?` and mono notes `%` now go out; before, only MIDI notes did. `$` runs a command from the grid when banged. New commands `udp: 49161`, `osc: 49162` and `ip: 192.168.1.20`; the ports show at the top of the screen.
 - **Fixed: messages were hidden.** "Saved", "MIDI OUTPUT 2", errors and the like were not shown while the cursor sat on an operator, and were cut off entirely in an 80-column window. The message now has a line of its own.
