@@ -80,7 +80,20 @@ function listen (port) {
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-test('app takes a typed patch, sends its UDP and OSC messages, saves and quits with Ctrl-Q', { timeout: 25000 }, async () => {
+// Polls every 250 ms until `check` returns something truthy, or fails after
+// `ms`. Nothing below waits a fixed time: an emulated Raspberry Pi can take
+// many seconds to do what a laptop does in one.
+async function waitFor (check, ms, label) {
+  const end = Date.now() + ms
+  for (;;) {
+    const value = check()
+    if (value) return value
+    if (Date.now() > end) assert.fail(`${label} (not within ${ms} ms)`)
+    await sleep(250)
+  }
+}
+
+test('app takes a typed patch, sends its UDP and OSC messages, saves and quits with Ctrl-Q', { timeout: 180000 }, async () => {
   const saveDir = fs.mkdtempSync(path.join(os.tmpdir(), 'orca-seaflake-smoke-'))
   const udp = await listen(UDP_PORT)
   const osc = await listen(OSC_PORT)
@@ -91,12 +104,15 @@ test('app takes a typed patch, sends its UDP and OSC messages, saves and quits w
   app.stderr.on('data', d => { err += d })
   const exited = new Promise(resolve => app.on('exit', code => resolve(code)))
   const type = async (text, wait = 40) => { app.stdin.write(text); await sleep(wait) }
-  const frame = () => { const m = out.match(/FRAME (\d+)/g); return m ? Number(m[m.length - 1].slice(6)) : null }
+  // Screen checks run on the text without its colour codes (every glyph of
+  // the grid is wrapped in one).
+  const plain = () => out.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '')
+  const drawn = re => () => re.test(plain())
+  const frame = () => { const m = plain().match(/FRAME (\d+)/g); return m ? Number(m[m.length - 1].slice(6)) : null }
 
   try {
-    await sleep(1200)
-    assert.match(out, /ORCA SEAFLAKE/, 'draws the header')
-    assert.match(out, /┌/, 'draws the grid frame')
+    await waitFor(drawn(/ORCA SEAFLAKE/), 30000, 'draws the header')
+    await waitFor(drawn(/┌/), 10000, 'draws the grid frame')
 
     // D writes its bang (*) into the cell below it, and an operator fires
     // when a * is next to it: D8 at (0,0) bangs ":04C" at (1,1), a MIDI note;
@@ -106,32 +122,32 @@ test('app takes a typed patch, sends its UDP and OSC messages, saves and quits w
       for (const g of row) { await type(g); await type(RIGHT) }
       await type(HOME + DOWN)
     }
+    await waitFor(drawn(/=a1/), 20000, 'the typed patch is on screen')
     // Ctrl-K: point UDP and OSC at the test's own ports
-    await type('\x0b'); await type(`udp: ${UDP_PORT}\r`, 100)
-    assert.match(out, new RegExp(`UDP OUTPUT PORT ${UDP_PORT}`), 'udp: command answers')
-    await type('\x0b'); await type(`osc: ${OSC_PORT}\r`, 100)
-    assert.match(out, new RegExp(`OSC OUTPUT PORT ${OSC_PORT}`), 'osc: command answers')
+    await type('\x0b'); await type(`udp: ${UDP_PORT}\r`)
+    await waitFor(drawn(new RegExp(`UDP OUTPUT PORT ${UDP_PORT}`)), 10000, 'udp: command answers')
+    await type('\x0b'); await type(`osc: ${OSC_PORT}\r`)
+    await waitFor(drawn(new RegExp(`OSC OUTPUT PORT ${OSC_PORT}`)), 10000, 'osc: command answers')
 
-    await type(' ', 600) // play
+    await type(' ') // play
+    await waitFor(drawn(/PLAY/), 10000, 'shows PLAY')
     const f0 = frame()
-    await sleep(900)
-    const f1 = frame()
-    assert.ok(f0 !== null && f1 !== null && f1 > f0, `frames advance while playing (${f0} -> ${f1})`)
-    await type(' ', 100) // stop
+    await waitFor(() => { const f = frame(); return f !== null && f0 !== null && f > f0 }, 20000, `frames advance while playing (from ${f0})`)
 
-    assert.ok(udp.got.some(m => m.toString() === '04C'), `UDP message "04C" arrived (${udp.got.map(String).join(',')})`)
-    const oscMsg = osc.got.find(m => m.toString('latin1').startsWith('/a\0'))
-    assert.ok(oscMsg, 'OSC message to /a arrived')
+    await waitFor(() => udp.got.some(m => m.toString() === '04C'), 20000, 'UDP message "04C" arrives')
+    const oscMsg = await waitFor(() => osc.got.find(m => m.toString('latin1').startsWith('/a\0')), 20000, 'OSC message to /a arrives')
     assert.equal(oscMsg.toString('latin1').slice(4, 8), ',i\0\0', 'OSC type tag: one int')
     assert.equal(oscMsg.readInt32BE(8), 1, 'OSC argument: value of "1"')
+    await type(' ') // stop
+    await waitFor(drawn(/STOP[^\n]*FRAME [1-9]/), 10000, 'shows STOP again')
 
-    await type('\x13', 200) // Ctrl-S
-    const saved = fs.readdirSync(saveDir).filter(f => f.endsWith('.orca'))
+    await type('\x13') // Ctrl-S
+    const saved = await waitFor(() => { const f = fs.readdirSync(saveDir).filter(x => x.endsWith('.orca')); return f.length ? f : null }, 20000, 'saves a patch')
     assert.equal(saved.length, 1, 'saved one patch')
     assert.ok(fs.readFileSync(path.join(saveDir, saved[0]), 'utf8').startsWith('D8'), 'the saved patch starts with D8')
 
     await type('\x11') // Ctrl-Q
-    const code = await Promise.race([exited, sleep(5000).then(() => 'timeout')])
+    const code = await Promise.race([exited, sleep(30000).then(() => 'timeout')])
     assert.equal(code, 0, `exits with 0 (stderr: ${err.trim()})`)
     // The MIDI library (RtMidi) prints its own note when a computer has no
     // MIDI at all, as CI runners do: no ALSA sequencer, no openable Windows
