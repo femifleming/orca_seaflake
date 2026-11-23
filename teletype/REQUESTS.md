@@ -412,3 +412,13 @@ Every request typed while Orca Seaflake for Teletype was designed and built with
 > elevator into the night
 
 > when youre done, push this to github as a beta, make it a part of the orca-seaflake repo. add a readme and instrumtions on how to install it.
+
+> my tt is on and in bootloader mode, flash it
+
+> is there enoupgh space for it to be a random one of those 4 screensavers each time?
+
+> no need to update the github, i only want mine to hace the random 4 screensavers.
+
+> just friends is over i2c to make sure that works.
+
+> i dont have just friends, so someone else will test it for me, just push it to the github and say that just freinds implementation is in beta. also my teletyre is on and in bootloader mode. my teletype does not need the just friends stuff, it can just have the new 4 random screensavers.

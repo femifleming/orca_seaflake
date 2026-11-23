@@ -77,6 +77,8 @@ static uint8_t ex_last_cmd[128];  // last command byte sent to each I2C address
 static emu_midi_fn midi_fn;
 
 static uint32_t now_ms, last_tick_ms, boot_ms;
+// the dream picks one of its four at random when it starts (dream.c)
+uint32_t dream_entropy(void) { return now_ms; }
 // the screensaver, as in main.c: the dream after 5 idle minutes, until a key
 #define DREAM_AFTER (5UL * 60 * 1000)
 static uint32_t idle_ms;

@@ -66,7 +66,7 @@ From Terminal (what the app runs):
    Press the front-panel button once. That prepares the scene memory (the normal Teletype
    first-start step); Orca's patch memory is prepared by itself.
 3. The Orca Seaflake grid appears and the bottom line shows what the I2C scan found,
-   for example FOUND DISTING EX. ctrl+I shows the Disting EX (0x41), the ER-301 (0x31), the bus
+   for example FOUND DISTING EX. ctrl+I shows the Disting EX (0x41), the ER-301 (0x31), Just Friends (0x70), the bus
    and the message count; enter looks again.
 4. To get your Teletype scenes (their scripts run with $script:N and F1-F10) back: USB stick in,
    turn PARAM to READ FROM USB, press the front-panel button. The grid comes back by itself.

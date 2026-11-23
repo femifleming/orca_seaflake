@@ -107,7 +107,8 @@ uint8_t copy_buffer_len = 0;
 static device_config_t device_config;
 // the screen on show lives in sf_ui.c (Orca Seaflake or its help)
 static uint32_t ss_counter = 0;
-static uint32_t dream_start;   // get_ticks() when it started
+// the dream picks one of its four at random when it starts (dream.c)
+uint32_t dream_entropy(void) { return get_ticks(); }
 static u8 grid_connected = 0;
 static u8 grid_control_mode = 0;
 static u8 midi_clock_counter = 0;

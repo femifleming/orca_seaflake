@@ -105,3 +105,9 @@ static void scene(uint32_t ms) {
 }
 
 DK_DREAM_BAND(scene)
+
+// (several dreams can be built into one file: dream.c)
+#undef T
+#undef WALL
+#undef VPX
+#undef VPY

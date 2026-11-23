@@ -17,6 +17,8 @@ void sf_ii_reset(void);
 // sf_ii_note after every transfer.
 extern uint16_t sf_ii_sent, sf_ii_failed;
 extern uint8_t sf_ii_fail_addr;
+// Just Friends at 0x70: 0 not asked yet, 1 answered, 2 no answer
+extern uint8_t sf_jf_state;
 extern uint32_t sf_ii_fail_at;
 // the last failure: status (TWI: -5 = no acknowledge, -8 = gave up waiting,
 // -2 = arbitration lost), its first byte (the command) and length

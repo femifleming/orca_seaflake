@@ -171,6 +171,9 @@ static uint8_t dk_pass_fade(uint32_t t, uint32_t pass) {
     return t < 4000 ? (uint8_t)(t * 16 / 4000) : t > pass - 4000 ? (uint8_t)((pass - t) * 16 / 4000) : 16;
 }
 
+#ifdef DK_MULTI   // dream.c draws several dreams and defines dream_band itself
+#define DK_DREAM_BAND(scene)
+#else
 #define DK_DREAM_BAND(scene)                                            \
     void dream_band(uint32_t ms, uint8_t line, uint8_t *buf) {          \
         if (ms != dk_frame) {                                           \
@@ -183,5 +186,6 @@ static uint8_t dk_pass_fade(uint32_t t, uint32_t pass) {
         for (uint16_t i = 0; i < dk_n; i++) dk_draw(&dk_p[i], buf, y0);  \
         for (uint8_t j = 0; j < 8; j++) dk_cap(&buf[j * DK_W]);         \
     }
+#endif
 
 #endif

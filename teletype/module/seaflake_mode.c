@@ -98,14 +98,15 @@ static void undo(void) {
 // say what the last scan found
 static void say_scan(void) {
     char s[22];
+    const bool jf = sf_jf_state == 1;
     if (sf_scan.ex_unit && sf_scan.er_unit)
-        sf_fmt(s, sizeof(s), "FOUND EX + ER-301");
+        sf_fmt(s, sizeof(s), jf ? "FOUND EX ER-301 JF" : "FOUND EX + ER-301");
     else if (sf_scan.ex_unit)
-        sf_fmt(s, sizeof(s), "FOUND DISTING EX");
+        sf_fmt(s, sizeof(s), jf ? "FOUND EX + JF" : "FOUND DISTING EX");
     else if (sf_scan.er_unit)
-        sf_fmt(s, sizeof(s), "FOUND ER-301, NO EX");
+        sf_fmt(s, sizeof(s), jf ? "FOUND ER-301 + JF" : "FOUND ER-301, NO EX");
     else
-        sf_fmt(s, sizeof(s), "NO EX OR ER-301 FOUND");
+        sf_fmt(s, sizeof(s), jf ? "FOUND JUST FRIENDS" : "NO EX OR ER-301 FOUND");
     say(s);
 }
 
@@ -561,6 +562,8 @@ static void draw_scan(void) {
     else
         draw_text(&line[1], 0, "DISTING EX 41 --", 4, 0);
     draw_text(&line[4], 0, sf_scan.er[0] ? "ER-301 31 FOUND" : "ER-301 31 -- TRY <P1", sf_scan.er[0] ? 15 : 4, 0);
+    draw_text(&line[5], 0, sf_jf_state == 1 ? "JUST FRIENDS 70 FOUND" : sf_jf_state == 2 ? "JUST FRIENDS 70 --" : "JUST FRIENDS 70 ?",
+              sf_jf_state == 1 ? 15 : 4, 0);
     // the bus at power-on (sf_bus_init in main.c): SCL rate and pull-ups
     {
         region *r = &line[6];

@@ -40,6 +40,9 @@ static uint8_t er_seen;  // ER-301s that acknowledged an SC write (bit n-1)
 static bool scanning;  // the scan's probes fail on purpose for absent units
 
 int8_t sf_ii_fail_code;
+// Just Friends at 0x70: 0 not asked yet, 1 answered, 2 no answer. Set by the
+// scan (a write-only probe) and by every , message after it
+uint8_t sf_jf_state;
 uint8_t sf_ii_fail_cmd, sf_ii_fail_len;
 
 const char *sf_ii_status_name(int status) {
@@ -63,6 +66,7 @@ void sf_ii_note(uint8_t addr, int status, const uint8_t *data, uint8_t len) {
         sf_scan.er_unit = 1;
     }
     if (status && addr == 0x31) er_seen = 0;
+    if (len && addr == 0x70) sf_jf_state = status ? 2 : 1;
     if (status) {
         sf_ii_failed++;
         sf_ii_fail_addr = addr;
@@ -663,6 +667,14 @@ void sf_scan_run(void) {
     sf_scan.ex_addr = SF_EX_ADDR;
     sf_scan.ex[0] = ex_probe(1, &sf_scan.ex_alg[0], &sf_scan.ex_preset[0]);
     sf_scan.er[0] = er_probe(1);
+    {
+        // Just Friends: one byte, the JF.SPEED request (0x8F), and no read
+        // after it (a read a device never answers is what once left the
+        // bus stuck): an acknowledged address is a Just Friends there. It
+        // changes nothing on the module, whatever its firmware
+        const uint8_t d[1] = { 0x8F };
+        sf_jf_state = sf_io_ii_tx(0x70, d, 1) ? 1 : 2;
+    }
     sf_scan.done = 1;
     scanning = false;
     sf_scan.ex_unit = sf_scan.ex[0] ? 1 : 0;

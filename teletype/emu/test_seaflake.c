@@ -18,6 +18,7 @@
 #include "globals.h"
 #include "state.h"
 #include "teletype.h"
+#include "dream.h"
 
 extern scene_state_t scene_state;
 
@@ -445,6 +446,39 @@ int main(void) {
     sf_song_t back;
     CHECK("song 3 saved", sf_store_song_get(3, &back) && back.slots[1].bpm == 150);
 
+    // the screensaver picks one of its four dreams each time it starts, at
+    // random, never the same one twice in a row, and every dream stays
+    // under the OLED limit (32 lit pixels a row)
+    {
+        static uint8_t band[128 * 8];
+        int seen[4] = { 0 }, repeats = 0, over = 0;
+        uint8_t prev = 0xFF;
+        for (int k = 0; k < 60; k++) {
+            frames(1 + k % 7);
+            for (uint32_t ms = 0; ms < 3000; ms += 1000)
+                for (uint8_t i = 0; i < 8; i++) {
+                    dream_band(ms, i, band);
+                    for (int r = 0; r < 8; r++) {
+                        int lit = 0;
+                        for (int x = 0; x < 128; x++) lit += band[r * 128 + x] != 0;
+                        over += lit > 32;
+                    }
+                }
+            const uint8_t d = dream_current();
+            if (d < 4) seen[d]++;
+            repeats += d == prev;
+            prev = d;
+        }
+        printf("  dreams over 60 starts: %d %d %d %d\n", seen[0], seen[1], seen[2], seen[3]);
+        if (dream_random()) {
+            CHECK("screensaver: all four dreams come up", seen[0] && seen[1] && seen[2] && seen[3]);
+            CHECK("screensaver: never the same dream twice in a row", repeats == 0);
+        }
+        else
+            CHECK("screensaver: always the one dream", repeats == 59);
+        CHECK("screensaver: no row over 32 lit pixels", over == 0);
+    }
+
     // , Just Friends: each function sends exactly what the stock JF.* op
     // typed in a script sends
     {
@@ -481,6 +515,15 @@ int main(void) {
             snprintf(name, sizeof(name), "%s = %s (same bytes)", jf[i].grid, jf[i].script);
             CHECK(name, mine[0] && !strcmp(mine, i2c()) && strstr(mine, i == 9 ? "JF 2 (0x75)" : "JF 1 (0x70)"));
         }
+        // the scan asks Just Friends with one write-only byte (no read)
+        nlog = 0;
+        sf_scan_run();
+        CHECK("scan finds Just Friends at 0x70 (write 8F, no read)", sf_jf_state == 1 && logged("(0x70): 8F"));
+        emu_set_jf(0);
+        sf_scan_run();
+        CHECK("scan: no Just Friends -> --", sf_jf_state == 2);
+        emu_set_jf(1);
+        sf_scan_run();
         clear();
         fire(",e2");
         CHECK(",e2 -> JF.SEL 2", logged("JF.SEL 2"));

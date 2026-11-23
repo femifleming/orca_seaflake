@@ -25,7 +25,7 @@ Ways to use it:
 - [Download Pilot Sealflake](#pilot-sealflake), the synth for Orca, for **macOS, Windows and Linux**.
 - [Use it in a terminal](#terminal-version) on **macOS, Windows, Linux and Raspberry Pi**.
 - [Run from source](#run-from-source) with Node.js.
-- [Run it on a monome Teletype](#on-a-monome-teletype-beta) (beta): Orca Seaflake as Eurorack firmware, playing a Disting EX, an ER-301 and Just Friends.
+- [Run it on a monome Teletype](#on-a-monome-teletype-beta) (beta): Orca Seaflake as Eurorack firmware, playing a Disting EX, an ER-301 and (beta) Just Friends.
 
 New to Orca? Watch the [overview video](https://www.youtube.com/watch?v=RaI_TuISSJE) or a [tutorial](https://www.youtube.com/watch?v=ktcWOLeWP-g), and try the [example patches](patches/).
 
@@ -134,7 +134,7 @@ Start Pilot Sealflake, then in Orca write `;` with a Pilot command, for example 
 
 ### On a monome Teletype (beta)
 
-[`teletype/`](teletype/README.md) is Orca Seaflake as firmware for the monome Teletype Eurorack module: the grid, song mode and patches run on the module itself, and play the Teletype's TR/CV jacks, a Disting EX (MIDI and its functions), an ER-301 and Just Friends over I²C. A Mac app, **Orca Seaflake TT**, is its emulator, flasher and help.
+[`teletype/`](teletype/README.md) is Orca Seaflake as firmware for the monome Teletype Eurorack module: the grid, song mode and patches run on the module itself, and play the Teletype's TR/CV jacks, a Disting EX (MIDI and its functions), an ER-301 and Just Friends over I²C (the Just Friends support is in beta, not yet tested on a real Just Friends). A Mac app, **Orca Seaflake TT**, is its emulator, flasher and help.
 
 | File | What |
 | --- | --- |
