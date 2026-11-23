@@ -1,0 +1,49 @@
+key	where	does
+space	grid	play / stop (the module and the emulator start playing by themselves)
+arrows	grid	move the cursor; the screen scrolls over the 80 x 40 grid
+alt + arrows	grid	leap 8 cells
+shift + arrows	grid	select a block
+page up / page down / home / end	grid	a screen up / down, to the left / right edge
+any character	grid	write it at the cursor; a letter alone is lowercase, with shift uppercase (as in Orca)
+caps lock	grid	swaps that: letters alone come out uppercase (a small A by the tempo shows it)
+enter	grid	insert mode on / off (the cursor moves right after each character)
+backspace / delete	grid	erase the cell or the selection
+ctrl + c / x / v	grid	copy / cut / paste a block (up to 1024 cells)
+ctrl + z	grid	undo the last change (again = redo)
+ctrl + a	grid	select the whole grid
+ctrl + f	grid	step one frame while stopped
+ctrl + r	grid	frame counter back to 0
+ctrl + n	grid	new, empty grid (undo brings it back)
+alt + [ / ]	grid	BPM -1 / +1
+ctrl + [ / ]	grid	BPM -10 / +10
+ctrl + s	grid	SAVE PATCH: pick one of 32 slots with the arrows, enter (enter again to overwrite)
+ctrl + o	grid	LOAD PATCH: pick a slot, enter; the clock keeps running, ctrl + z brings the old grid back
+ctrl + t	grid	song mode (the song view)
+ctrl + i	grid	I2C: the Disting EX at 0x41 (algorithm, preset), the ER-301 at 0x31, the bus (pull-ups) and the message count; enter looks again
+alt + h	grid	help on the OLED: keys, every operator and selector
+alt + d	grid	start the screensaver now (any key, the knob or the front button wakes it)
+esc	grid	close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing)
+front button	module	LOAD PATCH: the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes
+PARAM knob	module	picks the slot while LOAD PATCH is open; always the Teletype PARAM value for scripts
+F1-F8 / F9 / F10	grid	run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script's trigger input, ctrl + F9 metro on / off
+up / down, left / right	song view	choose the slot / the field (PAT, LEN, MUL, BPM)
+0-9	song view	type a number into the field (commits when you move)
++ / - (or ] / [)	song view	field up / down
+enter	song view	this slot plays the patch on the grid (save the patch first)
+backspace	song view	clear the slot
+l	song view	load the slot's patch and tempo onto the grid
+space	song view	play / stop the song
+m / r	song view	mode ORD -> REV -> RND / loop on - off
+ctrl + s / ctrl + o	song view	save / load the song (8 song slots)
+ctrl + n	song view	new, empty song
+ctrl + t / esc	song view	back to the grid (the song keeps playing)
+WRITE TO USB	USB stick in the Teletype	writes the 32 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick
+READ FROM USB	USB stick in the Teletype	reads the scenes back, and the patches and songs from SFPATCH.TXT if the stick has one
+cmd + F	emulator	the Flash window: ports check, flashing, restore to stock
+cmd + I	emulator	import SFSCAN.TXT + SFPATCH.TXT from a USB stick in /Volumes (the module's scan, patches and songs)
+cmd + E	emulator	export SFSCAN.TXT + SFPATCH.TXT to a folder or USB stick (READ FROM USB on the module loads them)
+cmd + /	emulator	this help: keys, operators, flashing
+cmd + D	emulator	start the screensaver now (any key wakes it)
+cmd + L	emulator	clear the I2C log
+cmd + P	emulator	pause / resume the I2C log
+cmd + Q	emulator	quit (the patches and songs are already saved in ~/Library/Application Support/Orca Seaflake Teletype)

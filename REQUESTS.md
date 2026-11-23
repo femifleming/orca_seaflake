@@ -90,3 +90,15 @@ Every request typed while this was being designed and built with Claude Code, in
 > when ur done, package orca seaflake and pilor seaflake together on github and homebrew, dont have them be seperate repos, but allow people to download them seperately if they want to from that repo, update readmes and manuals, make sure they both work on mac windows and linus.
 
 1. "for every single app and vst on my github, just make the app logo icon extremely minimal, a letter from this font [Septambres Neau] in some color, on some color background, update all the app icons." (New app icons: one Septambres Neau glyph, one colour on one colour.)
+
+> for the orca seaflake teletype port we were working on, eveything works well, but could you also implement the just freinds implementation and operands from the teletype manual somehow? i also want to be able to use orca to control just freinds, but with orca operands. also, can you give me a few different options of dream screensavers that would work well on teletpye, now that we know it cant handle the more intense screensaver that we were trying to get working before, give me options and show me them in the emulator or as videos etc. you can pull from this log or this log: https://femishonuga.com/wiki/lbse.html https://femishonuga.com/dd.html
+
+> elevator into the night
+
+> when youre done, push this to github as a beta, make it a part of the orca-seaflake repo. add a readme and instrumtions on how to install it.
+
+> just friends is over i2c to make sure that works.
+
+> i dont have just friends, so someone else will test it for me, just push it to the github and say that just freinds implementation is in beta. also my teletyre is on and in bootloader mode. my teletype does not need the just friends stuff, it can just have the new 4 random screensavers.
+
+> push the 4 random screensavers to github

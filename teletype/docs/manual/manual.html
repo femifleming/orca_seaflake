@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Orca Seaflake TT Manual</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  :root { --ink:#141414; --dim:#6b6b6b; --line:#d9d9d9; --cyan:#0f8f78; --amber:#b57b00; --bg:#f7f7f5; }
+  body { font: 10.2pt/1.45 "Input Mono", "SF Mono", Menlo, monospace; color: var(--ink); background: #fff; margin: 0; }
+  h1 { font-size: 22pt; margin: 0 0 2mm; letter-spacing: .5px; }
+  h2 { font-size: 13.5pt; margin: 9mm 0 2mm; padding-bottom: 1mm; border-bottom: 2px solid var(--ink); break-after: avoid; }
+  h3 { font-size: 11pt; margin: 5mm 0 1.5mm; color: var(--cyan); break-after: avoid; }
+  p, li { margin: 1.2mm 0; }
+  code, kbd { background: var(--bg); border: 1px solid var(--line); border-radius: 2px; padding: 0 3px; font-size: 9.4pt; }
+  kbd { border-bottom-width: 2px; }
+  pre { background: #111; color: #e8e8e8; padding: 3mm 4mm; border-radius: 3px; font-size: 9.2pt; line-height: 1.35; break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 8.9pt; break-inside: auto; }
+  th, td { border-bottom: 1px solid var(--line); padding: 1.1mm 2mm 1.1mm 0; text-align: left; vertical-align: top; }
+  th { border-bottom: 2px solid var(--ink); }
+  tr { break-inside: avoid; }
+  td:first-child code { white-space: nowrap; }
+  .sub { color: var(--dim); }
+  .note { border-left: 3px solid var(--amber); padding: 1mm 3mm; background: #fffaf0; margin: 3mm 0; break-inside: avoid; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+  .cover img { width: 100%; border-radius: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .grid2 img, figure img { width: 100%; border-radius: 3px; }
+  figure { margin: 2mm 0; break-inside: avoid; }
+  figcaption { font-size: 8.6pt; color: var(--dim); }
+  .toc { columns: 2; font-size: 9.6pt; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .pb { break-before: page; }
+  .two { columns: 2; column-gap: 8mm; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <div>
+    <h1>ORCA SEAFLAKE<br>FOR TELETYPE</h1>
+    <p class="sub">Firmware that turns the monome Teletype into Orca Seaflake: the grid, song mode, patches, MIDI through the Disting EX, triggers and CV out of the Teletype and the ER-301. Plus the Mac app Orca Seaflake TT: emulator, flasher and help in one.<br>
+    Built on Teletype 5 (monome/teletype, commit e390bac). Version 0.2, 23 November 2026.</p>
+  </div>
+  <img src="img/app.png" alt="The app: emulator, outputs and I²C log">
+  <div class="toc">
+    <p><a href="#start">1. Quick start</a></p>
+    <p><a href="#screen">2. The Seaflake screen and keys</a></p>
+    <p><a href="#orca">3. Orca operators</a></p>
+    <p><a href="#seaflake">4. Seaflake operators</a></p>
+    <p><a href="#midi">5. MIDI operators: through the Disting EX</a></p>
+    <p><a href="#trig">6. Trigger + CV alternatives</a></p>
+    <p><a href="#ex">7. <code>&gt;</code> the Disting EX operator</a></p>
+    <p><a href="#er">8. <code>&lt;</code> the ER-301 operator</a></p>
+    <p><a href="#cmd">9. <code>$</code> commands, tempo (<code>$bpm</code>, <code>$apm</code>)</a></p>
+    <p><a href="#patch">10. Saving patches</a></p>
+    <p><a href="#song">11. Song mode</a></p>
+    <p><a href="#emu">12. The app: emulator, flasher, help</a></p>
+    <p><a href="#flash">13. Flashing (ports check, erase, flash, start)</a></p>
+    <p><a href="#stock">14. Going back to the stock Teletype firmware</a></p>
+    <p><a href="#scan">15. The I²C scan and the USB stick</a></p>
+    <p><a href="#ops">16. Operator reference</a></p>
+    <p><a href="#check">17. Hardware test checklist</a></p>
+    <p><a href="#how">18. How it is built, limits</a></p>
+  </div>
+</section>
+
+<h2 id="start">1. Quick start</h2>
+<ol>
+  <li>Switch the Teletype on. It starts in the Orca Seaflake grid and <b>plays at once</b>: the last patch you saved or loaded, at the tempo it was saved with. If a song was playing when you last saved, that song plays instead. The whole module is the Orca: no scripts, no Teletype screens.</li>
+  <li>Type operators onto the grid. <kbd>space</kbd> stops and starts the clock.</li>
+  <li><kbd>ctrl</kbd>+<kbd>s</kbd> saves the grid to one of 32 patch slots, <kbd>ctrl</kbd>+<kbd>o</kbd> loads one, <kbd>ctrl</kbd>+<kbd>t</kbd> opens song mode, and <kbd>alt</kbd>+<kbd>h</kbd> shows the operator help on the module itself.</li>
+  <li>The Disting EX and the ER-301 are played by Orca operators: the MIDI operators (<code>: % ! ? ( ) @</code>), the trigger and CV operators (<code>- _ ' " / \ [ ] { }</code>), <b>N</b> (<code>&gt;n</code>: octave, note, velocity to the Disting EX's voices), and the other <code>&gt;</code> functions and <code>&lt;</code>, which reach every Disting EX and ER-301 function. The Disting EX is found on the I²C bus by itself.</li>
+</ol>
+<p class="sub">Orca Seaflake is the module's only runtime. There are no Teletype screens to fall into: <kbd>esc</kbd> only closes Orca's own pickers and views. Teletype scripts still run from <code>$script:N</code> and F1–F10, and a USB stick still gets the WRITE / READ menu.</p>
+<p>A first patch: the Teletype plays an arpeggio over MIDI through your Disting EX.</p>
+<pre>$bpm:120
+..C4....
+D1.4TCEGb
+.:04.f2.</pre>
+<p><code>D1</code> bangs every frame. <code>C4</code> counts 0–3, <code>T</code> picks C, E, G or <code>b</code> (C one octave up) from that count, and <code>:</code> plays it on MIDI channel 1, octave 4, velocity f, 2 frames long. On the bus this becomes <code>EX.M.N# 1 72 119</code>. This is example patch P01 in the emulator.</p>
+<p class="note"><b>Where the bang goes.</b> <code>D</code>, <code>U</code>, <code>F</code> and the other clocks write their bang (<code>*</code>) into the cell <b>directly below</b> them, and a bang triggers the operators <b>touching</b> it. So put the operator you want to fire on the next row, <b>one cell to the right</b>, with the bang beside it. A <code>D</code> directly above an operator writes its <code>*</code> over that operator and erases it (Orca does the same).</p>
+<pre>D4          right:  D bangs the cell below it; the * lands beside the &gt;
+.&gt;n4C
+
+D4          wrong:  the * lands ON the &gt; and erases it, nothing is sent
+&gt;n4C</pre>
+
+<h2 id="screen">2. The Seaflake screen and keys</h2>
+<div class="grid2">
+  <figure><img src="img/p01_oled.png"><figcaption>The grid (21 × 7 cells visible), status line at the bottom</figcaption></figure>
+  <figure><img src="img/load_oled.png"><figcaption>ctrl-o or the front button: loading a patch slot</figcaption></figure>
+</div>
+<p>The grid is <b>80 × 40 cells</b>. The OLED shows 21 × 7 at a time and scrolls to follow the cursor. Brightness tells you what each cell is:</p>
+<ul>
+  <li>Bright: an operator that runs every frame (uppercase and symbols)</li>
+  <li>Slightly dimmer: a lowercase operator that runs only when banged. Lowercase letters have their own shapes in the grid, short with ascenders and descenders, so <code>c</code> never looks like <code>C</code> (the Teletype's own font makes them nearly the same)</li>
+  <li>Mid grey: a cell an operator reads or writes (its operands)</li>
+  <li>Lit, on a grey block: the cell an operator has picked this frame, as in Orca. The value <code>T</code> is reading (it walks along the sequence as the key changes), the cell <code>O</code> reads, the slot <code>P</code> writes, and the cells <code>Q</code> reads</li>
+  <li><code>*</code> on a grey block: a bang</li>
+  <li>Dim dots, with <code>+</code> every 8 cells: empty</li>
+</ul>
+<p><b>The bottom line says what the cell under the cursor is.</b> On an operator it names the operator (<code>DELAY</code>, <code>MIDI</code>, <code>DISTING NOTE ON</code>). On a cell that an operator reads or writes, it names that inlet or outlet, so a letter inside an operator's operands is never mistaken for an operator:</p>
+<table>
+<tr><th>Cursor on</th><th>Bottom line</th></tr>
+<tr><td>the <code>4</code> of <code>D4</code></td><td><code>D MODULO</code></td></tr>
+<tr><td>the <code>3</code> of <code>:03C</code></td><td><code>: OCTAVE</code></td></tr>
+<tr><td>the <code>n</code> of <code>&gt;n4C</code></td><td><code>EX N</code> (the function letter)</td></tr>
+<tr><td>the <code>N</code> of <code>&gt;n4N</code></td><td><code>EX NOTE</code> (not NORTH)</td></tr>
+<tr><td>the <code>0</code> of <code>&lt;p05</code></td><td><code>ER PORT HI</code></td></tr>
+<tr><td>a cell nothing uses</td><td>the patch (<code>P07*</code> = changed since saving) and the cursor position</td></tr>
+</table>
+<p>On the right are the BPM and <code>&gt;</code> (playing; it blinks on the beat), <code>S</code> (a song is playing) or <code>|</code> (stopped). <code>ERR</code> + a reason means the last <code>&gt;</code> or <code>&lt;</code> could not be sent (for example <code>ERR UNIT 1-4</code>).</p>
+
+<h3>Keys</h3>
+<table><tr><th>Key</th><th>Where</th><th>Does</th></tr>
+<tr><td><code>space</code></td><td class="sub">grid</td><td>play / stop (the module and the emulator start playing by themselves)</td></tr>
+<tr><td><code>arrows</code></td><td class="sub">grid</td><td>move the cursor; the screen scrolls over the 80 x 40 grid</td></tr>
+<tr><td><code>alt + arrows</code></td><td class="sub">grid</td><td>leap 8 cells</td></tr>
+<tr><td><code>shift + arrows</code></td><td class="sub">grid</td><td>select a block</td></tr>
+<tr><td><code>page up / page down / home / end</code></td><td class="sub">grid</td><td>a screen up / down, to the left / right edge</td></tr>
+<tr><td><code>any character</code></td><td class="sub">grid</td><td>write it at the cursor; a letter alone is lowercase, with shift uppercase (as in Orca)</td></tr>
+<tr><td><code>caps lock</code></td><td class="sub">grid</td><td>swaps that: letters alone come out uppercase (a small A by the tempo shows it)</td></tr>
+<tr><td><code>enter</code></td><td class="sub">grid</td><td>insert mode on / off (the cursor moves right after each character)</td></tr>
+<tr><td><code>backspace / delete</code></td><td class="sub">grid</td><td>erase the cell or the selection</td></tr>
+<tr><td><code>ctrl + c / x / v</code></td><td class="sub">grid</td><td>copy / cut / paste a block (up to 1024 cells)</td></tr>
+<tr><td><code>ctrl + z</code></td><td class="sub">grid</td><td>undo the last change (again = redo)</td></tr>
+<tr><td><code>ctrl + a</code></td><td class="sub">grid</td><td>select the whole grid</td></tr>
+<tr><td><code>ctrl + f</code></td><td class="sub">grid</td><td>step one frame while stopped</td></tr>
+<tr><td><code>ctrl + r</code></td><td class="sub">grid</td><td>frame counter back to 0</td></tr>
+<tr><td><code>ctrl + n</code></td><td class="sub">grid</td><td>new, empty grid (undo brings it back)</td></tr>
+<tr><td><code>alt + [ / ]</code></td><td class="sub">grid</td><td>BPM -1 / +1</td></tr>
+<tr><td><code>ctrl + [ / ]</code></td><td class="sub">grid</td><td>BPM -10 / +10</td></tr>
+<tr><td><code>ctrl + s</code></td><td class="sub">grid</td><td>SAVE PATCH: pick one of 32 slots with the arrows, enter (enter again to overwrite)</td></tr>
+<tr><td><code>ctrl + o</code></td><td class="sub">grid</td><td>LOAD PATCH: pick a slot, enter; the clock keeps running, ctrl + z brings the old grid back</td></tr>
+<tr><td><code>ctrl + t</code></td><td class="sub">grid</td><td>song mode (the song view)</td></tr>
+<tr><td><code>ctrl + i</code></td><td class="sub">grid</td><td>I2C: the Disting EX at 0x41 (algorithm, preset), the ER-301 at 0x31, the bus (pull-ups) and the message count; enter looks again</td></tr>
+<tr><td><code>alt + h</code></td><td class="sub">grid</td><td>help on the OLED: keys, every operator and selector</td></tr>
+<tr><td><code>alt + d</code></td><td class="sub">grid</td><td>start the screensaver now (any key, the knob or the front button wakes it)</td></tr>
+<tr><td><code>esc</code></td><td class="sub">grid</td><td>close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing)</td></tr>
+<tr><td><code>front button</code></td><td class="sub">module</td><td>LOAD PATCH: the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes</td></tr>
+<tr><td><code>PARAM knob</code></td><td class="sub">module</td><td>picks the slot while LOAD PATCH is open; always the Teletype PARAM value for scripts</td></tr>
+<tr><td><code>F1-F8 / F9 / F10</code></td><td class="sub">grid</td><td>run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script&#x27;s trigger input, ctrl + F9 metro on / off</td></tr>
+<tr><td><code>up / down, left / right</code></td><td class="sub">song view</td><td>choose the slot / the field (PAT, LEN, MUL, BPM)</td></tr>
+<tr><td><code>0-9</code></td><td class="sub">song view</td><td>type a number into the field (commits when you move)</td></tr>
+<tr><td><code>+ / - (or ] / [)</code></td><td class="sub">song view</td><td>field up / down</td></tr>
+<tr><td><code>enter</code></td><td class="sub">song view</td><td>this slot plays the patch on the grid (save the patch first)</td></tr>
+<tr><td><code>backspace</code></td><td class="sub">song view</td><td>clear the slot</td></tr>
+<tr><td><code>l</code></td><td class="sub">song view</td><td>load the slot&#x27;s patch and tempo onto the grid</td></tr>
+<tr><td><code>space</code></td><td class="sub">song view</td><td>play / stop the song</td></tr>
+<tr><td><code>m / r</code></td><td class="sub">song view</td><td>mode ORD -&gt; REV -&gt; RND / loop on - off</td></tr>
+<tr><td><code>ctrl + s / ctrl + o</code></td><td class="sub">song view</td><td>save / load the song (8 song slots)</td></tr>
+<tr><td><code>ctrl + n</code></td><td class="sub">song view</td><td>new, empty song</td></tr>
+<tr><td><code>ctrl + t / esc</code></td><td class="sub">song view</td><td>back to the grid (the song keeps playing)</td></tr>
+<tr><td><code>WRITE TO USB</code></td><td class="sub">USB stick in the Teletype</td><td>writes the 32 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick</td></tr>
+<tr><td><code>READ FROM USB</code></td><td class="sub">USB stick in the Teletype</td><td>reads the scenes back, and the patches and songs from SFPATCH.TXT if the stick has one</td></tr>
+<tr><td><code>cmd + F</code></td><td class="sub">emulator</td><td>the Flash window: ports check, flashing, restore to stock</td></tr>
+<tr><td><code>cmd + I</code></td><td class="sub">emulator</td><td>import SFSCAN.TXT + SFPATCH.TXT from a USB stick in /Volumes (the module&#x27;s scan, patches and songs)</td></tr>
+<tr><td><code>cmd + E</code></td><td class="sub">emulator</td><td>export SFSCAN.TXT + SFPATCH.TXT to a folder or USB stick (READ FROM USB on the module loads them)</td></tr>
+<tr><td><code>cmd + /</code></td><td class="sub">emulator</td><td>this help: keys, operators, flashing</td></tr>
+<tr><td><code>cmd + D</code></td><td class="sub">emulator</td><td>start the screensaver now (any key wakes it)</td></tr>
+<tr><td><code>cmd + L</code></td><td class="sub">emulator</td><td>clear the I2C log</td></tr>
+<tr><td><code>cmd + P</code></td><td class="sub">emulator</td><td>pause / resume the I2C log</td></tr>
+<tr><td><code>cmd + Q</code></td><td class="sub">emulator</td><td>quit (the patches and songs are already saved in ~/Library/Application Support/Orca Seaflake Teletype)</td></tr></table>
+<figure style="width:62%"><img src="img/help_oled.png"><figcaption>alt-h: help on the module (up/down to scroll)</figcaption></figure>
+
+<h3>The screensaver: a dream</h3>
+<p>After <b>5 minutes</b> without a key, the screen dreams: each time, one of four dreams from <i>femishonuga.com</i>, picked at random and never the same one twice in a row.</p>
+<img src="img/dream_strip.png" style="width:100%;margin:2mm 0">
+<p class="cap">The elevator into the night, one of the four.</p>
+<ul>
+<li><b>Golden geometries</b> (dd.html, 21 June 2021): sunlight through shattered warehouse windows, slanted shapes of light sliding over a broken tile floor as the sun crosses, dust turning in the beams.</li>
+<li><b>The maintenance train</b> (lbse.html, 4 August 2026): looking down a dark tunnel; every 45 seconds the train comes out of the far end, its white lights blinking, and each toll of its bell spreads a ring that fades.</li>
+<li><b>The street becomes a lake</b> (dd.html, 20 September 2014): rain over a low skyline, rings opening on the water, lily pads drifting, and a car gliding across them with its headlight on the water.</li>
+<li><b>The elevator into the night</b> (dd.html, 18 May 2026): the car rising up its shaft, then gliding over a treeline under the stars while flashlight beams sweep up.</li>
+</ul>
+<p>All four are drawn as <b>sparse line art</b>: outlines and dotted lines only, no filled areas, never more than 32 lit pixels in a row (drawn in full shades, an earlier dream glitched the module's screen), and the firmware sends the screen controller its whole setup again before every frame. Each drifts and changes from pass to pass, so nothing stays lit in one place. It keeps dreaming until you come back: any key, the knob or the front button wakes it and the grid is redrawn, and the grid keeps playing the whole time. <kbd>alt</kbd>+<kbd>d</kbd> starts one at once (press it again after waking for another).</p>
+
+<h2 id="orca">3. Orca operators</h2>
+<p>All the classic operators work exactly as in Orca Seaflake, including its defaults: a lone <code>D</code> bangs every 8 frames, a lone <code>C</code> counts 0–7, a lone <code>I</code> counts up by 1, and a lone <code>U</code> plays 1 of 8. Uppercase operators run every frame. Lowercase ones run only when a <code>*</code> touches them. Values are base 36: <code>0</code>–<code>9</code>, then <code>a</code>–<code>z</code> = 10–35.</p>
+<p class="note">This is checked by a test that runs the same patches through the original Seaflake JavaScript engine and through this C port, frame by frame. All patches give identical grids for 600 frames, including your own <code>orcaDronePulse1</code>, <code>orcaforMWM23rd</code> and the other example patches. The note letters give the same MIDI note numbers for every letter and octave (468 combinations).</p>
+<table>
+<tr><th>Op</th><th>Name</th><th>Inputs → output</th></tr>
+<tr><td><code>A</code></td><td>add</td><td>left + right, below</td></tr>
+<tr><td><code>B</code></td><td>subtract</td><td>|right − left|, below</td></tr>
+<tr><td><code>C</code></td><td>clock</td><td>left rate (min 1), right modulo (default 8); frame / rate mod modulo, below</td></tr>
+<tr><td><code>D</code></td><td>delay</td><td>left rate, right modulo (default 8); bangs below every rate × modulo frames</td></tr>
+<tr><td><code>E N S W</code></td><td>move</td><td>move east / north / south / west one cell a frame; bang when blocked</td></tr>
+<tr><td><code>F</code></td><td>if</td><td>bangs below when left and right are the same glyph</td></tr>
+<tr><td><code>G</code></td><td>generator</td><td>left 3 = x, left 2 = y, left 1 = length; copies the cells on its right to x, y+1</td></tr>
+<tr><td><code>H</code></td><td>halt</td><td>stops the operator below from running</td></tr>
+<tr><td><code>I</code></td><td>increment</td><td>left step (default 1), right modulo; adds to the value below</td></tr>
+<tr><td><code>J</code> / <code>Y</code></td><td>jumpers</td><td>copy the glyph above to below / left to right</td></tr>
+<tr><td><code>K</code></td><td>konkat</td><td>left = count; reads that many variables named on its right, writes their values below</td></tr>
+<tr><td><code>L</code></td><td>lesser</td><td>smaller of left and right, below</td></tr>
+<tr><td><code>M</code></td><td>multiply</td><td>left × right, below</td></tr>
+<tr><td><code>O</code></td><td>read</td><td>left 2 = x, left 1 = y; the cell at that offset, below</td></tr>
+<tr><td><code>P</code></td><td>push</td><td>left 2 = key, left 1 = length, right = value; writes into a row below</td></tr>
+<tr><td><code>Q</code></td><td>query</td><td>left 3 = x, left 2 = y, left 1 = length; copies cells to below</td></tr>
+<tr><td><code>R</code></td><td>random</td><td>left min, right max (default 36); random value below</td></tr>
+<tr><td><code>T</code></td><td>track</td><td>left 2 = key, left 1 = length; picks one of the cells on its right</td></tr>
+<tr><td><code>U</code></td><td>uclid</td><td>left steps (default 1), right length (default 8); Euclidean bangs below</td></tr>
+<tr><td><code>V</code></td><td>variable</td><td>left = name to write, right = value (or the name to read); output below when reading</td></tr>
+<tr><td><code>X</code></td><td>write</td><td>left 2 = x, left 1 = y, right = value; writes it at x, y+1</td></tr>
+<tr><td><code>Z</code></td><td>lerp</td><td>left rate (default 1), right target; moves the value below toward it</td></tr>
+<tr><td><code>*</code></td><td>bang</td><td>triggers the operators touching it, then disappears</td></tr>
+<tr><td><code>#</code></td><td>comment</td><td>stops the rest of the row (up to the next <code>#</code>)</td></tr>
+</table>
+<p class="note">A <code>*</code> you type yourself disappears in the same frame, before the operator to its right sees it (Orca does the same). Bangs come from operators such as <code>D</code>, <code>U</code>, <code>F</code> and <code>&amp;</code>, which write a <code>*</code> below themselves.</p>
+
+<h2 id="seaflake">4. Seaflake operators</h2>
+<table>
+<tr><th>Op</th><th>Name</th><th>Operands → result</th></tr>
+<tr><td><code>^</code></td><td>probability</td><td>right = chance (default <code>i</code> = 18/35); passes a bang below at random</td></tr>
+<tr><td><code>&amp;</code></td><td>phase clock</td><td>left rate (default 1), right length (default 4), above = step (default 0); bangs on that step</td></tr>
+<tr><td><code>~</code></td><td>burst</td><td>right: repeats (default 4), division, multiplication; when banged, plays that many bangs one frame × div / mul apart, in real time</td></tr>
+<tr><td><code>|</code></td><td>mute block</td><td>left 2 width (default 8), left 1 height (default 4); each bang hashes the block out with <code>#</code> or brings it back</td></tr>
+<tr><td><code>+</code></td><td>scale</td><td>left = variable name (default 0), right 12 cells = <code>1</code>/<code>0</code> for C, C#, … B (default C major)</td></tr>
+</table>
+<p>The MIDI operators <code>: % ! ? ( ) @</code> are in section 5 and their trigger/CV alternatives in section 6. <code>$</code> is in section 9. <code>&gt;</code> (Disting EX) and <code>&lt;</code> (ER-301) are new, in sections 7 and 8.</p>
+<p><code>;</code> (UDP) and <code>=</code> (OSC) work as in Seaflake: they read and lock their message so the grid behaves the same. The Teletype has no network, so they send nothing. Your patches that talk to Pilot with <code>;</code> load and run safely. They just don't reach Pilot.</p>
+
+<h2 id="midi">5. MIDI operators: through the Disting EX</h2>
+<p>Every Seaflake MIDI operator sends its MIDI through the Disting EX's MIDI output. Inside, they run Teletype's own <code>EX.M.*</code> ops, so the I²C bytes are exactly the ones those ops send when you type them in a script. The MIDI goes to Disting EX unit 1, or to the unit chosen with <code>&gt;u</code> (for example <code>&gt;u2</code> sends everything after it to unit 2).</p>
+<table>
+<tr><th>Op</th><th>Operands (cells to the right)</th><th>Sends</th></tr>
+<tr><td><code>:</code> note</td><td>channel 0–f, octave 0–8, note, velocity (default f), length in frames (default 1)</td><td><code>EX.M.N# ch+1 note vel</code> … <code>EX.M.NO# ch+1 note</code> when the length is up</td></tr>
+<tr><td><code>%</code> mono</td><td>same as <code>:</code>; a new note on the channel cuts the old one</td><td>same as <code>:</code></td></tr>
+<tr><td><code>!</code> CC</td><td>channel, controller (0–z), value 0–z (scaled to 0–127)</td><td><code>EX.M.CC# ch+1 cc value</code></td></tr>
+<tr><td><code>?</code> pitch bend</td><td>channel, LSB 0–z, MSB 0–z (each scaled to 0–127)</td><td><code>EX.M.CH ch+1</code>, <code>EX.M.PB</code>, then your <code>EX.M.CH</code> is put back (EX.M.PB has no channel form)</td></tr>
+<tr><td><code>(</code> just note</td><td>channel (default 0), octave (default 4), note, velocity, length</td><td>a pitch bend to the just-intonation ratio, the note, then the bend is reset</td></tr>
+<tr><td><code>)</code> scale note</td><td>channel, octave, degree (1-based), scale variable (from <code>+</code>), velocity, length</td><td><code>EX.M.N#</code> for that degree of the scale</td></tr>
+<tr><td><code>@</code> shaped</td><td>channel, octave, note, velocity, shape 1–4, repeats, duration in frames, pulse width</td><td>a run of <code>EX.M.N#</code>/<code>EX.M.NO#</code> spaced by the shape, in real time</td></tr>
+</table>
+<ul>
+  <li><b>Channels:</b> Orca channel <code>0</code>–<code>f</code> = MIDI channel 1–16 (Teletype numbers MIDI channels from 1).</li>
+  <li><b>Notes:</b> as in Seaflake. Uppercase is natural, lowercase is sharp, and H–Z carry on up the scale (<code>H</code> = A, <code>J</code> = C an octave up). Octave 4 C is MIDI note 72.</li>
+  <li><b>Velocity:</b> <code>0</code>–<code>g</code> (0–16) → MIDI 0–127.</li>
+  <li><code>:</code> and <code>%</code> need the channel, octave and note filled in, or nothing is sent (the original Orca behaviour).</li>
+</ul>
+
+<h2 id="trig">6. Triggers and CV</h2>
+<p><b>Three plain output operators</b>, one per job. Every pulse is <code>$pulse</code> long (20 ms unless changed; chapter 9), so none of them has a length, velocity or slew inlet:</p>
+<table>
+<tr><th>Glyph</th><th>Inlets</th><th>Sends</th></tr>
+<tr><td><code>-</code> trigger</td><td>output</td><td>one pulse. No CV is touched. <code>-2</code> pulses TR 2; <code>-a</code> pulses ER-301 port 1</td></tr>
+<tr><td><code>_</code> trigger + CV</td><td>output, octave (empty = 4), note</td><td>the pitch CV (1 V/octave), then one pulse. <code>_14C</code> = 4 V on CV 1 + a pulse on TR 1</td></tr>
+<tr><td><code>'</code> CV</td><td>output, slew (in pulses), level 0–z</td><td>a CV level only, no trigger</td></tr>
+</table>
+<p><b><code>}</code> shaped trigger</b> is <code>@</code> with everything but the trigger taken out: output (default 1), shape 1–4, repeats, duration in frames, pulse width (the spread of shape 4, as in <code>@</code>). It fires the same run of pulses at exactly the times <code>@</code> would play its notes, with no CV, octave, note, velocity or channel. <code>}214a</code>: 4 pulses on TR 2 spread over 10 frames, bunched at the start (shape 1).</p>
+<p><b><code>`</code> loadbang</b> bangs the cell below it once, on the first frame after a patch is loaded: at power-on, <kbd>ctrl</kbd>+<kbd>o</kbd>, <code>$patch:N</code>, or a song moving to the patch. At power-on it waits until the Disting EX has answered on the bus (up to 30 s), so what it bangs arrives. Put the Disting EX's preset load under it and the preset loads whenever this patch does:</p>
+<pre>`.......
+.&gt;l05...      at power-on / load: Disting EX preset 5      (EX.PRESET 5)</pre>
+<p>Every MIDI operator also has a twin that plays the note as <b>CV + a trigger pulse</b> on an output. The first operand, which is the channel on the MIDI ops, becomes the output:</p>
+<table>
+<tr><th>Output glyph</th><th>Goes to</th><th>Sent with</th></tr>
+<tr><td><code>1</code>–<code>4</code></td><td>Teletype TR 1–4 (trigger) and CV 1–4 (pitch)</td><td>the Teletype's own jacks</td></tr>
+<tr><td><code>a</code>–<code>z</code></td><td>ER-301 ports 1–26 (<code>a</code> = 1)</td><td><code>SC.TR.TIME</code> + <code>SC.TR.P</code> for the trigger, <code>SC.CV</code> + <code>SC.CV.SLEW</code> for pitch</td></tr>
+</table>
+<p>The trigger pulse is <b>20 ms</b> by default. Change it with <code>$pulse:N</code> (1–250 ms, section 9). The length operand of the trigger ops counts in pulses, so <code>1</code> = 20 ms and <code>3</code> = 60 ms. Velocity <code>0</code> sets the CV without a trigger.</p>
+<p><b>Pitch to CV:</b> 1 V per octave, and the Orca octave number is the voltage. <code>0C</code> = 0 V, <code>3C</code> = 3 V, <code>4C</code> = 4 V, <code>4E</code> = 4.33 V, up to 10 V. The CV changes before the trigger fires, so the module sees the new pitch on the trigger.</p>
+<table>
+<tr><th>MIDI op</th><th>Twin</th><th>Operands</th><th>Does</th></tr>
+<tr><td><code>:</code></td><td><code>"</code> trig note</td><td>output, octave, note, velocity, length in pulses (default 1 = 20 ms)</td><td>pitch CV + a pulse</td></tr>
+<tr><td><code>%</code></td><td><code>/</code> gate note</td><td>output, octave, note, velocity, length in frames</td><td>pitch CV + a gate held high for that many frames (an empty length acts like <code>"</code>)</td></tr>
+<tr><td><code>!</code></td><td><code>'</code> CV level</td><td>output, slew (in pulses: 1 = 20 ms), level 0–z = 0–10 V</td><td>sets a CV level only (for modulation); the trigger is not fired</td></tr>
+<tr><td><code>?</code></td><td><code>\</code> CV bend</td><td>output, LSB, MSB (as <code>?</code>)</td><td>bends that output's pitch CV by up to ±2 semitones; CV only, no trigger</td></tr>
+<tr><td><code>(</code></td><td><code>[</code> just trig</td><td>output (default 1), octave (default 4), note, velocity, length in pulses</td><td>pitch CV tuned to the just-intonation ratio + a pulse</td></tr>
+<tr><td><code>)</code></td><td><code>]</code> scale trig</td><td>output, octave, degree, scale variable, velocity, length in pulses</td><td>pitch CV for that scale degree + a pulse</td></tr>
+<tr><td><code>@</code></td><td><code>{</code> shaped trig</td><td>output, octave, note, velocity, shape, repeats, duration, pulse width</td><td>the same shaped run as <code>@</code>, as pulses</td></tr>
+</table>
+<pre>D4......D3.....
+.-1......_a3E...      a pulse on TR 1; ER-301 port 1 to 3.33 V + a pulse
+D4......D3.....
+."14C...."a3E...       TR1/CV1 at 4 V, and ER-301 port 1 at 3.33 V
+...............
+D2..Rz.........
+.'30...........        random CV on output 3 (R writes the level)</pre>
+<div class="grid2">
+  <figure><img src="img/p02_oled.png"><figcaption>Example P02 running</figcaption></figure>
+  <figure><img src="img/p04_oled.png"><figcaption>Example P04: <code>`</code> loadbang over <code>&gt;l00</code>, <code>-1</code>, <code>}214a</code> and <code>_24C</code></figcaption></figure>
+</div>
+
+<h2 id="ex" class="pb">7. The Disting EX: N and the <code>&gt;</code> functions</h2>
+<p><b>Nothing to set up.</b> The addresses are fixed: the Disting EX is always at <b>65 (0x41)</b> and the ER-301 at <b>0x31</b>. At power-on (and with <kbd>ctrl</kbd>+<kbd>i</kbd>) the module asks the Disting EX for its algorithm and preset. If it is still starting, it asks again (every half second for 10 seconds, then every 2 seconds, for up to 2 minutes: an ER-301 and a Disting EX in a cold case can take that long); the grid plays meanwhile. Everything is sent to 0x41 either way.</p>
+<p>Every Disting EX operator is <code>&gt;</code> followed by one letter, read together as one operator: <code>&gt;n</code> is N, <code>&gt;p</code> is the parameter operator. The cells after the letter are its inlets. It acts when banged. Cells are drawn grey like the inlets of <code>:</code>, the bottom line names each one, and other operators can write into them (also into the letter, to switch functions).</p>
+<figure style="width:62%"><img src="img/p03_oled.png"><figcaption>Example P03: <code>T</code> feeds the note of N (<code>&gt;n3</code>), <code>&lt;p05</code> pulses ER-301 port 5, <code>&gt;p01</code> reads parameter 1</figcaption></figure>
+<h3>N: octave, note, velocity</h3>
+<table>
+<tr><th>Operator</th><th>Inlets</th><th>Sends</th></tr>
+<tr><td><code>&gt;n</code> (or <code>&gt;N</code>) <b>N</b></td><td>octave (empty = 4), note, velocity (empty = f)</td><td>a note on the Disting EX's voices (EX.NOTE), off again one frame later (EX.NOTE.O)</td></tr>
+<tr><td><code>&gt;@</code> <b>N@</b></td><td>octave, note, velocity, shape 1–4, repeats, duration, pulse width</td><td>N with everything <code>@</code> has except the channel: a shaped run of notes at exactly <code>@</code>'s times, each off half a frame later</td></tr>
+</table>
+<pre>D4......
+.&gt;n4C.     bang: C4 on the Disting EX         (EX.NOTE 3277 15360)
+D8......
+.&gt;@4Cf141  bang: 4 notes of C4 within a frame, shape 1</pre>
+<p>Notes and velocity are converted to the Disting EX's own units: pitch 1 V/octave with 0 V = MIDI note 48, as the Disting expects, so <code>&gt;n4C</code> plays the same note (72) as <code>:04C</code> does over MIDI; velocity <code>0</code>–<code>g</code> becomes 0–16384. The bytes are exactly what <code>EX.NOTE N 24 15360</code> sends from a Teletype script.</p>
+<h3>Parameters (as EX.P), presets, and the rest</h3>
+<h3>Changing a parameter: <code>&gt;p</code> or <code>&gt;v</code></h3>
+<p>Both set one Disting EX parameter. The parameter number is two cells (a wide number: <code>0d</code> = parameter 13). They differ in how you give the new value:</p>
+<table>
+<tr><th></th><th><code>&gt;p</code> exact value</th><th><code>&gt;v</code> level</th></tr>
+<tr><td>The value is</td><td>the number the Disting shows, two cells: <code>1e</code> = 50, <code>2s</code> = 100</td><td>a position in the parameter's range, one cell: <code>0</code> = minimum, <code>i</code> ≈ half, <code>z</code> = maximum</td></tr>
+<tr><td>You need the range?</td><td>yes</td><td>no: the Disting scales it onto its own min..max</td></tr>
+<tr><td>Negative values</td><td>no</td><td>yes (anything in the range)</td></tr>
+<tr><td>Reading back</td><td>leave the value empty: the value is read and written below the <code>&gt;</code></td><td>—</td></tr>
+<tr><td>Good for</td><td>a precise setting</td><td>sweeps and modulation</td></tr>
+</table>
+<pre>D4
+.&gt;p0d1e     parameter 13 to 50                  (EX.P 13 50)
+
+D4
+.&gt;v0di      parameter 13 to about halfway       (EX.PV 13 8426)
+
+D4...R
+.&gt;v0d.      R writes a random level into &gt;v's level cell: parameter 13 jumps around its range</pre>
+<p>Base 36 for the two-cell numbers: first cell × 36 + second cell, with <code>a</code>–<code>z</code> = 10–35. If <code>0d</code> moves the parameter next to the one you meant, the Disting's list counts from the other end: use <code>0c</code> or <code>0e</code>. The last cell of either is the side for dual algorithms (empty = single, <code>1</code> left, <code>2</code> right).</p>
+<h3>All the <code>&gt;</code> functions</h3>
+<p>Every function puts the <b>value first</b> and the dual-algorithm <b>side last</b>; with a single algorithm leave the side empty. Operand types:</p>
+<table>
+<tr><th>Type</th><th>Cells</th><th>Meaning</th></tr>
+<tr><td>n</td><td>1</td><td>a number 0–35 (<code>0</code>–<code>9</code>, <code>a</code>–<code>z</code>)</td></tr>
+<tr><td>W</td><td>2</td><td>a wide number, two base-36 digits: <code>01</code> = 1, <code>0c</code> = 12, <code>3c</code> = 120, up to <code>zz</code> = 1295</td></tr>
+<tr><td>N</td><td>2</td><td>a note: octave cell + note letter, as in <code>:</code> (<code>4C</code>, <code>3g</code> = G#3); empty octave = 4</td></tr>
+<tr><td>vel</td><td>1</td><td>velocity <code>0</code>–<code>g</code>, empty = <code>f</code></td></tr>
+<tr><td>lvl</td><td>1</td><td>a level <code>0</code>–<code>z</code>, scaled to the function's full range</td></tr>
+<tr><td>side</td><td>1</td><td>dual algorithms: empty or <code>0</code> = single algorithm, <code>1</code> = left, <code>2</code> = right</td></tr>
+<tr><td>act</td><td>1</td><td>an action letter</td></tr>
+</table>
+<table>
+<tr><th>Op</th><th>Inlets</th><th>Does (Teletype op)</th></tr>
+<tr><td><code>&gt;p</code></td><td>W W side</td><td>parameter to an exact value, like <b>EX.P</b> (EX.PARAM / P1 / P2); value empty = read it</td></tr>
+<tr><td><code>&gt;v</code></td><td>W lvl side</td><td>parameter to a level 0–z across its min..max (EX.PV / PV1 / PV2)</td></tr>
+<tr><td><code>&gt;i</code> / <code>&gt;j</code></td><td>W side</td><td>read the parameter's minimum / maximum (EX.MIN… / EX.MAX…)</td></tr>
+<tr><td><code>&gt;l</code></td><td>W side</td><td>load a preset (EX.PRESET / PRE1 / PRE2); empty = read the current one</td></tr>
+<tr><td><code>&gt;s</code></td><td>W side</td><td>save as preset (EX.SAVE / SAVE1 / SAVE2)</td></tr>
+<tr><td><code>&gt;r</code></td><td>—</td><td>reset the preset (EX.RESET)</td></tr>
+<tr><td><code>&gt;a</code></td><td>n side n</td><td>algorithm (EX.ALG / A1 / A2); side <code>3</code> = both dual algorithms (EX.A12); empty = read it</td></tr>
+<tr><td><code>&gt;c</code></td><td>n lvl</td><td>I²C controller n to a level (EX.CTRL)</td></tr>
+<tr><td><code>&gt;z</code></td><td>knob lvl</td><td>Z knob 1 or 2 to a level (EX.Z1 / Z2); level empty = give it back (EX.ZO1 / ZO2)</td></tr>
+<tr><td><code>&gt;k</code></td><td>n</td><td>the note channel N and <code>&gt;o</code> use (EX.CH; 1 until changed), for multi-timbral algorithms</td></tr>
+<tr><td><code>&gt;d</code></td><td>n N vel</td><td>note on for one channel (EX.N#; empty channel = EX.NOTE)</td></tr>
+<tr><td><code>&gt;o</code></td><td>n N</td><td>note off (EX.NOTE.O / EX.NO#)</td></tr>
+<tr><td><code>&gt;x</code></td><td>—</td><td>all notes off (EX.ALLOFF)</td></tr>
+<tr><td><code>&gt;w</code></td><td>n N vel</td><td>play voice n (EX.VOX); velocity <code>0</code> = voice off (EX.VOX.O)</td></tr>
+<tr><td><code>&gt;f</code></td><td>n N</td><td>set voice n's pitch only (EX.VOX.P)</td></tr>
+<tr><td><code>&gt;t</code></td><td>n vel</td><td>trigger voice n, for SD Triggers (EX.TV); velocity empty = medium (EX.T)</td></tr>
+<tr><td><code>&gt;e</code> / <code>&gt;y</code></td><td>n</td><td>WAV recorder record / play, 1 = start, 0 = stop (EX.REC / EX.PLAY)</td></tr>
+<tr><td><code>&gt;g</code> / <code>&gt;h</code></td><td>N / —</td><td>Augustus Loop pitch (EX.AL.P) / clock (EX.AL.CLK)</td></tr>
+<tr><td><code>&gt;q</code></td><td>act n</td><td>looper n: <code>r</code> record, <code>p</code> play, <code>c</code> clear, <code>v</code> reverse, <code>d</code> octave down; read: <code>s</code> state, <code>i</code> reversed?, <code>j</code> down? (EX.LP.*)</td></tr>
+<tr><td><code>&gt;m</code></td><td>act W W</td><td>MIDI out: <code>p</code> program, <code>c</code> clock, <code>s</code> start, <code>t</code> stop, <code>o</code> continue, <code>h</code> channel, <code>n</code> note on, <code>f</code> note off, <code>e</code> CC, <code>w</code> bend (EX.M.*), on the EX.M.CH channel</td></tr>
+<tr><td><code>&gt;b</code></td><td>act W W</td><td>Select Bus: <code>n</code> note on, <code>f</code> note off, <code>e</code> CC, <code>w</code> bend, <code>p</code> program, <code>c</code> clock, <code>s</code> start, <code>t</code> stop, <code>o</code> continue, <code>h</code> channel (EX.SB.*)</td></tr>
+<tr><td><code>&gt;u</code></td><td>n</td><td>pin Disting EX unit 1–4 (EX). Only for racks with several Disting EX units: with one, the scan finds it</td></tr>
+</table>
+<pre>D4......
+.&gt;p030a     bang: parameter 3 to the value 10        (EX.P 3 10 → bytes 46 03 00 0A)
+D4......
+.&gt;v03z.     bang: parameter 3 to its maximum         (EX.PV 3 16384)
+D8......
+.&gt;qr1..     bang: looper 1 record on/off             (EX.LP.REC 1)</pre>
+<ul>
+  <li><b>Reading values:</b> the functions that read (<code>&gt;l</code> / <code>&gt;a</code> / <code>&gt;p</code> with nothing to set, <code>&gt;i</code>, <code>&gt;j</code>, <code>&gt;q</code> s/i/j) write the answer below the <code>&gt;</code> as one base-36 glyph, clamped to 0–35, so it can feed other operators.</li>
+  <li><b>Values</b> are 0–1295 (two cells) and never negative: for a parameter that goes below zero (an attenuverter at −100 %) use <code>&gt;v</code>, the level across its range.</li>
+  <li>A wrong letter or a missing operand shows <code>ERR</code> and a reason in the status line and sends nothing.</li>
+  <li><b>Everything is reachable:</b> a test fuzzes every function and checks that all 96 Disting EX and ER-301 ops in Teletype's op table are reached. <code>EX.M.N#</code>, <code>NO#</code> and <code>CC#</code> are sent by <code>:</code> <code>%</code> <code>!</code>.</li>
+</ul>
+<h3>Startup preset</h3>
+<p>Two ways to have a Disting EX preset load by itself, both optional (nothing is sent if neither is set):</p>
+<ul>
+  <li><b>In a patch:</b> <code>`</code> (loadbang) above <code>&gt;l</code> and a preset number. It loads whenever that patch loads, and at power-on once the Disting EX answers.</li>
+  <li><b>In the firmware:</b> the Flash window's ports table has a <b>STARTUP PRESET</b> row (chapter 13). Tick it and type the preset number; it is written into the firmware with the ports, and the module sends <code>EX.PRESET n</code> once at power-on, as soon as the Disting EX answers (it keeps looking for 2 minutes). If no Disting EX answers, it sends nothing.</li>
+</ul>
+<h3>On the Disting EX</h3>
+<ol>
+  <li><b>Settings &gt; I²C address = 65</b> (0x41), the fixed address. The Disting's factory setting is 49 (0x31), the ER-301's address: the two would answer the same messages, so change it.</li>
+  <li>For N: an algorithm that plays I²C notes, e.g. <b>SD Multisample</b>, the poly synths, or Macro Oscillator 2 (its manual's "I²C support" section lists the note messages 0x54–0x56 / EX.NOTE). Some algorithms have an <b>I²C mode</b> parameter that must be on. Multi-timbral algorithms use the channel: N plays channel 1 (timbre 1 in SD Multisample); <code>&gt;k2</code> moves it to channel 2, or use <code>&gt;d</code> with a channel cell.</li>
+  <li>For the MIDI operators: the Disting EX's MIDI breakout, on the channel in each operator's channel cell.</li>
+  <li>I²C pull-ups: the bus needs pull-ups somewhere. The Teletype now switches on its own (weak) ones, and the <kbd>ctrl</kbd>+<kbd>i</kbd> screen's BUS line tells you whether something else on the bus pulls up too (<code>PULLUPS OK</code>). Leave the Disting EX's own pull-ups off unless that line says <code>NO PULLUPS</code> and the bus doesn't work (chapter 15).</li>
+</ol>
+
+<h2 id="er">8. <code>&lt;</code> — the ER-301 operator</h2>
+<p><code>&lt;</code> does the same for the ER-301 (the Teletype <code>SC.*</code> ops). The first operand of every selector is the <b>port</b>, a wide number: <code>01</code> = port 1 … <code>2s</code> = 100 on the first ER-301; ports 101–200 and 201–300 are the second and third.</p>
+<table>
+<tr><th>Sel</th><th>Operands</th><th>Does (Teletype op)</th></tr>
+<tr><td><code>p</code></td><td>port</td><td>pulse the trigger (SC.TR.PULSE)</td></tr>
+<tr><td><code>t</code></td><td>port n</td><td>set the trigger to 0 / 1 (SC.TR)</td></tr>
+<tr><td><code>g</code></td><td>port</td><td>toggle the trigger (SC.TR.TOG)</td></tr>
+<tr><td><code>l</code></td><td>port n</td><td>trigger polarity (SC.TR.POL)</td></tr>
+<tr><td><code>m</code></td><td>port W</td><td>pulse length in ms (SC.TR.TIME); <code>0k</code> = 20 ms</td></tr>
+<tr><td><code>c</code></td><td>port lvl</td><td>CV level, 0–z = 0–10 V (SC.CV)</td></tr>
+<tr><td><code>n</code></td><td>port N</td><td>CV pitch from a note, 1 V/oct like the trigger ops: <code>4C</code> = 4 V (SC.CV)</td></tr>
+<tr><td><code>s</code></td><td>port lvl</td><td>CV level now, without slew (SC.CV.SET)</td></tr>
+<tr><td><code>o</code></td><td>port lvl</td><td>CV offset (SC.CV.OFF)</td></tr>
+<tr><td><code>w</code></td><td>port W</td><td>CV slew in ms (SC.CV.SLEW)</td></tr>
+</table>
+<pre>D4.......
+.&lt;p05....     pulse port 5          → bytes 05 04 to the ER-301 at 0x31
+D8.......
+.&lt;n024C..     port 2 to the note 4C = 4 V      (an operator can write the note letter)
+D8.......
+.&lt;c03z...     port 3 to 10 V        → bytes 10 02 3F FF</pre>
+<p class="note">Each operator needs its own bang: a <code>D</code> only bangs the row right under it.</p>
+<p class="note">For simple melodies on the ER-301 you rarely need <code>&lt;</code>. The trigger/CV operators of section 6 with an output letter (<code>"a4C</code> = port 1) already send <code>SC.TR.P</code> and <code>SC.CV</code> for you.</p>
+
+<h2 id="jf">8b. <code>,</code> — Just Friends</h2>
+<p class="note"><b>Beta:</b> the Just Friends support is tested in the emulator (every function's bytes match the stock Teletype <code>JF.*</code> op) but not yet on a real Just Friends.</p>
+<p><code>,</code> plays and sets up Mannequins Just Friends over I²C (address <code>0x70</code>; a second one at <code>0x75</code>), the same way <code>&gt;</code> does the Disting EX: <code>,</code> then a function letter, then fixed operand cells. Every function runs the stock Teletype <code>JF.*</code> op, so the bytes are the ones a Teletype script would send. <b>Is it connected?</b> <kbd>ctrl</kbd>+<kbd>i</kbd> shows <code>JUST FRIENDS 70 FOUND</code> when it answered (the power-on scan asks it, <kbd>enter</kbd> asks again). <code>--</code>: check the I²C cable (GND to GND) and its power. If it is FOUND but a note does nothing, put it in synthesis mode (<code>,m1</code>, or <code>JF.MODE 1</code>) and turn up its outputs; the bottom line shows <code>I2C 70 NACK</code> if a message was refused.</p>
+<ul>
+<li><b>Pitch</b> is relative to Just Friends' own tuning (its TIME knob): <code>4C</code> = 0 V, <code>4G</code> = 7 semitones up, <code>3C</code> a volt (an octave) down, <code>5C</code> an octave up.</li>
+<li><b>Velocity</b> is volts: <code>0</code>–<code>g</code> = 0–8 V in half-volt steps; empty = <code>a</code> = 5 V.</li>
+<li><b>Channel</b>: <code>1</code>–<code>6</code> one voice, <code>0</code> all six, <code>7</code>–<code>c</code> voices 1–6 of the second Just Friends; empty = 1.</li>
+</ul>
+<table>
+<tr><th>Sel</th><th>Operands</th><th>Does (Teletype op)</th></tr>
+<tr><td><code>n</code></td><td>N vel</td><td>a note on the next free voice (JF.NOTE); no note off, its envelope ends it</td></tr>
+<tr><td><code>@</code></td><td>N vel shape rep dur pw</td><td>JF.NOTE as <code>@</code>'s shaped run, in real time</td></tr>
+<tr><td><code>p</code></td><td>N vel</td><td>12-voice note over two Just Friends (JF.POLY); <code>x</code> resets its count (JF.POLY.RESET)</td></tr>
+<tr><td><code>v</code></td><td>ch N vel</td><td>one voice at a pitch (JF.VOX)</td></tr>
+<tr><td><code>f</code></td><td>ch N</td><td>a voice's pitch only (JF.PITCH)</td></tr>
+<tr><td><code>r</code></td><td>ch vel</td><td>trigger with velocity (JF.VTR)</td></tr>
+<tr><td><code>t</code></td><td>ch state</td><td>trigger input to 1 / 0 (JF.TR); state empty = a pulse: 1, then 0 one <code>$pulse</code> later</td></tr>
+<tr><td><code>s</code></td><td>N</td><td>transpose everything (JF.SHIFT), <code>4C</code> = none</td></tr>
+<tr><td><code>u</code></td><td>lvl</td><td>RUN voltage (JF.RUN): <code>0</code> = −5 V, <code>i</code> = 0 V, <code>z</code> ≈ +5 V</td></tr>
+<tr><td><code>o</code> / <code>m</code> / <code>d</code></td><td>1 / 0</td><td>RUN mode (JF.RMODE) / synthesis mode (JF.MODE) / A = 432 Hz (JF.GOD)</td></tr>
+<tr><td><code>j</code></td><td>ch num den</td><td>a voice's just ratio (JF.TUNE): <code>,j132</code> = voice 1 at 3/2</td></tr>
+<tr><td><code>q</code></td><td>n</td><td>quantize to a clock division, 0 = off (JF.QT)</td></tr>
+<tr><td><code>k</code></td><td>W</td><td>Geode clock: 1–48 beats per measure, 49–255 BPM (JF.TICK)</td></tr>
+<tr><td><code>a</code> / <code>e</code></td><td>1 / 2</td><td>set the Just Friends' address (JF.ADDR) / talk to JF 1 or 2 (JF.SEL)</td></tr>
+<tr><td><code>g</code></td><td>letter</td><td>read (firmware 4), answer below: <code>s</code> speed 0/1, <code>t</code> mode 0/1/2, knobs <code>r c f i o</code> (ramp curve fm time intone) as 0–z</td></tr>
+</table>
+<pre>`........
+.,m1.....     on load: synthesis mode (JF.MODE 1)
+D4.......
+.,n4Ca...     every 4 frames: C at 5 V   → bytes 09 00 00 20 00 to 0x70
+..C4.....
+D1.4TCEGA     T picks C E G A in turn and writes it below...
+.,n4.a...     ...into the note cell: an arpeggio on Just Friends
+D8.......
+.,@4G8141     a run of four Gs, shape 1</pre>
+<p class="note">Orca drives it like any operator: <code>T</code>, <code>R</code>, <code>V</code> or <code>Z</code> can write the note or velocity cells, so melodies and dynamics come from the grid. Shaped runs (<code>,@</code>) are timed in real time, as <code>@</code>.</p>
+
+<h2 id="cmd">9. <code>$</code> commands and tempo</h2>
+<p><code>$</code> runs the command written on its right when it is banged, as in Seaflake. <b><code>$bpm:N</code> and <code>$apm:N</code> also work without a bang:</b> written anywhere on the grid, they set the tempo as soon as the patch runs, like Seaflake's grid tempo directive. A song slot that loads the patch picks it up too.</p>
+<table>
+<tr><th>Command</th><th>Does</th></tr>
+<tr><td><code>$bpm:120</code></td><td>tempo in BPM, 60–300 (4 frames per beat)</td></tr>
+<tr><td><code>$apm:30</code></td><td>tempo in frames per minute ÷ 4, as Seaflake: <code>apm × 4 = bpm</code> (30 → 120 BPM), 15–75</td></tr>
+<tr><td><code>$play</code> / <code>$stop</code></td><td>start / stop the clock</td></tr>
+<tr><td><code>$frame:N</code>, <code>$skip:N</code>, <code>$rewind:N</code></td><td>set / move the frame counter</td></tr>
+<tr><td><code>$pulse:N</code></td><td>trigger pulse length in ms for all trigger operators (1–250, default 20)</td></tr>
+<tr><td><code>$script:N</code> / <code>$s:N</code></td><td>run Teletype script N (1–8, 9 = metro, 10 = init)</td></tr>
+<tr><td><code>$patch:N</code> / <code>$p:N</code></td><td>load patch slot N onto the grid (for chaining patches)</td></tr>
+</table>
+<p class="note">Seaflake treats only <code>$bpm:</code> as a grid directive. <code>$apm:</code> also runs as a normal <code>$</code> operator that locks its cells, so patches made in Seaflake behave exactly the same here. The tempo directive is an addition you asked for. It can be changed by any operator that writes into the digits.</p>
+
+<h2 id="patch">10. Saving patches</h2>
+<p><kbd>ctrl</kbd>+<kbd>s</kbd> opens <b>SAVE PATCH</b>: choose one of 32 slots with the arrows (each shows the start of what is in it) and press <kbd>enter</kbd>. Saving over a different patch asks for <kbd>enter</kbd> again. <kbd>ctrl</kbd>+<kbd>o</kbd> opens <b>LOAD PATCH</b>. Loading keeps the clock and frame count running, so you can switch patches live, and <kbd>ctrl</kbd>+<kbd>z</kbd> brings back the grid you had.</p>
+<ul>
+  <li>Patches are stored compressed (empty cells take almost nothing). A slot holds up to 1020 bytes, which is most patches. An almost completely full 80 × 40 grid shows <code>PATCH TOO BIG</code> and is not saved.</li>
+  <li>A patch keeps its <b>tempo</b>: loading it sets the BPM it was saved with (a <code>$bpm</code> in the grid still wins). A patch without a saved tempo keeps the current tempo.</li>
+  <li>At power-on the last patch you saved or loaded comes back and <b>plays</b> at its tempo. <b>Save while a song is playing</b> (a patch or the song itself, as long as the song has been saved to a slot) and at the next power-on that song plays from its first slot instead. Save while no song is playing and it is the patch again.</li>
+  <li>Patches and songs have their own area of the Teletype's flash. They never touch the 32 Teletype scenes, and saving a scene doesn't touch them.</li>
+</ul>
+
+<h2 id="song">11. Song mode</h2>
+<figure style="width:62%"><img src="img/song_oled.png"><figcaption>Song mode (ctrl-t)</figcaption></figure>
+<p>As in Seaflake, a song is a list of 32 slots, each playing a patch for <b>LEN × MUL frames</b> at its own <b>BPM</b>. A <code>$bpm</code> or <code>$apm</code> in the patch overrides the slot's tempo while it plays. Modes are <code>ORD</code> (in order), <code>REV</code> (reverse) and <code>RND</code> (shuffled each pass), with <code>LOOP</code> or <code>ONCE</code>. On the Teletype a slot points to a patch slot (P01–P32), so save your patches first.</p>
+<table>
+<tr><th>Key (song view)</th><th>Does</th></tr>
+<tr><td>↑ ↓ / ← →</td><td>choose slot / field (PAT, LEN, MUL, BPM)</td></tr>
+<tr><td><kbd>0</kbd>–<kbd>9</kbd></td><td>type a number into the field (commits when you move)</td></tr>
+<tr><td><kbd>+</kbd> <kbd>-</kbd> (or <kbd>]</kbd> <kbd>[</kbd>)</td><td>field up / down</td></tr>
+<tr><td><kbd>enter</kbd></td><td>this slot plays the patch on the grid (save it first)</td></tr>
+<tr><td><kbd>backspace</kbd></td><td>clear the slot</td></tr>
+<tr><td><kbd>l</kbd></td><td>load the slot's patch and tempo onto the grid</td></tr>
+<tr><td><kbd>space</kbd></td><td>play / stop the song</td></tr>
+<tr><td><kbd>m</kbd> / <kbd>r</kbd></td><td>mode ORD → REV → RND / loop on/off</td></tr>
+<tr><td><kbd>ctrl</kbd>+<kbd>s</kbd> / <kbd>ctrl</kbd>+<kbd>o</kbd></td><td>save / load the song (8 song slots)</td></tr>
+<tr><td><kbd>ctrl</kbd>+<kbd>n</kbd></td><td>new, empty song</td></tr>
+<tr><td><kbd>ctrl</kbd>+<kbd>t</kbd> / <kbd>esc</kbd></td><td>back to the grid (the song keeps playing)</td></tr>
+</table>
+<p>At power-on the song view holds the song that is playing (see above), or else song 1. While a song plays, the grid shows <code>S</code> in the status line and <code>&gt;</code> marks the playing slot.</p>
+
+<h2 id="emu" class="pb">12. The app: emulator, flasher, help</h2>
+<p><b>/Applications/Orca Seaflake TT.app</b> runs the same C code as the firmware: the Seaflake engine, its screen and help, and the Teletype ops that send to the Disting EX and ER-301. The OLED is drawn pixel for pixel at 6×. Only the hardware is simulated. The same app flashes the module (<kbd>cmd</kbd>+<kbd>F</kbd>, chapter 13) and holds this manual's tables (<kbd>cmd</kbd>+<kbd>/</kbd>).</p>
+<figure><img src="img/app.png"><figcaption>The app: OLED, TR/CV outputs, ER-301 ports, and the I²C log. It starts playing.</figcaption></figure>
+<ul>
+  <li><b>Starts playing</b>, like the module: the last patch at its tempo, or the song that was playing when you last saved. <kbd>space</kbd> stops and starts.</li>
+  <li><b>Keyboard:</b> your Mac keyboard is the Teletype keyboard. <kbd>option</kbd> is <kbd>alt</kbd> (<kbd>option</kbd>+<kbd>h</kbd>: the help on the OLED). F-keys may need <kbd>fn</kbd>. <kbd>cmd</kbd>+<kbd>B</kbd> is the module's front-panel button (LOAD PATCH, again to load). <kbd>cmd</kbd> shortcuts belong to the app (chapter 2).</li>
+  <li><b>I²C log (right):</b> for every message, cyan is the Teletype command Seaflake ran (e.g. <code>EX.M.N# 1 72 119</code>), grey is the exact bytes put on the bus with the address (<code>I2C EX1 (0x41): 4F 90 48 77</code>), and amber is what the Disting EX will play (<code>MIDI ch1 NOTE ON C5 (72) vel 119</code>). PAUSE / CLEAR, or <kbd>cmd</kbd>+<kbd>P</kbd> / <kbd>cmd</kbd>+<kbd>L</kbd>.</li>
+  <li><b>MIDI out:</b> the MIDI sent to the Disting EX also comes out of a virtual MIDI port called <b>Orca Seaflake TT</b>, so any synth or DAW on the Mac can play it.</li>
+  <li><b>Outputs:</b> TR 1–4 light up, CV 1–4 show their voltage, and ER-301 ports a1–z26 show SC.TR and SC.CV.</li>
+  <li><b>Patches and songs</b> are saved exactly as on the module (<kbd>ctrl</kbd>+<kbd>S</kbd> / <kbd>ctrl</kbd>+<kbd>O</kbd>, song view <kbd>ctrl</kbd>+<kbd>T</kbd>, chapters 10 and 11) in <code>~/Library/Application Support/Orca Seaflake Teletype/seaflake.bin</code>, next to <code>tt00s.txt</code>–<code>tt31s.txt</code> (Teletype scenes, in the format of the Teletype's USB backups).</li>
+  <li><b>As files: <kbd>cmd</kbd>+<kbd>E</kbd> exports</b> <code>SFSCAN.TXT</code> + <code>SFPATCH.TXT</code> to a folder or USB stick, the same files the module writes with WRITE TO USB; READ FROM USB on the module loads the patches and songs from them. <kbd>cmd</kbd>+<kbd>I</kbd> imports them from a stick in <code>/Volumes</code> (<kbd>shift</kbd>+<kbd>cmd</kbd>+<kbd>I</kbd> from any folder): the emulator then has the same Disting EX unit and ER-301 as your rack, and your patches and songs appear in its slots.</li>
+  <li><b>The screensaver</b> runs here too, after 5 idle minutes; <kbd>cmd</kbd>+<kbd>D</kbd> starts it now. Any key wakes it.</li>
+  <li><b>Examples:</b> on first launch the emulator fills P01 (MIDI arpeggio), P02 (CV + triggers on the Teletype and ER-301), P03 (N, <code>&gt;p</code> and <code>&lt;</code>, tempo by <code>$apm:28</code>), P04 (loadbang, <code>-</code>, <code>_</code> and <code>}</code>) and song 1 (P01 → P02 → P03). Examples are only written into an empty slot store; an existing <code>seaflake.bin</code> keeps your patches.</li>
+  <li><b>Help (<kbd>cmd</kbd>+<kbd>/</kbd>):</b> every operator with its inputs, outputs and what it does (chapter 16), every key (chapter 2) and the flashing steps (chapter 13), searchable. Generated from the same files as this manual.</li>
+  <li><b>Simulated devices:</b> the emulator pretends a Disting EX is at 0x41 and an ER-301 at 0x31, or whatever the imported scan says. Only <code>EX.ALG</code> and <code>EX.PRESET</code> answer; other reading operators (<code>&gt;p01</code>) read 0. The device scan, the startup preset and the loadbang run the module's own code against these pretend devices; the settings in the Flash window (pulse, startup preset) apply to the emulator at once. There are no trigger inputs, IN knob, grid or USB stick.</li>
+</ul>
+<figure><img src="img/help.png"><figcaption>cmd-/: the help window, operators tab</figcaption></figure>
+
+<h2 id="flash" class="pb">13. Flashing Orca Seaflake onto the Teletype</h2>
+<p>Orca Seaflake replaces the Teletype firmware. Flashing erases the whole chip: scenes, Orca patches and calibration. The bootloader itself can&#x27;t be erased, so a failed flash is never fatal: put the module back in its bootloader and try again.</p>
+<h3>What you need</h3>
+<ul>
+<li>The Teletype in its case, powered from the case as usual.</li>
+<li>A USB A-to-A cable (the Teletype&#x27;s USB port is type A; on a Mac with USB-C use a C-to-A adapter). Some A-to-A cables only carry power: if nothing is found, try another cable.</li>
+<li>dfu-programmer on the Mac: in Terminal, run  brew install dfu-programmer (the Flash window checks for it and can run this for you).</li>
+<li>The firmware: orca-seaflake-teletype.hex. It is inside the app (Orca Seaflake TT) and in dist/ next to its SHA-256 checksum.</li>
+</ul>
+<h3>Before you flash: back up</h3>
+<ol start="1">
+<li>Put a USB stick in the Teletype while it is running. The USB menu appears (on the stock firmware and on Orca Seaflake alike).</li>
+<li>Turn PARAM to WRITE TO USB and press the front-panel button. It saves all 32 scenes as tt00s.txt - tt31s.txt. If Orca Seaflake is already on the module it also writes SFSCAN.TXT (the I2C scan) and SFPATCH.TXT (patches + songs), which the emulator imports with cmd+I.</li>
+<li>The Disting EX and ER-301 can stay on the I2C bus while you flash.</li>
+</ol>
+<h3>Step 1: put the Teletype in its bootloader</h3>
+<ol start="1">
+<li>Switch the case off.</li>
+<li>Press and hold the Teletype&#x27;s front-panel button (the small SCENE RECALL button next to the USB port). Keep holding it and switch the case on. Hold for one more second, then let go.</li>
+<li>Connect the Teletype&#x27;s USB port to the Mac with the A-to-A cable.</li>
+<li>In bootloader mode the screen stays dark. That is normal. The Mac sees an &quot;Atmel DFU&quot; device (USB 03eb:2ff6).</li>
+</ol>
+<h3>Step 2: flash</h3>
+<p>In the app (Orca Seaflake TT, in /Applications) press cmd+F: the Flash window. It has three steps.</p>
+<ol start="1">
+<li>CONNECT: the status line turns from amber &quot;Teletype not connected&quot; to cyan &quot;Teletype ready to flash&quot; within two seconds of connecting the bootloader. If dfu-programmer is missing, one line says so with an INSTALL button (it runs brew install dfu-programmer).</li>
+<li>SETTINGS: the addresses are fixed in the firmware: the Disting EX at 65 (0x41), the ER-301 at 0x31. On the Disting EX set Settings &gt; I2C address = 65 (it leaves the factory at 49 = 0x31, the ER-301&#x27;s address: change it first). &quot;load Disting EX preset at power-on&quot; (optional): tick it and type a preset number, and the module sends EX.PRESET once at every power-on, as soon as the Disting EX answers. Unticked, nothing is sent. A loadbang (`) in a patch does the same per patch.</li>
+<li>FLASH ORCA SEAFLAKE: press it and confirm. A progress bar shows erase, flash and start; don&#x27;t unplug anything until it says DONE (about 20 seconds).</li>
+</ol>
+<p>Everything else (the pulse length, the module read-back, the firmware&#x27;s size and SHA-256, the raw log) is under DETAILS, closed by default. &quot;Restore stock Teletype...&quot; is the way back (below).</p>
+<p>From Terminal (what the app runs):</p>
+<pre>cd ~/Downloads     # the folder with orca-seaflake-teletype.hex (in this repository: dist/)
+dfu-programmer at32uc3b0512 erase
+dfu-programmer at32uc3b0512 flash orca-seaflake-teletype.hex --suppress-bootloader-mem
+dfu-programmer at32uc3b0512 start</pre>
+<h3>Step 3: first start</h3>
+<ol start="1">
+<li>After START the Teletype restarts by itself. Unplug the USB cable.</li>
+<li>The screen says SCENES WILL BE OVERWRITTEN / PRESS ONLY IF YOU ARE UPDATING FIRMWARE. Press the front-panel button once. That prepares the scene memory (the normal Teletype first-start step); Orca&#x27;s patch memory is prepared by itself.</li>
+<li>The Orca Seaflake grid appears and the bottom line shows what the I2C scan found, for example FOUND DISTING EX. ctrl+I shows the Disting EX (0x41), the ER-301 (0x31), Just Friends (0x70), the bus and the message count; enter looks again.</li>
+<li>To get your Teletype scenes (their scripts run with $script:N and F1-F10) back: USB stick in, turn PARAM to READ FROM USB, press the front-panel button. The grid comes back by itself.</li>
+<li>Esc never leaves the grid: there are no Teletype screens in this firmware. The front-panel button opens LOAD PATCH (PARAM picks the slot, the button again loads it). To flash again, power off and use step 1: the bootloader is only reached by holding the button at power-on.</li>
+</ol>
+<h3>If something goes wrong</h3>
+<ul>
+<li>NO TELETYPE BOOTLOADER / &quot;no device present&quot;: the module isn&#x27;t in its bootloader. Power off, hold the front-panel button while powering on, then connect the cable. Try another cable or USB port; adapters and hubs sometimes hide the device.</li>
+<li>&quot;dfu-programmer: command not found&quot;: brew install dfu-programmer (Homebrew from brew.sh first).</li>
+<li>Flashing stops halfway: nothing is damaged. Put the module back in its bootloader and flash again.</li>
+<li>The screen stays dark after DONE: switch the case off and on (without holding the button).</li>
+<li>ctrl+I shows -- for the Disting EX: check its I2C cable (GND to GND at every end) and power, and that its I2C address (Settings) is 65, then press enter there. After a cold start give the ER-301 and the Disting EX time to boot: the module keeps looking for them for 2 minutes.</li>
+<li>The BUS line on the ctrl+I screen: PULLUPS OK is right. NO PULLUPS / NO SDA PULLUP / NO SCL PULLUP: nothing on the bus pulls that line up (the Teletype&#x27;s own weak pull-ups are on, which is enough for a short bus; otherwise switch on a module&#x27;s or the busboard&#x27;s pull-ups). SDA HELD LOW / SCL HELD LOW: something holds the line: a reversed cable or a module stuck mid-message.</li>
+<li>The ER-301 line says -- TRY &lt;P1: the ER-301 is not asked during the scan (it does not answer reads); send it anything (D4 with .&lt;p01 one cell right below it) and it turns FOUND.</li>
+<li>Notes don&#x27;t play but the Disting EX is FOUND: watch the bottom line while the patch runs. I2C 41 NACK CMD 6A = the Disting EX refused that message; I2C 41 BUSY = it timed out (the bus then restarts by itself). The last ctrl+I line counts OK and FAIL messages since power-on.</li>
+</ul>
+<h2 id="stock">14. Going back to the stock Teletype firmware</h2>
+<ol start="1">
+<li>Download the latest release from github.com/monome/teletype/releases: the zip contains teletype.hex (in the Flash window, &quot;Restore stock Teletype...&quot; picks the downloaded .zip or .hex).</li>
+<li>Put the Teletype in its bootloader exactly as in step 1 above.</li>
+<li>Flash it the same way: in the Flash window press &quot;Restore stock Teletype...&quot;, pick the file, then FLASH STOCK; or in Terminal:</li>
+</ol>
+<pre>cd ~/Downloads
+dfu-programmer at32uc3b0512 erase
+dfu-programmer at32uc3b0512 flash teletype.hex --suppress-bootloader-mem
+dfu-programmer at32uc3b0512 start</pre>
+<ol start="4">
+<li>First start: press the front-panel button when it asks, then READ FROM USB to restore your scenes from the backup. Orca patches are not kept by the stock firmware; SFPATCH.TXT on the stick keeps them for the emulator and for the next time you flash Orca Seaflake.</li>
+</ol>
+<h3>What is erased, what is kept</h3>
+<ul>
+<li>Teletype scenes: erased by flashing. Back up with WRITE TO USB, restore with READ FROM USB.</li>
+<li>Orca patches and songs: erased by flashing. WRITE TO USB saves them to SFPATCH.TXT.</li>
+<li>Teletype calibration: back to the default.</li>
+<li>The bootloader: never touched (--suppress-bootloader-mem).</li>
+</ul>
+<figure><img src="img/flash.png"><figcaption>cmd-F: the Flash window: connect, the Disting EX address, flash. Everything else is under DETAILS.</figcaption></figure>
+
+<h2 id="scan">15. The I²C scan and the USB stick</h2>
+<figure style="width:62%"><img src="img/scan_oled.png"><figcaption>ctrl-i: the Disting EX at 0x41 (its algorithm and preset), the ER-301 at 0x31, the bus, the message count. Enter looks again.</figcaption></figure>
+<h3>The I²C scan</h3>
+<p>At every power-on, and with <kbd>ctrl</kbd>+<kbd>i</kbd> (<kbd>enter</kbd> looks again), the module asks the Disting EX at its fixed address, <b>65 (0x41)</b>, for its algorithm and preset. The bottom line says what it found (<code>FOUND DISTING EX</code>, or <code>FOUND EX + JF</code> with a Just Friends). Just Friends at 0x70 is asked with one byte and nothing read back; <kbd>ctrl</kbd>+<kbd>i</kbd> shows <code>JUST FRIENDS 70 FOUND</code> or <code>--</code>, and every <code>,</code> message updates it. After power-on it keeps asking for 2 minutes until the Disting EX answers.</p>
+<p><b>The ER-301 is not asked.</b> The stock Teletype only ever writes to an ER-301, and an ER-301 that is asked to answer a read can leave the bus stuck. So the ER-301 line says <code>-- TRY &lt;P1</code> until the first <code>&lt;</code> or <code>a</code>–<code>z</code> message to it is acknowledged; then it says <code>FOUND</code>. Messages to the ER-301 go to 0x31 either way.</p>
+<p>The addresses are part of the firmware: <b>Disting EX 65 (0x41)</b>, <b>ER-301 0x31</b>. There is nothing to set on the Teletype or in the Flash window; on the Disting EX, <b>Settings &gt; I²C address = 65</b>. The MIDI operators, N and every <code>&gt;</code> function go to 0x41; the <code>a</code>–<code>z</code> outputs and <code>&lt;</code> go to 0x31.</p>
+<p>The scan can see which modules are there, plus the Disting EX's algorithm and preset. It can't see which SC.TR / SC.CV units you have in your ER-301 patch, because the ER-301 doesn't report that over I²C.</p>
+<h3>The bottom two lines: is the bus healthy?</h3>
+<table>
+<tr><th>Line</th><th>Means</th></tr>
+<tr><td><code>BUS 100K PULLUPS OK</code></td><td>the bus runs at 100 kHz and something on it pulls SDA and SCL up: the wiring is electrically right</td></tr>
+<tr><td><code>NO PULLUPS</code> / <code>NO SDA PULLUP</code> / <code>NO SCL PULLUP</code></td><td>at power-on nothing else pulled that line up; the Teletype's own weak pull-ups are carrying it. Fine for a short bus; if messages fail, switch on a module's or the busboard's pull-ups</td></tr>
+<tr><td><code>SDA HELD LOW</code> / <code>SCL HELD LOW</code></td><td>something holds the line down: a reversed cable, or a module stuck mid-message</td></tr>
+<tr><td><code>SDA FREED</code></td><td>a module was stuck holding SDA at power-on; the Teletype clocked it free</td></tr>
+<tr><td><code>I2C OK 12 FAIL 0</code></td><td>messages the operators sent since power-on, and how many were not acknowledged</td></tr>
+<tr><td><code>OK 0 FAIL 9 NACK 6A</code></td><td>the last failure: <code>NACK</code> = the device refused it, <code>BUSY</code> = it timed out (the bus restarts itself and the message is sent once more), then the command byte (<code>6A</code> note off, <code>68</code> pitch, <code>69</code> velocity, <code>46</code> EX.P, <code>47</code> EX.PV, <code>4F</code> MIDI)</td></tr>
+</table>
+<p>While the grid plays, a message that fails also shows for 2 seconds on the grid's bottom line: <code>I2C 41 NACK CMD 6A</code>.</p>
+<h3>When nothing reaches the Disting EX or the ER-301</h3>
+<ol>
+  <li><b>Cables first</b>, with the case off: the Teletype's I²C header to each module, GND to GND at every end (a ribbon flipped at one end swaps the lines). Re-seat them.</li>
+  <li><b>Wait</b> after a cold start: the ER-301 boots slowly. The module keeps looking for 2 minutes; <kbd>ctrl</kbd>+<kbd>i</kbd>, <kbd>enter</kbd> asks again at once.</li>
+  <li><b>BUS line</b> on <kbd>ctrl</kbd>+<kbd>i</kbd> (the table above).</li>
+  <li><b>Address:</b> the Disting EX's Settings &gt; I²C address must be 65 (0x41), the fixed address, and never 49 (the ER-301's).</li>
+  <li><b>Is the operator banged?</b> <code>I2C OK 0 FAIL 0</code> after a while of playing means nothing was sent: check that the bang lands beside the operator (chapter 1).</li>
+  <li><b>FAIL counts up:</b> read the reason on the last line (NACK or BUSY and the command byte).</li>
+  <li><b>OK counts up but nothing sounds:</b> the messages arrive; the algorithm has to play I²C notes (SD Multisample, the poly synths, Macro Oscillator 2), some with an I²C mode parameter on.</li>
+</ol>
+
+<h3>Getting the scan and your patches onto the Mac</h3>
+<p>The Teletype only talks to the Mac while it is in its bootloader, so the scan travels on a USB stick. Put a stick in the Teletype: the USB menu appears; turn PARAM to <b>WRITE TO USB</b> and press the front button. The module goes back to the grid when it is done. Next to the scenes it writes <code>SFSCAN.TXT</code> (the scan) and <code>SFPATCH.TXT</code> (every patch as grid text, and every song). Put the stick in the Mac and press <kbd>cmd</kbd>+<kbd>I</kbd> in the app. It takes on the same Disting EX unit and ER-301 number, and your patches and songs appear in its slots. The other way round, <kbd>cmd</kbd>+<kbd>E</kbd> writes the two files to the stick and <b>READ FROM USB</b> on the module stores the patches and songs in its slots (after the scenes). The module also keeps its last scan in flash, where the Flash window reads it back over USB for the ports check (chapter 13).</p>
+<pre>ORCA SEAFLAKE I2C SCAN          (SFSCAN.TXT)
+EX1 FOUND ALG 5 PRESET 12
+EX2 NONE
+...
+ER301 1 FOUND
+USING EX 1 ER301 1</pre>
+
+<h2 id="ops" class="pb">16. Operator reference</h2>
+<p>Every operator the firmware implements, by group: the glyph, its inputs (the cells it reads), its outputs, and what it does. The app's help (<kbd>cmd</kbd>+<kbd>/</kbd>) shows the same table, from the same file (<code>docs/manual/ops.tsv</code>), and the build checks it against the module's own help (<kbd>alt</kbd>+<kbd>h</kbd>). <code>&gt;x</code> means <code>&gt;</code> with the selector <code>x</code>.</p>
+<h3>ORCA</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>A</code></td><td>add</td><td class="sub">left, right</td><td class="sub">below</td><td>left + right (base-36 glyph arithmetic)</td></tr>
+<tr><td><code>B</code></td><td>subtract</td><td class="sub">left, right</td><td class="sub">below</td><td>|right - left|</td></tr>
+<tr><td><code>C</code></td><td>clock</td><td class="sub">left rate (min 1), right modulo (default 8)</td><td class="sub">below</td><td>frame / rate mod modulo</td></tr>
+<tr><td><code>D</code></td><td>delay</td><td class="sub">left rate, right modulo (default 8)</td><td class="sub">bang below</td><td>bangs every rate x modulo frames</td></tr>
+<tr><td><code>E</code></td><td>east</td><td class="sub">-</td><td class="sub">-</td><td>moves east one cell a frame; bangs when blocked</td></tr>
+<tr><td><code>N</code></td><td>north</td><td class="sub">-</td><td class="sub">-</td><td>moves north one cell a frame; bangs when blocked</td></tr>
+<tr><td><code>S</code></td><td>south</td><td class="sub">-</td><td class="sub">-</td><td>moves south one cell a frame; bangs when blocked</td></tr>
+<tr><td><code>W</code></td><td>west</td><td class="sub">-</td><td class="sub">-</td><td>moves west one cell a frame; bangs when blocked</td></tr>
+<tr><td><code>F</code></td><td>if</td><td class="sub">left, right</td><td class="sub">bang below</td><td>bangs when left and right are the same glyph</td></tr>
+<tr><td><code>G</code></td><td>generator</td><td class="sub">left 3 = x, left 2 = y, left 1 = length; cells on the right</td><td class="sub">cells at x, y+1</td><td>copies the cells on its right to the offset</td></tr>
+<tr><td><code>H</code></td><td>halt</td><td class="sub">-</td><td class="sub">-</td><td>stops the operator below from running</td></tr>
+<tr><td><code>I</code></td><td>increment</td><td class="sub">left step (default 1), right modulo</td><td class="sub">below</td><td>adds step to the value below, mod modulo</td></tr>
+<tr><td><code>J</code></td><td>jumper</td><td class="sub">above</td><td class="sub">below</td><td>copies the glyph above to below</td></tr>
+<tr><td><code>Y</code></td><td>jymper</td><td class="sub">left</td><td class="sub">right</td><td>copies the glyph on its left to its right</td></tr>
+<tr><td><code>K</code></td><td>konkat</td><td class="sub">left = count; variable names on the right</td><td class="sub">below each name</td><td>reads that many variables, writes their values below</td></tr>
+<tr><td><code>L</code></td><td>lesser</td><td class="sub">left, right</td><td class="sub">below</td><td>the smaller of left and right</td></tr>
+<tr><td><code>M</code></td><td>multiply</td><td class="sub">left, right</td><td class="sub">below</td><td>left x right</td></tr>
+<tr><td><code>O</code></td><td>read</td><td class="sub">left 2 = x, left 1 = y</td><td class="sub">below</td><td>the cell at that offset</td></tr>
+<tr><td><code>P</code></td><td>push</td><td class="sub">left 2 = key, left 1 = length, right = value</td><td class="sub">row below</td><td>writes the value into one cell of a row below, keyed</td></tr>
+<tr><td><code>Q</code></td><td>query</td><td class="sub">left 3 = x, left 2 = y, left 1 = length</td><td class="sub">cells below</td><td>copies that many cells from the offset to below</td></tr>
+<tr><td><code>R</code></td><td>random</td><td class="sub">left min, right max (default 36)</td><td class="sub">below</td><td>a random value in the range</td></tr>
+<tr><td><code>T</code></td><td>track</td><td class="sub">left 2 = key, left 1 = length; cells on the right</td><td class="sub">below</td><td>picks one of the cells on its right (the picked cell is lit)</td></tr>
+<tr><td><code>U</code></td><td>uclid</td><td class="sub">left steps (default 1), right length (default 8)</td><td class="sub">bang below</td><td>Euclidean rhythm bangs</td></tr>
+<tr><td><code>V</code></td><td>variable</td><td class="sub">left = name to write, right = value (or name to read)</td><td class="sub">below when reading</td><td>writes or reads a variable</td></tr>
+<tr><td><code>X</code></td><td>write</td><td class="sub">left 2 = x, left 1 = y, right = value</td><td class="sub">cell at x, y+1</td><td>writes the value at the offset</td></tr>
+<tr><td><code>Z</code></td><td>lerp</td><td class="sub">left rate (default 1), right target</td><td class="sub">below</td><td>moves the value below toward the target</td></tr>
+<tr><td><code>*</code></td><td>bang</td><td class="sub">-</td><td class="sub">the operators touching it</td><td>a one-frame bang, then disappears</td></tr>
+<tr><td><code>#</code></td><td>comment</td><td class="sub">-</td><td class="sub">-</td><td>stops the rest of the row (up to the next #)</td></tr>
+<tr><td><code>a-z</code></td><td>passive</td><td class="sub">-</td><td class="sub">-</td><td>a lowercase operator only runs when banged (as in Orca)</td></tr>
+</table>
+<h3>SEAFLAKE</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>^</code></td><td>probability</td><td class="sub">right = chance (default i = 18/35)</td><td class="sub">bang below</td><td>passes a bang below at random</td></tr>
+<tr><td><code>&amp;</code></td><td>phase clock</td><td class="sub">left rate (default 1), right length (default 4), above = step (default 0)</td><td class="sub">bang below</td><td>bangs on that step of the cycle</td></tr>
+<tr><td><code>~</code></td><td>burst</td><td class="sub">right: repeats (default 4), division, multiplication</td><td class="sub">bangs below</td><td>when banged, plays that many bangs one frame x div / mul apart, in real time</td></tr>
+<tr><td><code>|</code></td><td>mute block</td><td class="sub">left 2 width (default 8), left 1 height (default 4)</td><td class="sub">the block below</td><td>each bang hashes the block out with # or brings it back</td></tr>
+<tr><td><code>+</code></td><td>scale</td><td class="sub">left = variable name (default 0), right 12 cells = 1 / 0 for C C# D ... B (default C major)</td><td class="sub">the variable</td><td>defines a scale for ) and ]</td></tr>
+<tr><td><code>;</code></td><td>udp</td><td class="sub">cells on the right</td><td class="sub">-</td><td>Seaflake&#x27;s UDP message (Pilot): kept so patches load, sends nothing on the module</td></tr>
+<tr><td><code>=</code></td><td>osc</td><td class="sub">cells on the right</td><td class="sub">-</td><td>Seaflake&#x27;s OSC message: kept so patches load, sends nothing on the module</td></tr>
+</table>
+<h3>MIDI VIA DISTING EX</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>:</code></td><td>note</td><td class="sub">channel 0-f, octave 0-8, note, velocity (default f), length in frames (default 1)</td><td class="sub">EX.M.N# ... EX.M.NO#</td><td>note on through the Disting EX&#x27;s MIDI out; note off when the length is up</td></tr>
+<tr><td><code>%</code></td><td>mono note</td><td class="sub">same as :</td><td class="sub">EX.M.N# / EX.M.NO#</td><td>a new note on the channel cuts the old one</td></tr>
+<tr><td><code>!</code></td><td>CC</td><td class="sub">channel, controller 0-z, value 0-z (scaled to 0-127)</td><td class="sub">EX.M.CC#</td><td>control change</td></tr>
+<tr><td><code>?</code></td><td>pitch bend</td><td class="sub">channel, LSB 0-z, MSB 0-z (each scaled to 0-127)</td><td class="sub">EX.M.CH + EX.M.PB</td><td>pitch bend (the EX.M.CH channel is put back after)</td></tr>
+<tr><td><code>(</code></td><td>just note</td><td class="sub">channel (default 0), octave (default 4), note, velocity, length</td><td class="sub">EX.M.PB + EX.M.N#</td><td>a bend to the just-intonation ratio, the note, then the bend is reset</td></tr>
+<tr><td><code>)</code></td><td>scale note</td><td class="sub">channel, octave, degree (1-based), scale variable (from +), velocity, length</td><td class="sub">EX.M.N#</td><td>the note at that degree of the scale</td></tr>
+<tr><td><code>@</code></td><td>shaped note</td><td class="sub">channel, octave, note, velocity, shape 1-4, repeats, duration in frames, pulse width</td><td class="sub">EX.M.N# / EX.M.NO# run</td><td>a run of notes spaced by the shape, in real time</td></tr>
+</table>
+<h3>TRIGGER + CV</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>&quot;</code></td><td>trig note</td><td class="sub">output 1-4 / a-z, octave, note, velocity, length in pulses (default 1 = 20 ms)</td><td class="sub">TR + CV (TT jacks) or SC.TR.P + SC.CV (ER-301)</td><td>pitch CV at 1 V/octave + a pulse</td></tr>
+<tr><td><code>/</code></td><td>gate note</td><td class="sub">output, octave, note, velocity, length in frames</td><td class="sub">TR + CV / SC.TR + SC.CV</td><td>pitch CV + a gate held high for that many frames</td></tr>
+<tr><td><code>&#x27;</code></td><td>CV level</td><td class="sub">output, slew in pulses, level 0-z = 0-10 V</td><td class="sub">CV / SC.CV.SLEW + SC.CV</td><td>sets a CV level only (for modulation); the trigger is not fired</td></tr>
+<tr><td><code>\</code></td><td>CV bend</td><td class="sub">output, LSB, MSB (as ?)</td><td class="sub">CV / SC.CV</td><td>bends that output&#x27;s pitch CV by up to +-2 semitones; CV only, no trigger</td></tr>
+<tr><td><code>[</code></td><td>just trig</td><td class="sub">output (default 1), octave (default 4), note, velocity, length in pulses</td><td class="sub">TR + CV / SC.TR.P + SC.CV</td><td>pitch CV tuned to the just-intonation ratio + a pulse</td></tr>
+<tr><td><code>]</code></td><td>scale trig</td><td class="sub">output, octave, degree, scale variable, velocity, length in pulses</td><td class="sub">TR + CV / SC.TR.P + SC.CV</td><td>pitch CV for that scale degree + a pulse</td></tr>
+<tr><td><code>{</code></td><td>shaped trig</td><td class="sub">output, octave, note, velocity, shape, repeats, duration, pulse width</td><td class="sub">TR + CV / SC.TR.P + SC.CV</td><td>the same shaped run as @, as pulses</td></tr>
+<tr><td><code>-</code></td><td>trigger</td><td class="sub">output 1-4 / a-z</td><td class="sub">TR (TT jacks) or SC.TR.TIME + SC.TR.PULSE (ER-301)</td><td>trigger only: one pulse, $pulse ms long; no CV, no other inlets. Bang it from beside: D4 then .-1 on the next row</td></tr>
+<tr><td><code>_</code></td><td>trigger + CV</td><td class="sub">output, octave (default 4), note</td><td class="sub">TR + CV / SC.TR.PULSE + SC.CV</td><td>pitch CV at 1 V/octave + one pulse ($pulse ms); only the inlets needed (no velocity, length or slew)</td></tr>
+<tr><td><code>}</code></td><td>shaped trigger</td><td class="sub">output (default 1), shape 1-4, repeats, duration in frames, pulse width (shape 4 spacing)</td><td class="sub">TR / SC.TR.PULSE</td><td>@&#x27;s run of steps (same timing, repeats and division) as pulses only: no CV, octave, note, velocity or channel; each pulse $pulse ms</td></tr>
+<tr><td><code>`</code></td><td>loadbang</td><td class="sub">-</td><td class="sub">bang below</td><td>bangs once on the first frame after a patch loads (power-on, ctrl+o, $patch:N, a song changing patch); at power-on it waits until the Disting EX has answered (up to 30 s). Put a Disting operator on the next row one cell right, where the bang lands beside it: ` then .&gt;l05</td></tr>
+</table>
+<h3>DISTING EX</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>&gt;</code></td><td>disting ex</td><td class="sub">a function letter, then its operand cells (the &gt;x rows)</td><td class="sub">I2C to the Disting EX the scan found (EX.* ops)</td><td>one Disting EX function when banged; &gt;x is one operator: &gt; then the letter. No unit or channel cells: the Disting EX is found by the I2C scan. Readers write their answer below</td></tr>
+<tr><td><code>&gt;n</code></td><td>N (note)</td><td class="sub">octave (default 4), note, velocity (default f)</td><td class="sub">EX.NOTE, then EX.NOTE.O one frame later</td><td>plays a note on the Disting EX&#x27;s voices: octave, note and velocity only (typed &gt;N or &gt;n)</td></tr>
+<tr><td><code>&gt;@</code></td><td>N@ (note with @)</td><td class="sub">octave, note, velocity, shape 1-4, repeats, duration, pulse width</td><td class="sub">EX.NOTE / EX.NOTE.O run</td><td>N with everything @ has except the channel: a shaped run of notes at @&#x27;s exact times</td></tr>
+<tr><td><code>&gt;p</code></td><td>parameter (EX.P)</td><td class="sub">param W, value W, side</td><td class="sub">below when reading</td><td>parameter to an exact value, as EX.P (EX.PARAM / P1 / P2); value empty = read it</td></tr>
+<tr><td><code>&gt;v</code></td><td>parameter level (EX.PV)</td><td class="sub">param W, lvl, side</td><td class="sub">-</td><td>parameter to a level 0-z across its min..max, as EX.PV (PV1 / PV2)</td></tr>
+<tr><td><code>&gt;i</code></td><td>parameter min</td><td class="sub">param W, side</td><td class="sub">below</td><td>read the parameter&#x27;s minimum (EX.MIN...)</td></tr>
+<tr><td><code>&gt;j</code></td><td>parameter max</td><td class="sub">param W, side</td><td class="sub">below</td><td>read the parameter&#x27;s maximum (EX.MAX...)</td></tr>
+<tr><td><code>&gt;l</code></td><td>load preset</td><td class="sub">preset W, side</td><td class="sub">below when reading</td><td>load a preset (EX.PRESET / PRE1 / PRE2); preset empty = read the current one</td></tr>
+<tr><td><code>&gt;s</code></td><td>save preset</td><td class="sub">preset W, side</td><td class="sub">-</td><td>save as preset (EX.SAVE / SAVE1 / SAVE2)</td></tr>
+<tr><td><code>&gt;r</code></td><td>reset</td><td class="sub">-</td><td class="sub">-</td><td>reset the preset (EX.RESET)</td></tr>
+<tr><td><code>&gt;a</code></td><td>algorithm</td><td class="sub">n, side, n (side 3: both)</td><td class="sub">below when reading</td><td>algorithm (EX.ALG / A1 / A2 / A12); empty = read it</td></tr>
+<tr><td><code>&gt;z</code></td><td>z knob</td><td class="sub">knob 1 / 2, lvl</td><td class="sub">-</td><td>Z knob to a level (EX.Z1 / Z2); level empty = give the knob back (EX.ZO1 / ZO2)</td></tr>
+<tr><td><code>&gt;c</code></td><td>controller</td><td class="sub">n, lvl</td><td class="sub">-</td><td>I2C controller n to a level (EX.CTRL)</td></tr>
+<tr><td><code>&gt;k</code></td><td>note channel</td><td class="sub">n</td><td class="sub">-</td><td>the channel N and &gt;o use (EX.CH; 1 until changed)</td></tr>
+<tr><td><code>&gt;d</code></td><td>note on, channel</td><td class="sub">n, N, vel</td><td class="sub">-</td><td>note on for one channel (EX.N#; empty channel = EX.NOTE)</td></tr>
+<tr><td><code>&gt;o</code></td><td>note off</td><td class="sub">n, N</td><td class="sub">-</td><td>note off (EX.NOTE.O / EX.NO#)</td></tr>
+<tr><td><code>&gt;x</code></td><td>all notes off</td><td class="sub">-</td><td class="sub">-</td><td>EX.ALLOFF</td></tr>
+<tr><td><code>&gt;w</code></td><td>voice</td><td class="sub">n, N, vel</td><td class="sub">-</td><td>play voice n (EX.VOX); velocity 0 = voice off (EX.VOX.O)</td></tr>
+<tr><td><code>&gt;f</code></td><td>voice pitch</td><td class="sub">n, N</td><td class="sub">-</td><td>set voice n&#x27;s pitch only (EX.VOX.P)</td></tr>
+<tr><td><code>&gt;t</code></td><td>trigger voice</td><td class="sub">n, vel</td><td class="sub">-</td><td>trigger voice n, for SD Triggers (EX.TV / EX.T)</td></tr>
+<tr><td><code>&gt;e</code></td><td>record</td><td class="sub">n (1 / 0)</td><td class="sub">-</td><td>WAV recorder record start / stop (EX.REC)</td></tr>
+<tr><td><code>&gt;y</code></td><td>play</td><td class="sub">n (1 / 0)</td><td class="sub">-</td><td>WAV recorder play start / stop (EX.PLAY)</td></tr>
+<tr><td><code>&gt;g</code></td><td>augustus pitch</td><td class="sub">N</td><td class="sub">-</td><td>Augustus Loop pitch (EX.AL.P)</td></tr>
+<tr><td><code>&gt;h</code></td><td>augustus clock</td><td class="sub">-</td><td class="sub">-</td><td>Augustus Loop clock (EX.AL.CLK)</td></tr>
+<tr><td><code>&gt;q</code></td><td>looper</td><td class="sub">act, n</td><td class="sub">below for s / i / j</td><td>looper n: r record, p play, c clear, v reverse, d octave down; s state, i reversed?, j down? (EX.LP.*)</td></tr>
+<tr><td><code>&gt;m</code></td><td>midi out</td><td class="sub">act, W, W</td><td class="sub">-</td><td>MIDI out: p program, c clock, s start, t stop, o continue, h channel, n note on, f note off, e CC, w bend (EX.M.*)</td></tr>
+<tr><td><code>&gt;b</code></td><td>select bus</td><td class="sub">act, W, W</td><td class="sub">-</td><td>Select Bus: n note on, f note off, e CC, w bend, p program, c clock, s start, t stop, o continue, h channel (EX.SB.*)</td></tr>
+</table>
+<h3>ER-301</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>&lt;</code></td><td>er-301</td><td class="sub">selector cell, then port (W) and operands (see the &lt; selectors)</td><td class="sub">I2C to the ER-301 (SC.* ops)</td><td>runs one ER-301 function when banged</td></tr>
+<tr><td><code>&lt;p</code></td><td>pulse</td><td class="sub">port</td><td class="sub">SC.TR.PULSE</td><td>pulse the trigger</td></tr>
+<tr><td><code>&lt;t</code></td><td>trigger</td><td class="sub">port, n</td><td class="sub">SC.TR</td><td>set the trigger to 0 / 1</td></tr>
+<tr><td><code>&lt;g</code></td><td>toggle</td><td class="sub">port</td><td class="sub">SC.TR.TOG</td><td>toggle the trigger</td></tr>
+<tr><td><code>&lt;l</code></td><td>polarity</td><td class="sub">port, n</td><td class="sub">SC.TR.POL</td><td>trigger polarity</td></tr>
+<tr><td><code>&lt;m</code></td><td>pulse ms</td><td class="sub">port, W</td><td class="sub">SC.TR.TIME</td><td>pulse length in ms (0k = 20 ms)</td></tr>
+<tr><td><code>&lt;c</code></td><td>cv level</td><td class="sub">port, lvl</td><td class="sub">SC.CV</td><td>CV level, 0-z = 0-10 V</td></tr>
+<tr><td><code>&lt;n</code></td><td>cv note</td><td class="sub">port, N</td><td class="sub">SC.CV</td><td>CV pitch from a note, 1 V/octave (4C = 4 V)</td></tr>
+<tr><td><code>&lt;s</code></td><td>cv set</td><td class="sub">port, lvl</td><td class="sub">SC.CV.SET</td><td>CV level now, without slew</td></tr>
+<tr><td><code>&lt;o</code></td><td>cv offset</td><td class="sub">port, lvl</td><td class="sub">SC.CV.OFF</td><td>CV offset</td></tr>
+<tr><td><code>&lt;w</code></td><td>cv slew</td><td class="sub">port, W</td><td class="sub">SC.CV.SLEW</td><td>CV slew in ms</td></tr>
+</table>
+<h3>JUST FRIENDS</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>,</code></td><td>just friends</td><td class="sub">a function letter, then its operand cells (the ,x rows)</td><td class="sub">I2C to Just Friends at 0x70 (JF.* ops)</td><td>one Just Friends function when banged, as Teletype&#x27;s JF.* op. Notes: octave 4 C = 0 V = Just Friends&#x27; own pitch (octave 3 a volt down). Velocity 0-g = 0-8 V, empty = a = 5 V. Channel 1-6, 0 = all six, 7-c = the second Just Friends, empty = 1</td></tr>
+<tr><td><code>,n</code></td><td>note</td><td class="sub">octave (default 4), note, velocity (default a)</td><td class="sub">JF.NOTE</td><td>a note on the next free voice (Just Friends in synthesis mode, ,m1); no note off: its envelope ends the note</td></tr>
+<tr><td><code>,@</code></td><td>note with @</td><td class="sub">octave, note, velocity, shape 1-4, repeats, duration, pulse width</td><td class="sub">JF.NOTE run</td><td>JF.NOTE as @&#x27;s shaped run of notes, in real time</td></tr>
+<tr><td><code>,p</code></td><td>poly note</td><td class="sub">octave, note, velocity</td><td class="sub">JF.POLY</td><td>a note across two Just Friends (12 voices, JF.POLY); ,x starts the count again (JF.POLY.RESET)</td></tr>
+<tr><td><code>,v</code></td><td>voice</td><td class="sub">channel, octave, note, velocity</td><td class="sub">JF.VOX</td><td>play one voice at a pitch</td></tr>
+<tr><td><code>,f</code></td><td>voice pitch</td><td class="sub">channel, octave, note</td><td class="sub">JF.PITCH</td><td>set one voice&#x27;s pitch without playing it</td></tr>
+<tr><td><code>,r</code></td><td>velocity trigger</td><td class="sub">channel, velocity</td><td class="sub">JF.VTR</td><td>trigger a voice at a velocity</td></tr>
+<tr><td><code>,t</code></td><td>trigger</td><td class="sub">channel, state (empty = a pulse)</td><td class="sub">JF.TR</td><td>the voice&#x27;s trigger input to 1 / 0; state empty = 1, then 0 one $pulse later (a trigger)</td></tr>
+<tr><td><code>,s</code></td><td>shift</td><td class="sub">octave, note (4C = 0)</td><td class="sub">JF.SHIFT</td><td>transpose the whole instrument</td></tr>
+<tr><td><code>,u</code></td><td>run</td><td class="sub">level 0-z (i = 0 V, 0 = -5 V)</td><td class="sub">JF.RUN</td><td>the RUN voltage</td></tr>
+<tr><td><code>,o</code></td><td>run mode</td><td class="sub">1 / 0</td><td class="sub">JF.RMODE</td><td>RUN mode on / off</td></tr>
+<tr><td><code>,m</code></td><td>synthesis mode</td><td class="sub">1 / 0</td><td class="sub">JF.MODE</td><td>synthesis mode on (needed for ,n ,p ,v) / off</td></tr>
+<tr><td><code>,d</code></td><td>god mode</td><td class="sub">1 / 0</td><td class="sub">JF.GOD</td><td>tuning: A = 432 Hz on / off</td></tr>
+<tr><td><code>,j</code></td><td>tune</td><td class="sub">channel, numerator, denominator</td><td class="sub">JF.TUNE</td><td>a voice&#x27;s just-intonation ratio (e.g. ,j132 = 3/2)</td></tr>
+<tr><td><code>,q</code></td><td>quantize</td><td class="sub">divisions 0-w (0 = off)</td><td class="sub">JF.QT</td><td>quantize note timing to a division of the clock (Geode)</td></tr>
+<tr><td><code>,k</code></td><td>tick</td><td class="sub">W: 1-48 = beats per measure, 49-255 = BPM</td><td class="sub">JF.TICK</td><td>clock Just Friends&#x27; Geode mode</td></tr>
+<tr><td><code>,a</code></td><td>address</td><td class="sub">1 / 2</td><td class="sub">JF.ADDR</td><td>set the Just Friends&#x27; own address (1 = 0x70, 2 = 0x75)</td></tr>
+<tr><td><code>,e</code></td><td>select</td><td class="sub">1 / 2</td><td class="sub">JF.SEL</td><td>which Just Friends the other , functions talk to</td></tr>
+<tr><td><code>,x</code></td><td>poly reset</td><td class="sub">-</td><td class="sub">JF.POLY.RESET</td><td>start JF.POLY&#x27;s voice count again</td></tr>
+<tr><td><code>,g</code></td><td>read</td><td class="sub">a letter: s speed, t mode, r ramp, c curve, f fm, i time, o intone</td><td class="sub">below</td><td>read a setting (Just Friends firmware 4): s 0 shape / 1 sound, t 0 transient / 1 sustain / 2 cycle; knobs as 0-z (0-10 V)</td></tr>
+</table>
+<h3>COMMANDS</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>$</code></td><td>command</td><td class="sub">the text on its right</td><td class="sub">-</td><td>runs a command when banged; $bpm: and $apm: also work without a bang</td></tr>
+<tr><td><code>$bpm:N</code></td><td>tempo</td><td class="sub">60-300</td><td class="sub">-</td><td>tempo in BPM (4 frames per beat)</td></tr>
+<tr><td><code>$apm:N</code></td><td>tempo (apm)</td><td class="sub">15-75</td><td class="sub">-</td><td>apm x 4 = bpm, as in Seaflake</td></tr>
+<tr><td><code>$play</code></td><td>play</td><td class="sub">-</td><td class="sub">-</td><td>start the clock</td></tr>
+<tr><td><code>$stop</code></td><td>stop</td><td class="sub">-</td><td class="sub">-</td><td>stop the clock</td></tr>
+<tr><td><code>$frame:N</code></td><td>frame</td><td class="sub">N</td><td class="sub">-</td><td>set the frame counter ($skip:N / $rewind:N move it)</td></tr>
+<tr><td><code>$pulse:N</code></td><td>pulse</td><td class="sub">1-250</td><td class="sub">-</td><td>trigger pulse length in ms for all trigger operators (default from the ports config, 20)</td></tr>
+<tr><td><code>$script:N</code></td><td>script</td><td class="sub">1-8, 9 = metro, 10 = init</td><td class="sub">-</td><td>run Teletype script N ($s:N)</td></tr>
+<tr><td><code>$patch:N</code></td><td>patch</td><td class="sub">1-32</td><td class="sub">-</td><td>load patch slot N onto the grid ($p:N), for chaining patches</td></tr>
+</table>
+<h3>OMITTED</h3>
+<table><tr><th>Glyph</th><th>Name</th><th>Inputs</th><th>Outputs</th><th>What it does</th></tr>
+<tr><td><code>TR/CV ops</code></td><td>teletype scripting</td><td class="sub">-</td><td class="sub">-</td><td>TR.*, CV.*, M, PN, etc. run inside Teletype scripts ($script:N or F1-F10), never as grid operators; there are no Teletype script screens</td></tr>
+</table>
+
+<h2 id="check">17. Hardware test checklist</h2>
+<p>These have been checked in the emulator and tests. They still need a run on your actual modules:</p>
+<ol>
+  <li>The module starts in the grid. Type <code>D4</code>, then on the next row one cell right <code>:04C</code> (so the <code>:</code> is beside D's bang), press <kbd>space</kbd>. The Disting EX in a MIDI-receiving algorithm, or a synth on its MIDI out, plays C on channel 1.</li>
+  <li>Change the <code>:</code> to <code>"</code> with output <code>1</code> (<code>"14C</code>): TR 1 pulses 20 ms and CV 1 reads 4.00 V on a meter. <code>"14E</code> → 4.33 V.</li>
+  <li><code>"a4C</code>: ER-301 port 1 (an SC.TR / SC.CV unit) gets the pulse and the CV.</li>
+  <li><code>&gt;v03z</code> next to a bang moves parameter 3 of the Disting EX's algorithm to max; <code>&gt;p030a</code> sets it to 10 (check the Disting's display). <code>&gt;qr1</code> toggles looper record. <code>&lt;p01</code> pulses ER-301 port 1.</li>
+  <li>With SD Multisample on the Disting EX (I²C address 65): <code>D4</code>, then <code>.&gt;n4C</code> on the next row (one cell right) plays C4 <b>(checked on the module, 20 Nov 2026)</b>; <code>&gt;@4Cf141</code> plays a quick run of four. With <code>`</code> above <code>&gt;l05</code> saved in a patch, power-cycle: preset 5 is loaded.</li>
+  <li><code>-1</code> pulses TR 1 only (CV 1 does not move); <code>_14E</code> sets CV 1 to 4.33 V and pulses TR 1; <code>}1141</code> gives four pulses on TR 1 within a frame (pulses closer than <code>$pulse</code> merge).</li>
+  <li>Press <kbd>esc</kbd>, <kbd>alt</kbd>+<kbd>esc</kbd>, <kbd>tab</kbd>, F11, F12, the front button, plug a USB stick in and out: the module never shows a Teletype screen (LIVE, EDIT, PATTERN, SCENE). The front button shows LOAD PATCH; PARAM picks, the button loads.</li>
+  <li>The startup preset from the Flash window: set it, flash, power-cycle with the Disting EX on: the preset loads once.</li>
+  <li><code>$bpm:90</code> on the grid sets 90 BPM. <code>$pulse:50</code> lengthens the pulses.</li>
+  <li>Save to P02, power-cycle, and the patch comes back.</li>
+  <li><kbd>ctrl</kbd>+<kbd>i</kbd> lists your Disting EX (with its algorithm number) and ER-301. WRITE TO USB, then <kbd>cmd</kbd>+<kbd>I</kbd> in the app shows the same units, and the Flash window's ports table shows the module's last scan.</li>
+  <li>Move the cursor across <code>&gt;n4C</code>: the bottom line reads EX N, EX OCTAVE, EX NOTE, EX VELOCITY.</li>
+  <li>Build a 2-slot song and play it; the slots change at LEN × MUL frames.</li>
+  <li>Run a busy patch next to your normal scripts and listen for timing problems. The CPU load on the real module has not been measured yet.</li>
+</ol>
+
+<h2 id="how">18. How it is built, limits</h2>
+<ul>
+  <li><b>Source:</b> the <code>teletype/</code> folder of <code>github.com/femifleming/orca_seaflake</code>, a clone of monome/teletype. New files: <code>src/seaflake/</code> (engine <code>sf_core.c</code>, Disting EX / ER-301 bridge <code>sf_ii.c</code>), <code>module/seaflake_mode.c</code> (screen + keys), <code>module/seaflake_help.c</code> (help), <code>module/sf_flash.c</code> + <code>module/seaflake.lds</code> (storage), <code>src/seaflake/sf_config.c</code> (the ports block), <code>emu/</code> (the app: <code>App.swift</code>, <code>Flash.swift</code> over <code>tt_emu.c</code>), <code>docs/manual/</code> (this manual, <code>make.py</code>, and the tables the app's help is made from: <code>ops.tsv</code>, <code>keys.tsv</code>, <code>flashing.txt</code>), <code>tests/seaflake/</code>. <code>module/sf_ui.c</code> (which screen shows, and where keys, the front button and the knob go; shared with the emulator). Changed: <code>module/main.c</code>, <code>module/globals.h</code>, <code>module/usb_disk_mode.c</code> (reads SFPATCH.TXT back, returns to the grid), and the Makefiles. How the stock firmware works underneath, and what was found while reworking it: <code>docs/reverse-engineering.md</code>.</li>
+  <li><b>Making room:</b> the stock firmware has only ~4 KB of flash left. The op-name matcher that Ragel generates took 64 KB, and it was replaced by a 432-byte lookup over Teletype's own op table. It gives the same answer as the old matcher on all 3 million test strings, and Teletype's 60-test suite passes (928,970 assertions). Teletype's 37 KB op-reference help was replaced by the Seaflake help. Together that made room for Seaflake and 37 KB of patch/song storage. The firmware now puts <b>261578 bytes</b> into the 512 KB chip (49%): the program area below the ports block at 0x80044C00 is 275 KB, of which 255 KB is used and about 19 KB is free; the rest of the chip is the 37 KB patch area and the Teletype's own 256 KB scene area. RAM: about 57 KB of the 96 KB is static data and bss; the rest is heap and the 8 KB stack.</li>
+  <li><b>Screensavers:</b> four dreams are built in (<code>module/dreams/</code>, picked by <code>module/dream.c</code>); they share one 3 KB primitive list. The older train dream (<code>module/dreams/train.c</code>) is not in the set.</li>
+  <li><b>Build:</b> firmware: <code>cd module &amp;&amp; make</code> inside the <code>dewb/monome-build</code> Docker image (<code>dist/orca-seaflake-teletype.hex</code> + its <code>.sha256</code>). App: <code>cd emu &amp;&amp; make install</code>. Manual + README tables: <code>python3 docs/manual/make.py</code>. Tests: <code>cd emu &amp;&amp; make test</code> (212 end-to-end checks, including every example layout in this manual and the module's help: MIDI and I²C bytes against the stock ops, every <code>&gt;</code>/<code>&lt;</code> function, all 96 EX/SC ops reachable, triggers, CV, gates, <code>$pulse</code>, shaped runs, tempo, patches, songs, timing, inlet names, the I²C scan with devices present / absent / late / a dead bus, the startup preset, loadbang, esc in every state, the front button, the USB report round trip, the ports block, the Disting EX address) and <code>tests/seaflake/compare.sh</code> (JS vs C engine).</li>
+  <li><b>The I²C bus</b> (fixed on the real module, 20 Nov 2026): the stock Teletype tells its I²C driver the chip runs at 12 MHz while it runs at 60 MHz, so its "100 kHz" bus really runs near 500 kHz. Orca Seaflake sets it up itself: a true 100 kHz, the chip's pull-ups on, a check of both lines at power-on, and the standard recovery for a stuck bus. A message that times out no longer jams the driver for good (the stock driver stays "busy" forever after one): the bus is reset and the message sent once more.</li>
+  <li><b>Limits:</b> up to 16 MIDI notes held at once (the shortest is cut when full), 16 mono channels, 6 bursts (<code>~</code>) and 6 shaped runs (<code>@</code> / <code>{</code> / <code>}</code> / <code>&gt;@</code>) at a time. Trigger pulses closer together than <code>$pulse</code> merge into one. Values read back by <code>&gt;</code> are clamped to 0–35. Trigger/CV outputs are 1–4 and a–z.</li>
+  <li><b>Pilot:</b> <code>;</code> messages (your Pilot commands) have nowhere to go on the Teletype. Pilot Sealflake on the Mac still gets them from Orca Seaflake on the Mac.</li>
+  <li><b>Timing:</b> frames come from a 1 ms timer (±1 ms of jitter). Bursts and shaped runs are timed to the millisecond. MIDI goes out the moment a note's frame runs (Seaflake's terminal version sends it one frame later).</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+glyph	group	name	inputs	outputs	what it does
+A	ORCA	add	left, right	below	left + right (base-36 glyph arithmetic)
+B	ORCA	subtract	left, right	below	|right - left|
+C	ORCA	clock	left rate (min 1), right modulo (default 8)	below	frame / rate mod modulo
+D	ORCA	delay	left rate, right modulo (default 8)	bang below	bangs every rate x modulo frames
+E	ORCA	east	-	-	moves east one cell a frame; bangs when blocked
+N	ORCA	north	-	-	moves north one cell a frame; bangs when blocked
+S	ORCA	south	-	-	moves south one cell a frame; bangs when blocked
+W	ORCA	west	-	-	moves west one cell a frame; bangs when blocked
+F	ORCA	if	left, right	bang below	bangs when left and right are the same glyph
+G	ORCA	generator	left 3 = x, left 2 = y, left 1 = length; cells on the right	cells at x, y+1	copies the cells on its right to the offset
+H	ORCA	halt	-	-	stops the operator below from running
+I	ORCA	increment	left step (default 1), right modulo	below	adds step to the value below, mod modulo
+J	ORCA	jumper	above	below	copies the glyph above to below
+Y	ORCA	jymper	left	right	copies the glyph on its left to its right
+K	ORCA	konkat	left = count; variable names on the right	below each name	reads that many variables, writes their values below
+L	ORCA	lesser	left, right	below	the smaller of left and right
+M	ORCA	multiply	left, right	below	left x right
+O	ORCA	read	left 2 = x, left 1 = y	below	the cell at that offset
+P	ORCA	push	left 2 = key, left 1 = length, right = value	row below	writes the value into one cell of a row below, keyed
+Q	ORCA	query	left 3 = x, left 2 = y, left 1 = length	cells below	copies that many cells from the offset to below
+R	ORCA	random	left min, right max (default 36)	below	a random value in the range
+T	ORCA	track	left 2 = key, left 1 = length; cells on the right	below	picks one of the cells on its right (the picked cell is lit)
+U	ORCA	uclid	left steps (default 1), right length (default 8)	bang below	Euclidean rhythm bangs
+V	ORCA	variable	left = name to write, right = value (or name to read)	below when reading	writes or reads a variable
+X	ORCA	write	left 2 = x, left 1 = y, right = value	cell at x, y+1	writes the value at the offset
+Z	ORCA	lerp	left rate (default 1), right target	below	moves the value below toward the target
+*	ORCA	bang	-	the operators touching it	a one-frame bang, then disappears
+#	ORCA	comment	-	-	stops the rest of the row (up to the next #)
+a-z	ORCA	passive	-	-	a lowercase operator only runs when banged (as in Orca)
+^	SEAFLAKE	probability	right = chance (default i = 18/35)	bang below	passes a bang below at random
+&	SEAFLAKE	phase clock	left rate (default 1), right length (default 4), above = step (default 0)	bang below	bangs on that step of the cycle
+~	SEAFLAKE	burst	right: repeats (default 4), division, multiplication	bangs below	when banged, plays that many bangs one frame x div / mul apart, in real time
+|	SEAFLAKE	mute block	left 2 width (default 8), left 1 height (default 4)	the block below	each bang hashes the block out with # or brings it back
++	SEAFLAKE	scale	left = variable name (default 0), right 12 cells = 1 / 0 for C C# D ... B (default C major)	the variable	defines a scale for ) and ]
+;	SEAFLAKE	udp	cells on the right	-	Seaflake's UDP message (Pilot): kept so patches load, sends nothing on the module
+=	SEAFLAKE	osc	cells on the right	-	Seaflake's OSC message: kept so patches load, sends nothing on the module
+:	MIDI VIA DISTING EX	note	channel 0-f, octave 0-8, note, velocity (default f), length in frames (default 1)	EX.M.N# ... EX.M.NO#	note on through the Disting EX's MIDI out; note off when the length is up
+%	MIDI VIA DISTING EX	mono note	same as :	EX.M.N# / EX.M.NO#	a new note on the channel cuts the old one
+!	MIDI VIA DISTING EX	CC	channel, controller 0-z, value 0-z (scaled to 0-127)	EX.M.CC#	control change
+?	MIDI VIA DISTING EX	pitch bend	channel, LSB 0-z, MSB 0-z (each scaled to 0-127)	EX.M.CH + EX.M.PB	pitch bend (the EX.M.CH channel is put back after)
+(	MIDI VIA DISTING EX	just note	channel (default 0), octave (default 4), note, velocity, length	EX.M.PB + EX.M.N#	a bend to the just-intonation ratio, the note, then the bend is reset
+)	MIDI VIA DISTING EX	scale note	channel, octave, degree (1-based), scale variable (from +), velocity, length	EX.M.N#	the note at that degree of the scale
+@	MIDI VIA DISTING EX	shaped note	channel, octave, note, velocity, shape 1-4, repeats, duration in frames, pulse width	EX.M.N# / EX.M.NO# run	a run of notes spaced by the shape, in real time
+"	TRIGGER + CV	trig note	output 1-4 / a-z, octave, note, velocity, length in pulses (default 1 = 20 ms)	TR + CV (TT jacks) or SC.TR.P + SC.CV (ER-301)	pitch CV at 1 V/octave + a pulse
+/	TRIGGER + CV	gate note	output, octave, note, velocity, length in frames	TR + CV / SC.TR + SC.CV	pitch CV + a gate held high for that many frames
+'	TRIGGER + CV	CV level	output, slew in pulses, level 0-z = 0-10 V	CV / SC.CV.SLEW + SC.CV	sets a CV level only (for modulation); the trigger is not fired
+\	TRIGGER + CV	CV bend	output, LSB, MSB (as ?)	CV / SC.CV	bends that output's pitch CV by up to +-2 semitones; CV only, no trigger
+[	TRIGGER + CV	just trig	output (default 1), octave (default 4), note, velocity, length in pulses	TR + CV / SC.TR.P + SC.CV	pitch CV tuned to the just-intonation ratio + a pulse
+]	TRIGGER + CV	scale trig	output, octave, degree, scale variable, velocity, length in pulses	TR + CV / SC.TR.P + SC.CV	pitch CV for that scale degree + a pulse
+{	TRIGGER + CV	shaped trig	output, octave, note, velocity, shape, repeats, duration, pulse width	TR + CV / SC.TR.P + SC.CV	the same shaped run as @, as pulses
+-	TRIGGER + CV	trigger	output 1-4 / a-z	TR (TT jacks) or SC.TR.TIME + SC.TR.PULSE (ER-301)	trigger only: one pulse, $pulse ms long; no CV, no other inlets. Bang it from beside: D4 then .-1 on the next row
+_	TRIGGER + CV	trigger + CV	output, octave (default 4), note	TR + CV / SC.TR.PULSE + SC.CV	pitch CV at 1 V/octave + one pulse ($pulse ms); only the inlets needed (no velocity, length or slew)
+}	TRIGGER + CV	shaped trigger	output (default 1), shape 1-4, repeats, duration in frames, pulse width (shape 4 spacing)	TR / SC.TR.PULSE	@'s run of steps (same timing, repeats and division) as pulses only: no CV, octave, note, velocity or channel; each pulse $pulse ms
+`	TRIGGER + CV	loadbang	-	bang below	bangs once on the first frame after a patch loads (power-on, ctrl+o, $patch:N, a song changing patch); at power-on it waits until the Disting EX has answered (up to 30 s). Put a Disting operator on the next row one cell right, where the bang lands beside it: ` then .>l05
+>	DISTING EX	disting ex	a function letter, then its operand cells (the >x rows)	I2C to the Disting EX the scan found (EX.* ops)	one Disting EX function when banged; >x is one operator: > then the letter. No unit or channel cells: the Disting EX is found by the I2C scan. Readers write their answer below
+>n	DISTING EX	N (note)	octave (default 4), note, velocity (default f)	EX.NOTE, then EX.NOTE.O one frame later	plays a note on the Disting EX's voices: octave, note and velocity only (typed >N or >n)
+>@	DISTING EX	N@ (note with @)	octave, note, velocity, shape 1-4, repeats, duration, pulse width	EX.NOTE / EX.NOTE.O run	N with everything @ has except the channel: a shaped run of notes at @'s exact times
+>p	DISTING EX	parameter (EX.P)	param W, value W, side	below when reading	parameter to an exact value, as EX.P (EX.PARAM / P1 / P2); value empty = read it
+>v	DISTING EX	parameter level (EX.PV)	param W, lvl, side	-	parameter to a level 0-z across its min..max, as EX.PV (PV1 / PV2)
+>i	DISTING EX	parameter min	param W, side	below	read the parameter's minimum (EX.MIN...)
+>j	DISTING EX	parameter max	param W, side	below	read the parameter's maximum (EX.MAX...)
+>l	DISTING EX	load preset	preset W, side	below when reading	load a preset (EX.PRESET / PRE1 / PRE2); preset empty = read the current one
+>s	DISTING EX	save preset	preset W, side	-	save as preset (EX.SAVE / SAVE1 / SAVE2)
+>r	DISTING EX	reset	-	-	reset the preset (EX.RESET)
+>a	DISTING EX	algorithm	n, side, n (side 3: both)	below when reading	algorithm (EX.ALG / A1 / A2 / A12); empty = read it
+>z	DISTING EX	z knob	knob 1 / 2, lvl	-	Z knob to a level (EX.Z1 / Z2); level empty = give the knob back (EX.ZO1 / ZO2)
+>c	DISTING EX	controller	n, lvl	-	I2C controller n to a level (EX.CTRL)
+>k	DISTING EX	note channel	n	-	the channel N and >o use (EX.CH; 1 until changed)
+>d	DISTING EX	note on, channel	n, N, vel	-	note on for one channel (EX.N#; empty channel = EX.NOTE)
+>o	DISTING EX	note off	n, N	-	note off (EX.NOTE.O / EX.NO#)
+>x	DISTING EX	all notes off	-	-	EX.ALLOFF
+>w	DISTING EX	voice	n, N, vel	-	play voice n (EX.VOX); velocity 0 = voice off (EX.VOX.O)
+>f	DISTING EX	voice pitch	n, N	-	set voice n's pitch only (EX.VOX.P)
+>t	DISTING EX	trigger voice	n, vel	-	trigger voice n, for SD Triggers (EX.TV / EX.T)
+>e	DISTING EX	record	n (1 / 0)	-	WAV recorder record start / stop (EX.REC)
+>y	DISTING EX	play	n (1 / 0)	-	WAV recorder play start / stop (EX.PLAY)
+>g	DISTING EX	augustus pitch	N	-	Augustus Loop pitch (EX.AL.P)
+>h	DISTING EX	augustus clock	-	-	Augustus Loop clock (EX.AL.CLK)
+>q	DISTING EX	looper	act, n	below for s / i / j	looper n: r record, p play, c clear, v reverse, d octave down; s state, i reversed?, j down? (EX.LP.*)
+>m	DISTING EX	midi out	act, W, W	-	MIDI out: p program, c clock, s start, t stop, o continue, h channel, n note on, f note off, e CC, w bend (EX.M.*)
+>b	DISTING EX	select bus	act, W, W	-	Select Bus: n note on, f note off, e CC, w bend, p program, c clock, s start, t stop, o continue, h channel (EX.SB.*)
+<	ER-301	er-301	selector cell, then port (W) and operands (see the < selectors)	I2C to the ER-301 (SC.* ops)	runs one ER-301 function when banged
+<p	ER-301	pulse	port	SC.TR.PULSE	pulse the trigger
+<t	ER-301	trigger	port, n	SC.TR	set the trigger to 0 / 1
+<g	ER-301	toggle	port	SC.TR.TOG	toggle the trigger
+<l	ER-301	polarity	port, n	SC.TR.POL	trigger polarity
+<m	ER-301	pulse ms	port, W	SC.TR.TIME	pulse length in ms (0k = 20 ms)
+<c	ER-301	cv level	port, lvl	SC.CV	CV level, 0-z = 0-10 V
+<n	ER-301	cv note	port, N	SC.CV	CV pitch from a note, 1 V/octave (4C = 4 V)
+<s	ER-301	cv set	port, lvl	SC.CV.SET	CV level now, without slew
+<o	ER-301	cv offset	port, lvl	SC.CV.OFF	CV offset
+<w	ER-301	cv slew	port, W	SC.CV.SLEW	CV slew in ms
+,	JUST FRIENDS	just friends	a function letter, then its operand cells (the ,x rows)	I2C to Just Friends at 0x70 (JF.* ops)	one Just Friends function when banged, as Teletype's JF.* op. Notes: octave 4 C = 0 V = Just Friends' own pitch (octave 3 a volt down). Velocity 0-g = 0-8 V, empty = a = 5 V. Channel 1-6, 0 = all six, 7-c = the second Just Friends, empty = 1
+,n	JUST FRIENDS	note	octave (default 4), note, velocity (default a)	JF.NOTE	a note on the next free voice (Just Friends in synthesis mode, ,m1); no note off: its envelope ends the note
+,@	JUST FRIENDS	note with @	octave, note, velocity, shape 1-4, repeats, duration, pulse width	JF.NOTE run	JF.NOTE as @'s shaped run of notes, in real time
+,p	JUST FRIENDS	poly note	octave, note, velocity	JF.POLY	a note across two Just Friends (12 voices, JF.POLY); ,x starts the count again (JF.POLY.RESET)
+,v	JUST FRIENDS	voice	channel, octave, note, velocity	JF.VOX	play one voice at a pitch
+,f	JUST FRIENDS	voice pitch	channel, octave, note	JF.PITCH	set one voice's pitch without playing it
+,r	JUST FRIENDS	velocity trigger	channel, velocity	JF.VTR	trigger a voice at a velocity
+,t	JUST FRIENDS	trigger	channel, state (empty = a pulse)	JF.TR	the voice's trigger input to 1 / 0; state empty = 1, then 0 one $pulse later (a trigger)
+,s	JUST FRIENDS	shift	octave, note (4C = 0)	JF.SHIFT	transpose the whole instrument
+,u	JUST FRIENDS	run	level 0-z (i = 0 V, 0 = -5 V)	JF.RUN	the RUN voltage
+,o	JUST FRIENDS	run mode	1 / 0	JF.RMODE	RUN mode on / off
+,m	JUST FRIENDS	synthesis mode	1 / 0	JF.MODE	synthesis mode on (needed for ,n ,p ,v) / off
+,d	JUST FRIENDS	god mode	1 / 0	JF.GOD	tuning: A = 432 Hz on / off
+,j	JUST FRIENDS	tune	channel, numerator, denominator	JF.TUNE	a voice's just-intonation ratio (e.g. ,j132 = 3/2)
+,q	JUST FRIENDS	quantize	divisions 0-w (0 = off)	JF.QT	quantize note timing to a division of the clock (Geode)
+,k	JUST FRIENDS	tick	W: 1-48 = beats per measure, 49-255 = BPM	JF.TICK	clock Just Friends' Geode mode
+,a	JUST FRIENDS	address	1 / 2	JF.ADDR	set the Just Friends' own address (1 = 0x70, 2 = 0x75)
+,e	JUST FRIENDS	select	1 / 2	JF.SEL	which Just Friends the other , functions talk to
+,x	JUST FRIENDS	poly reset	-	JF.POLY.RESET	start JF.POLY's voice count again
+,g	JUST FRIENDS	read	a letter: s speed, t mode, r ramp, c curve, f fm, i time, o intone	below	read a setting (Just Friends firmware 4): s 0 shape / 1 sound, t 0 transient / 1 sustain / 2 cycle; knobs as 0-z (0-10 V)
+$	COMMANDS	command	the text on its right	-	runs a command when banged; $bpm: and $apm: also work without a bang
+$bpm:N	COMMANDS	tempo	60-300	-	tempo in BPM (4 frames per beat)
+$apm:N	COMMANDS	tempo (apm)	15-75	-	apm x 4 = bpm, as in Seaflake
+$play	COMMANDS	play	-	-	start the clock
+$stop	COMMANDS	stop	-	-	stop the clock
+$frame:N	COMMANDS	frame	N	-	set the frame counter ($skip:N / $rewind:N move it)
+$pulse:N	COMMANDS	pulse	1-250	-	trigger pulse length in ms for all trigger operators (default from the ports config, 20)
+$script:N	COMMANDS	script	1-8, 9 = metro, 10 = init	-	run Teletype script N ($s:N)
+$patch:N	COMMANDS	patch	1-32	-	load patch slot N onto the grid ($p:N), for chaining patches
+TR/CV ops	OMITTED	teletype scripting	-	-	TR.*, CV.*, M, PN, etc. run inside Teletype scripts ($script:N or F1-F10), never as grid operators; there are no Teletype script screens
