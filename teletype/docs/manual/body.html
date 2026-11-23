@@ -116,10 +116,16 @@ D4          wrong:  the * lands ON the &gt; and erases it, nothing is sent
 <figure style="width:62%"><img src="img/help_oled.png"><figcaption>alt-h: help on the module (up/down to scroll)</figcaption></figure>
 
 <h3>The screensaver: a dream</h3>
-<p>After <b>5 minutes</b> without a key, the screen dreams. It is the dream of <b>18 May 2026</b> from <i>femishonuga.com/dd.html</i>: the elevator shot up to the floor, then shot into the night sky and soared through trees lit by flashlights.</p>
+<p>After <b>5 minutes</b> without a key, the screen dreams: each time, one of four dreams from <i>femishonuga.com</i>, picked at random and never the same one twice in a row.</p>
 <img src="img/dream_strip.png" style="width:100%;margin:2mm 0">
-<p class="cap">The car rising in the shaft; the shaft falling away; out over the treeline under the stars, flashlight beams sweeping up.</p>
-<p>First the shaft: the car rising, floor marks streaming down past it. Then the shaft falls away and the car glides, small, over a treeline under the stars, while flashlight beams sweep up from the ground. One pass takes two and a half minutes; each pass is a different forest. It is drawn as <b>sparse line art</b>: outlines and dotted lines only, no filled areas, never more than 32 lit pixels in a row (drawn in full shades, an earlier dream glitched the module's screen), and the firmware sends the screen controller its whole setup again before every frame. It keeps dreaming until you come back: any key, the knob or the front button wakes it and the grid is redrawn, and the grid keeps playing the whole time. <kbd>alt</kbd>+<kbd>d</kbd> starts it at once. Three more dreams are in <code>module/dreams/</code>: remove <code>#define DREAM_ONLY 3</code> from <code>module/dream.c</code> and the screensaver picks one of the four at random each time.</p>
+<p class="cap">The elevator into the night, one of the four.</p>
+<ul>
+<li><b>Golden geometries</b> (dd.html, 21 June 2021): sunlight through shattered warehouse windows, slanted shapes of light sliding over a broken tile floor as the sun crosses, dust turning in the beams.</li>
+<li><b>The maintenance train</b> (lbse.html, 4 August 2026): looking down a dark tunnel; every 45 seconds the train comes out of the far end, its white lights blinking, and each toll of its bell spreads a ring that fades.</li>
+<li><b>The street becomes a lake</b> (dd.html, 20 September 2014): rain over a low skyline, rings opening on the water, lily pads drifting, and a car gliding across them with its headlight on the water.</li>
+<li><b>The elevator into the night</b> (dd.html, 18 May 2026): the car rising up its shaft, then gliding over a treeline under the stars while flashlight beams sweep up.</li>
+</ul>
+<p>All four are drawn as <b>sparse line art</b>: outlines and dotted lines only, no filled areas, never more than 32 lit pixels in a row (drawn in full shades, an earlier dream glitched the module's screen), and the firmware sends the screen controller its whole setup again before every frame. Each drifts and changes from pass to pass, so nothing stays lit in one place. It keeps dreaming until you come back: any key, the knob or the front button wakes it and the grid is redrawn, and the grid keeps playing the whole time. <kbd>alt</kbd>+<kbd>d</kbd> starts one at once (press it again after waking for another).</p>
 
 <h2 id="orca">3. Orca operators</h2>
 <p>All the classic operators work exactly as in Orca Seaflake, including its defaults: a lone <code>D</code> bangs every 8 frames, a lone <code>C</code> counts 0–7, a lone <code>I</code> counts up by 1, and a lone <code>U</code> plays 1 of 8. Uppercase operators run every frame. Lowercase ones run only when a <code>*</code> touches them. Values are base 36: <code>0</code>–<code>9</code>, then <code>a</code>–<code>z</code> = 10–35.</p>

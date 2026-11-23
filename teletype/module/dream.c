@@ -11,7 +11,7 @@
 
 // DREAM_ONLY 0-3 builds in one dream only (the published firmware uses 3,
 // the elevator); left undefined, each start picks one of the four
-#define DREAM_ONLY 3
+// #define DREAM_ONLY 3
 
 #include <stdbool.h>
 #define DK_MULTI

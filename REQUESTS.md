@@ -100,3 +100,5 @@ Every request typed while this was being designed and built with Claude Code, in
 > just friends is over i2c to make sure that works.
 
 > i dont have just friends, so someone else will test it for me, just push it to the github and say that just freinds implementation is in beta. also my teletyre is on and in bootloader mode. my teletype does not need the just friends stuff, it can just have the new 4 random screensavers.
+
+> push the 4 random screensavers to github
