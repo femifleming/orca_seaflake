@@ -2,6 +2,10 @@
 
 Orca Seaflake's releases. For everything Seaflake adds to Orca, see [What Seaflake adds to Orca](docs/WHATS_NEW.md).
 
+## Teletype 0.1.0 beta
+
+New: [Orca Seaflake for Teletype](teletype/README.md), Orca Seaflake as firmware for the monome Teletype, with the Orca Seaflake TT Mac app (emulator, flasher, help). It plays the Teletype's TR/CV jacks, a Disting EX, an ER-301 and, new in this beta, Just Friends: the `,` operator reaches every Teletype `JF.*` op with Orca operand cells. Its screensaver is a dream: the elevator into the night. History of the firmware: [teletype/CHANGELOG.md](teletype/CHANGELOG.md).
+
 ## 0.10.4
 
 Terminal version. The desktop app is unchanged; Pilot Sealflake's macOS installer is fixed. (0.10.3 was tagged but never published: its release check failed.)

@@ -25,6 +25,7 @@ Ways to use it:
 - [Download Pilot Sealflake](#pilot-sealflake), the synth for Orca, for **macOS, Windows and Linux**.
 - [Use it in a terminal](#terminal-version) on **macOS, Windows, Linux and Raspberry Pi**.
 - [Run from source](#run-from-source) with Node.js.
+- [Run it on a monome Teletype](#on-a-monome-teletype-beta) (beta): Orca Seaflake as Eurorack firmware, playing a Disting EX, an ER-301 and Just Friends.
 
 New to Orca? Watch the [overview video](https://www.youtube.com/watch?v=RaI_TuISSJE) or a [tutorial](https://www.youtube.com/watch?v=ktcWOLeWP-g), and try the [example patches](patches/).
 
@@ -130,6 +131,18 @@ brew install --cask femifleming/tap/pilot-sealflake
 ```
 
 Start Pilot Sealflake, then in Orca write `;` with a Pilot command, for example `;04C` (channel 0, octave 4, C). Everything Pilot understands, including its Teletype and the Just Friends engine, is in the [Pilot Sealflake guide](pilot/README.md) and the [command reference](pilot/COMMANDS.md).
+
+### On a monome Teletype (beta)
+
+[`teletype/`](teletype/README.md) is Orca Seaflake as firmware for the monome Teletype Eurorack module: the grid, song mode and patches run on the module itself, and play the Teletype's TR/CV jacks, a Disting EX (MIDI and its functions), an ER-301 and Just Friends over I²C. A Mac app, **Orca Seaflake TT**, is its emulator, flasher and help.
+
+| File | What |
+| --- | --- |
+| [Orca-Seaflake-TT-macOS-arm64.zip](https://github.com/femifleming/orca_seaflake/releases/download/teletype-v0.1.0-beta/Orca-Seaflake-TT-macOS-arm64.zip) | the Mac app (Apple Silicon), with the firmware inside: unzip, drag to Applications, press `cmd`+`F` to flash |
+| [orca-seaflake-teletype.hex](https://github.com/femifleming/orca_seaflake/releases/download/teletype-v0.1.0-beta/orca-seaflake-teletype.hex) | the firmware on its own, for `dfu-programmer` |
+| [Orca-Seaflake-TT-Manual.pdf](https://github.com/femifleming/orca_seaflake/releases/download/teletype-v0.1.0-beta/Orca-Seaflake-TT-Manual.pdf) | the manual |
+
+With Homebrew: `brew install --cask femifleming/tap/orca-seaflake-tt`. Step-by-step install and flashing instructions: [teletype/README.md](teletype/README.md#install). It is a beta: back up your Teletype scenes first.
 
 ## Connect it to a synth
 
