@@ -10,6 +10,11 @@ with ctrl+I, the startup preset), the Seaflake area (0x80044E00: patches,
 songs, last scan, last patch) and Teletype's nvram (0x8004E000: scenes,
 calibration, the 'already started' flag, so no SCENES WILL BE OVERWRITTEN).
 
+Alt firmware (16 scenes + stock Teletype on alt+o): the new firmware's own
+code at 0x80066400 (where scenes 17-32 were) always comes from the new hex;
+only scenes 1-16 (0x8004E000-0x80066300) and the settings (0x8007E600) are
+kept. Works from a 32-scene dump too (scenes 17-32 are dropped).
+
 Safe only while the firmware keeps those addresses and their layouts
 (module/seaflake.lds, module/flash.c); the script checks the addresses in
 module/teletype.map against the ones below and refuses otherwise.
@@ -19,6 +24,9 @@ import re, sys
 BASE = 0x80000000
 KEEP_FROM = 0x80044C00   # ports block, Seaflake area, nvram: everything above
 DUMP_END = BASE + 0x7E800
+SCENES_END = 0x8004E000 + 16 * 6192   # 0x80066300
+META = (0x8007E600, 0x8007E600 + 304)  # .flash_meta
+CODE_HI = 0x80066400                   # .text_hi, from the new hex
 
 def load_hex(path):
     mem, hi = {}, 0
@@ -59,7 +67,8 @@ def check_map():
         m = open(__file__.rsplit('/tools/', 1)[0] + '/module/teletype.map').read()
     except OSError:
         return
-    want = {'.sf_config': 0x80044C00, '.flash_sf': 0x80044E00, '.flash_nvram': 0x8004E000}
+    want = {'.sf_config': 0x80044C00, '.flash_sf': 0x80044E00, '.flash_nvram': 0x8004E000,
+            '.text_hi': CODE_HI, '.flash_meta': META[0]}
     for sec, addr in want.items():
         g = re.search(r'^%s\s+0x([0-9a-f]+)' % re.escape(sec), m, re.M)
         if not g or int(g.group(1), 16) != addr:
@@ -73,12 +82,18 @@ def main():
         sys.exit('dump too short')
     if d[0x44C00:0x44C04] != b'SFCF':
         sys.exit('the module is not running Orca Seaflake (no ports block): flash normally')
-    mem = {a: v for a, v in load_hex(new).items() if a < KEEP_FROM}
-    for a in range(KEEP_FROM, DUMP_END):
+    new_mem = load_hex(new)
+    if not any(a >= CODE_HI for a in new_mem):
+        sys.exit('the new hex has no code at 0x80066400: not the alt firmware')
+    mem = {a: v for a, v in new_mem.items() if a < KEEP_FROM or a >= CODE_HI}
+    keep = list(range(KEEP_FROM, SCENES_END)) + list(range(*META))
+    for a in keep:
+        if a in mem:
+            sys.exit('new firmware has code at %08X inside a kept area' % a)
         v = d[a - BASE]
         if v != 0xFF:
             mem[a] = v
     write_hex(mem, out)
-    print('kept %d bytes of patches/songs/scenes/settings from the module' % sum(1 for a in mem if a >= KEEP_FROM))
+    print('kept %d bytes of patches/songs/scenes/settings from the module' % sum(1 for a in keep if a in mem))
 
 main()

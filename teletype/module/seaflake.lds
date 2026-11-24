@@ -70,6 +70,8 @@ PHDRS
   INTRAM PT_NULL;
   FLASH_NVRAM PT_LOAD;
   SF_CONFIG PT_LOAD;
+  FLASH_HI PT_LOAD;
+  FLASH_META PT_LOAD;
   USERPAGE PT_LOAD;
 }
 
@@ -131,7 +133,7 @@ SECTIONS
   .plt            : { *(.plt) } >FLASH AT>FLASH :FLASH
   .text           :
   {
-    *(.text .stub .text.* .gnu.linkonce.t.*)
+    *(EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .text EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .stub EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .text.* EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .gnu.linkonce.t.*)
     KEEP (*(.text.*personality*))
     /* .gnu.warning sections are handled specially by elf32.em.  */
     *(.gnu.warning)
@@ -143,7 +145,7 @@ SECTIONS
   PROVIDE (__etext = .);
   PROVIDE (_etext = .);
   PROVIDE (etext = .);
-  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) } >FLASH AT>FLASH :FLASH
+  .rodata         : { *(EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .rodata EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .rodata.* EXCLUDE_FILE(*live_mode.o *edit_mode.o *pattern_mode.o *preset_r_mode.o *preset_w_mode.o *line_editor.o) .gnu.linkonce.r.*) } >FLASH AT>FLASH :FLASH
   .rodata1        : { *(.rodata1) } >FLASH AT>FLASH :FLASH
   .eh_frame_hdr : { *(.eh_frame_hdr) } >FLASH AT>FLASH :FLASH
   .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) } >FLASH AT>FLASH :FLASH
@@ -295,6 +297,26 @@ SECTIONS
   } >FLASH AT>FLASH :FLASH_NVRAM
   /* Ensure nvdata storage hasn't been relocated due to program size overflow */
   ASSERT(ADDR(.flash_nvram) >= (LOADADDR(.data) + SIZEOF(.data)), ".data overflowed into .nvram!")
+  ASSERT(ADDR(.flash_nvram) == 0x8004E000, "Teletype scenes moved")
+  ASSERT(ADDR(.flash_nvram) + SIZEOF(.flash_nvram) <= ADDR(.text_hi), "scenes overlap the stock Teletype screens' code")
+  /* Alt firmware: the stock Teletype screens (alt+o) live in the flash that
+     Teletype scenes 17-32 used, between scene 16 and the settings block.
+     .text and .rodata exclude these files. */
+  .text_hi 0x80066400 :
+  {
+    *live_mode.o(.text .text.* .rodata .rodata.*)
+    *edit_mode.o(.text .text.* .rodata .rodata.*)
+    *pattern_mode.o(.text .text.* .rodata .rodata.*)
+    *preset_r_mode.o(.text .text.* .rodata .rodata.*)
+    *preset_w_mode.o(.text .text.* .rodata .rodata.*)
+    *line_editor.o(.text .text.* .rodata .rodata.*)
+  } >FLASH :FLASH_HI
+  /* the settings (calibration, first-run flag): where they followed 32
+     scenes, so a reflash from the 32-scene firmware keeps them */
+  .flash_meta 0x8007E600 (NOLOAD) : { *(.flash_meta) } >FLASH AT>FLASH :FLASH_META
+  ASSERT(ADDR(.text_hi) + SIZEOF(.text_hi) <= ADDR(.flash_meta), "stock Teletype screens' code overflowed into the settings block")
+  ASSERT(SIZEOF(.flash_meta) == 304, "settings block layout changed")
+  ASSERT(LOADADDR(.text_hi) == ADDR(.text_hi), ".text_hi must be flashed where it runs")
   .userpage       : { *(.userpage .userpage.*) } >USERPAGE AT>USERPAGE :USERPAGE
   /DISCARD/ : { *(.note.GNU-stack) }
 }

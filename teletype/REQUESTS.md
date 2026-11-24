@@ -424,3 +424,7 @@ Every request typed while Orca Seaflake for Teletype was designed and built with
 > i dont have just friends, so someone else will test it for me, just push it to the github and say that just freinds implementation is in beta. also my teletyre is on and in bootloader mode. my teletype does not need the just friends stuff, it can just have the new 4 random screensavers.
 
 > push the 4 random screensavers to github
+
+> does it have enouph space where i can switch between normal teletpe and orca on teletype?
+
+> make it 16 scenes and remove the tt help, and make it option+o to stwich back and forth,m test and then push to github, but also keep the version that i on github now, just have this as an alt version. keep the screensavers in teletype mode as well.

@@ -327,7 +327,7 @@ static uint32_t now_ms(void) {
     return (uint32_t)(mach_absolute_time() * tb.numer / tb.denom / 1000000ULL);
 }
 
-// --shot out.bmp patch.orca ms [song|load|help]: render one frame to a file
+// --shot out.bmp patch.orca ms [song|load|help|live|live:x|live:edit|live:read|live:pat]: render one frame to a file
 // (used to check the screens without a person at the keyboard)
 static int shot(int argc, char **argv, const char *dir, SDL_Window *win) {
     uint32_t t = 1000;
@@ -347,7 +347,16 @@ static int shot(int argc, char **argv, const char *dir, SDL_Window *win) {
     for (int i = 0; i < ms; i++) emu_tick(++t);
     if (argc > 5 && !strcmp(argv[5], "song")) emu_key(0x17, 0x01, false);  // ctrl-t
     if (argc > 5 && !strcmp(argv[5], "load")) emu_key(0x12, 0x01, false);  // ctrl-o
-    if (argc > 5 && !strcmp(argv[5], "live")) emu_key(0x12, 0x04, false);  // alt-o back
+    if (argc > 5 && !strncmp(argv[5], "live", 4)) {  // alt-o: the Teletype side
+        emu_key(0x12, 0x04, false);
+        if (!strcmp(argv[5], "live:x")) {  // type X 7 in the live screen
+            const uint8_t k[] = { 0x1B, 0x2C, 0x24, 0x28, 0x1B };
+            for (int i = 0; i < 5; i++) { emu_key(k[i], i == 0 || i == 4 ? 0x02 : 0, false); emu_key_release(k[i], 0); }
+        }
+        if (!strcmp(argv[5], "live:edit")) emu_key(0x2B, 0, false);   // tab
+        if (!strcmp(argv[5], "live:read")) emu_key(0x29, 0, false);   // esc
+        if (!strcmp(argv[5], "live:pat")) { emu_key(0x2B, 0, false); emu_key(0x2B, 0, false); }
+    }
     if (argc > 5 && !strcmp(argv[5], "help")) emu_key(0x0B, 0x04, false);  // alt-h
     if (argc > 5 && !strncmp(argv[5], "dream:", 6)) emu_set_idle (5 * 60 * 1000 + (uint32_t) atoi (argv[5] + 6));
     if (argc > 5 && !strcmp(argv[5], "scan")) emu_key(0x0C, 0x01, false);  // ctrl-i

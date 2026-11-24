@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-23 (alt version, branch tt-switch / teletype-alt)
+- alt+o (option+o) switches between Orca Seaflake and the stock Teletype screens (live, edit, pattern, scene read, scene write) from any screen, and back to the Teletype screen you left. On the Teletype side the stock keys work (tab, esc scene read, alt+esc scene write, alt+F1-F10 edit, F11/F12); none of them leads off it, so alt+o is always the way home. Orca keeps playing on the Teletype side; scripts, metro and triggers run on both. The user's request: "make it 16 scenes and remove the tt help, and make it option+o to switch back and forth".
+- 16 Teletype scenes (was 32). The stock screens' code (16 KB, .text_hi) lives at 0x80066400 where scenes 17-32 were; scenes 1-16 (0x8004E000), the settings block (0x8007E600: calibration, first-run flag), the ports block and the patch area keep their addresses, so a reflash keeps them (tools/keep_patches.py knows the new layout).
+- No stock Teletype help (alt+h does nothing on the Teletype side); Orca's help stays.
+- The screensaver covers both sides and wakes into the screen that was on; the USB stick menu returns to the side it started on.
+- The front button on the Teletype side: scene read, PARAM picks one of 16, press again to load. PARAM sets values in the pattern screen.
+- The app is "Orca Seaflake TT Alt" (own bundle id), so it installs next to the Orca-only app.
+- 271 emulator tests (alt+o from every Teletype screen after any two keys, typing in the live screen, scene read with the knob, the screensaver on the Teletype side, Orca playing behind Teletype).
+
 ## 2026-11-23
 - Just Friends in the I2C scan: one write-only byte (the JF.SPEED request, 0x8F, never read back) to 0x70 at power-on and on ctrl+I; ctrl+I shows JUST FRIENDS 70 FOUND / --, the power-on line says + JF, and every , message updates it.
 - The screensaver picks one of the four new dreams at random each time it starts, never the same one twice in a row (module/dream.c; they share dream_kit's primitive list, ~8 KB more program, no more RAM). The user's request: "is there enoupgh space for it to be a random one of those 4 screensavers each time?"

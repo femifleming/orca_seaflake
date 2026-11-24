@@ -1,7 +1,7 @@
 # Orca Seaflake for Teletype: the Mac app (emulator + flasher + help)
 #
 #   make            build the C core (libseaflake-emu.a) and the Swift app binary
-#   make app        build "Orca Seaflake TT.app" (hex, instructions and operator tables inside)
+#   make app        build "Orca Seaflake TT Alt.app" (hex, instructions and operator tables inside)
 #   make install    copy the app to /Applications
 #   make test       run the engine tests (emu/test_seaflake.c)
 #   make shot       the SDL render tool (seaflake-shot --shot out.bmp patch.orca ms [view]), needs sdl2
@@ -26,7 +26,7 @@ CORE_SRC = $(sort $(TT_SRC) $(ROOT)/src/scanner.c) tt_emu.c
 HDRS = $(wildcard *.h shim/*.h $(ROOT)/src/seaflake/*.h $(ROOT)/module/*.h)
 DOCS = $(ROOT)/docs/manual
 
-APP = Orca Seaflake TT.app
+APP = Orca Seaflake TT Alt.app
 SWIFT = swiftc -O -parse-as-library -target arm64-apple-macos13.0
 
 all: seaflake-tt

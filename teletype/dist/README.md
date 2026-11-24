@@ -18,7 +18,7 @@ Orca Seaflake replaces the Teletype firmware. Flashing erases the whole chip: sc
 ### Before you flash: back up
 
 1. Put a USB stick in the Teletype while it is running. The USB menu appears (on the stock firmware and on Orca Seaflake alike).
-2. Turn PARAM to WRITE TO USB and press the front-panel button. It saves all 32 scenes as tt00s.txt - tt31s.txt. If Orca Seaflake is already on the module it also writes SFSCAN.TXT (the I2C scan) and SFPATCH.TXT (patches + songs), which the emulator imports with cmd+I.
+2. Turn PARAM to WRITE TO USB and press the front-panel button. It saves all the scenes as tt00s.txt - tt31s.txt (this alt firmware keeps 16: tt00s - tt15s). If Orca Seaflake is already on the module it also writes SFSCAN.TXT (the I2C scan) and SFPATCH.TXT (patches + songs), which the emulator imports with cmd+I.
 3. The Disting EX and ER-301 can stay on the I2C bus while you flash.
 
 ### Step 1: put the Teletype in its bootloader
@@ -57,7 +57,7 @@ dfu-programmer at32uc3b0512 start
 2. The screen says SCENES WILL BE OVERWRITTEN / PRESS ONLY IF YOU ARE UPDATING FIRMWARE. Press the front-panel button once. That prepares the scene memory (the normal Teletype first-start step); Orca's patch memory is prepared by itself.
 3. The Orca Seaflake grid appears and the bottom line shows what the I2C scan found, for example FOUND DISTING EX. ctrl+I shows the Disting EX (0x41), the ER-301 (0x31), Just Friends (0x70), the bus and the message count; enter looks again.
 4. To get your Teletype scenes (their scripts run with $script:N and F1-F10) back: USB stick in, turn PARAM to READ FROM USB, press the front-panel button. The grid comes back by itself.
-5. Esc never leaves the grid: there are no Teletype screens in this firmware. The front-panel button opens LOAD PATCH (PARAM picks the slot, the button again loads it). To flash again, power off and use step 1: the bootloader is only reached by holding the button at power-on.
+5. Esc never leaves the grid; alt+o (option+o) switches to the stock Teletype screens and back. On the grid the front-panel button opens LOAD PATCH (PARAM picks the slot, the button again loads it). To flash again, power off and use step 1: the bootloader is only reached by holding the button at power-on.
 
 ### If something goes wrong
 

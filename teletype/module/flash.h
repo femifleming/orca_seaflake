@@ -7,7 +7,10 @@
 #include "line_editor.h"
 #include "teletype.h"
 
-#define SCENE_SLOTS 32
+// 16 Teletype scenes (stock: 32). The alt firmware (Orca + stock Teletype on
+// alt+o) puts the stock Teletype screens' code where scenes 17-32 were.
+// Scenes 1-16 and the settings keep their addresses (module/seaflake.lds).
+#define SCENE_SLOTS 16
 #define BUTTON_STATE_SIZE (GRID_BUTTON_COUNT >> 3)
 
 typedef struct {
@@ -23,14 +26,20 @@ typedef struct {
     char text[SCENE_TEXT_LINES][SCENE_TEXT_CHARS];
 } nvram_scene_t;
 
+// The scenes (.flash_nvram, 0x8004E000) and the settings (.flash_meta,
+// 0x8007E600: where they were after 32 scenes, so calibration and the
+// first-run flag survive the change) are two blocks.
 typedef struct {
     nvram_scene_t scenes[SCENE_SLOTS];
+} nvram_data_t;
+
+typedef struct {
     uint8_t last_scene;
     tele_mode_t last_mode;
     uint8_t fresh;
     cal_data_t cal;
     device_config_t device_config;
-} nvram_data_t;
+} nvram_meta_t;
 
 u8 is_flash_fresh(void);
 void flash_prepare(void);

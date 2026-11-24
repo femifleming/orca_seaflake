@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Orca Seaflake TT Manual</title>
+<title>Orca Seaflake TT Alt Manual</title>
 <style>
   @page { size: A4; margin: 16mm 15mm; }
   :root { --ink:#141414; --dim:#6b6b6b; --line:#d9d9d9; --cyan:#0f8f78; --amber:#b57b00; --bg:#f7f7f5; }
@@ -37,14 +37,15 @@
 
 <section class="cover">
   <div>
-    <h1>ORCA SEAFLAKE<br>FOR TELETYPE</h1>
-    <p class="sub">Firmware that turns the monome Teletype into Orca Seaflake: the grid, song mode, patches, MIDI through the Disting EX, triggers and CV out of the Teletype and the ER-301. Plus the Mac app Orca Seaflake TT: emulator, flasher and help in one.<br>
+    <h1>ORCA SEAFLAKE<br>FOR TELETYPE · ALT</h1>
+    <p class="sub">Firmware that turns the monome Teletype into Orca Seaflake: the grid, song mode, patches, MIDI through the Disting EX, triggers and CV out of the Teletype and the ER-301. Plus the Mac app Orca Seaflake TT Alt: emulator, flasher and help in one.<br><b>Alt version:</b> <kbd>alt</kbd>+<kbd>o</kbd> switches between Orca and the stock Teletype screens; 16 Teletype scenes instead of 32, no stock Teletype help.<br>
     Built on Teletype 5 (monome/teletype, commit e390bac). Version 0.2, 23 November 2026.</p>
   </div>
   <img src="img/app.png" alt="The app: emulator, outputs and I²C log">
   <div class="toc">
     <p><a href="#start">1. Quick start</a></p>
     <p><a href="#screen">2. The Seaflake screen and keys</a></p>
+    <p><a href="#tt">2b. The Teletype side (alt+o)</a></p>
     <p><a href="#orca">3. Orca operators</a></p>
     <p><a href="#seaflake">4. Seaflake operators</a></p>
     <p><a href="#midi">5. MIDI operators: through the Disting EX</a></p>
@@ -66,12 +67,12 @@
 
 <h2 id="start">1. Quick start</h2>
 <ol>
-  <li>Switch the Teletype on. It starts in the Orca Seaflake grid and <b>plays at once</b>: the last patch you saved or loaded, at the tempo it was saved with. If a song was playing when you last saved, that song plays instead. The whole module is the Orca: no scripts, no Teletype screens.</li>
+  <li>Switch the Teletype on. It starts in the Orca Seaflake grid and <b>plays at once</b>: the last patch you saved or loaded, at the tempo it was saved with. If a song was playing when you last saved, that song plays instead. <kbd>alt</kbd>+<kbd>o</kbd> (<kbd>option</kbd>+<kbd>o</kbd> on a Mac keyboard) switches to the stock Teletype screens and back.</li>
   <li>Type operators onto the grid. <kbd>space</kbd> stops and starts the clock.</li>
   <li><kbd>ctrl</kbd>+<kbd>s</kbd> saves the grid to one of 32 patch slots, <kbd>ctrl</kbd>+<kbd>o</kbd> loads one, <kbd>ctrl</kbd>+<kbd>t</kbd> opens song mode, and <kbd>alt</kbd>+<kbd>h</kbd> shows the operator help on the module itself.</li>
   <li>The Disting EX and the ER-301 are played by Orca operators: the MIDI operators (<code>: % ! ? ( ) @</code>), the trigger and CV operators (<code>- _ ' " / \ [ ] { }</code>), <b>N</b> (<code>&gt;n</code>: octave, note, velocity to the Disting EX's voices), and the other <code>&gt;</code> functions and <code>&lt;</code>, which reach every Disting EX and ER-301 function. The Disting EX is found on the I²C bus by itself.</li>
 </ol>
-<p class="sub">Orca Seaflake is the module's only runtime. There are no Teletype screens to fall into: <kbd>esc</kbd> only closes Orca's own pickers and views. Teletype scripts still run from <code>$script:N</code> and F1–F10, and a USB stick still gets the WRITE / READ menu.</p>
+<p class="sub">On the Orca side <kbd>esc</kbd> only closes Orca's own pickers and views; <kbd>alt</kbd>+<kbd>o</kbd> is the one way across to Teletype, and back (section 2b). Teletype scripts run from <code>$script:N</code> and F1–F10 on both sides, and a USB stick still gets the WRITE / READ menu.</p>
 <p>A first patch: the Teletype plays an arpeggio over MIDI through your Disting EX.</p>
 <pre>$bpm:120
 ..C4....
@@ -136,10 +137,16 @@ D4          wrong:  the * lands ON the &gt; and erases it, nothing is sent
 <tr><td><code>ctrl + i</code></td><td class="sub">grid</td><td>I2C: the Disting EX at 0x41 (algorithm, preset), the ER-301 at 0x31, the bus (pull-ups) and the message count; enter looks again</td></tr>
 <tr><td><code>alt + h</code></td><td class="sub">grid</td><td>help on the OLED: keys, every operator and selector</td></tr>
 <tr><td><code>alt + d</code></td><td class="sub">grid</td><td>start the screensaver now (any key, the knob or the front button wakes it)</td></tr>
-<tr><td><code>esc</code></td><td class="sub">grid</td><td>close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing)</td></tr>
-<tr><td><code>front button</code></td><td class="sub">module</td><td>LOAD PATCH: the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes</td></tr>
-<tr><td><code>PARAM knob</code></td><td class="sub">module</td><td>picks the slot while LOAD PATCH is open; always the Teletype PARAM value for scripts</td></tr>
-<tr><td><code>F1-F8 / F9 / F10</code></td><td class="sub">grid</td><td>run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script&#x27;s trigger input, ctrl + F9 metro on / off</td></tr>
+<tr><td><code>esc</code></td><td class="sub">grid</td><td>close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing there)</td></tr>
+<tr><td><code>alt + o</code></td><td class="sub">anywhere</td><td>switch between Orca Seaflake and the stock Teletype screens (option + o on a Mac keyboard). Back on the Teletype side you land on the screen you left; Orca keeps playing while Teletype is on show</td></tr>
+<tr><td><code>tab</code></td><td class="sub">Teletype</td><td>live -&gt; edit -&gt; pattern -&gt; live</td></tr>
+<tr><td><code>esc / alt + esc</code></td><td class="sub">Teletype</td><td>scene read (esc again goes back) / scene write: 16 scenes</td></tr>
+<tr><td><code>alt + F1-F8 / F9 / F10</code></td><td class="sub">Teletype</td><td>edit script 1-8 / metro / init</td></tr>
+<tr><td><code>F11 or num lock / F12 or print screen</code></td><td class="sub">Teletype</td><td>pattern screen / live screen</td></tr>
+<tr><td><code>alt + h</code></td><td class="sub">Teletype</td><td>nothing: the stock Teletype help is not in this firmware (it does not fit); Orca&#x27;s help (alt + h on the grid) is</td></tr>
+<tr><td><code>front button</code></td><td class="sub">module</td><td>Orca: LOAD PATCH, the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes. Teletype: scene read, PARAM picks, press again to load</td></tr>
+<tr><td><code>PARAM knob</code></td><td class="sub">module</td><td>picks the slot while LOAD PATCH is open, the scene in scene read, the value in the pattern screen; always the Teletype PARAM value for scripts</td></tr>
+<tr><td><code>F1-F8 / F9 / F10</code></td><td class="sub">both sides</td><td>run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script&#x27;s trigger input, ctrl + F9 metro on / off</td></tr>
 <tr><td><code>up / down, left / right</code></td><td class="sub">song view</td><td>choose the slot / the field (PAT, LEN, MUL, BPM)</td></tr>
 <tr><td><code>0-9</code></td><td class="sub">song view</td><td>type a number into the field (commits when you move)</td></tr>
 <tr><td><code>+ / - (or ] / [)</code></td><td class="sub">song view</td><td>field up / down</td></tr>
@@ -151,7 +158,7 @@ D4          wrong:  the * lands ON the &gt; and erases it, nothing is sent
 <tr><td><code>ctrl + s / ctrl + o</code></td><td class="sub">song view</td><td>save / load the song (8 song slots)</td></tr>
 <tr><td><code>ctrl + n</code></td><td class="sub">song view</td><td>new, empty song</td></tr>
 <tr><td><code>ctrl + t / esc</code></td><td class="sub">song view</td><td>back to the grid (the song keeps playing)</td></tr>
-<tr><td><code>WRITE TO USB</code></td><td class="sub">USB stick in the Teletype</td><td>writes the 32 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick</td></tr>
+<tr><td><code>WRITE TO USB</code></td><td class="sub">USB stick in the Teletype</td><td>writes the 16 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick</td></tr>
 <tr><td><code>READ FROM USB</code></td><td class="sub">USB stick in the Teletype</td><td>reads the scenes back, and the patches and songs from SFPATCH.TXT if the stick has one</td></tr>
 <tr><td><code>cmd + F</code></td><td class="sub">emulator</td><td>the Flash window: ports check, flashing, restore to stock</td></tr>
 <tr><td><code>cmd + I</code></td><td class="sub">emulator</td><td>import SFSCAN.TXT + SFPATCH.TXT from a USB stick in /Volumes (the module&#x27;s scan, patches and songs)</td></tr>
@@ -174,6 +181,16 @@ D4          wrong:  the * lands ON the &gt; and erases it, nothing is sent
 <li><b>The elevator into the night</b> (dd.html, 18 May 2026): the car rising up its shaft, then gliding over a treeline under the stars while flashlight beams sweep up.</li>
 </ul>
 <p>All four are drawn as <b>sparse line art</b>: outlines and dotted lines only, no filled areas, never more than 32 lit pixels in a row (drawn in full shades, an earlier dream glitched the module's screen), and the firmware sends the screen controller its whole setup again before every frame. Each drifts and changes from pass to pass, so nothing stays lit in one place. It keeps dreaming until you come back: any key, the knob or the front button wakes it and the grid is redrawn, and the grid keeps playing the whole time. <kbd>alt</kbd>+<kbd>d</kbd> starts one at once (press it again after waking for another).</p>
+
+<h2 id="tt">2b. The Teletype side (alt+o)</h2>
+<p><kbd>alt</kbd>+<kbd>o</kbd> (<kbd>option</kbd>+<kbd>o</kbd>) switches from any screen to the stock Teletype screens: live, edit, pattern, scene read and scene write, with their stock keys (<kbd>tab</kbd> cycles live → edit → pattern, <kbd>esc</kbd> scene read, <kbd>alt</kbd>+<kbd>esc</kbd> scene write, <kbd>alt</kbd>+<kbd>F1</kbd>–<kbd>F10</kbd> edit a script, F11 / F12 pattern / live). <kbd>alt</kbd>+<kbd>o</kbd> again goes back to the Orca grid, from any Teletype screen; the next time you cross you land on the Teletype screen you left.</p>
+<ul>
+  <li><b>Both run at once.</b> Orca keeps playing while Teletype is on show, and the Teletype scene's scripts, metro and trigger inputs run on both sides. They share the four trigger and CV outputs: whichever writes last wins.</li>
+  <li><b>16 scenes</b> (stock: 32). The stock Teletype screens' code lives where scenes 17–32 were. Scenes 1–16, the calibration and your Orca patches keep their places in flash.</li>
+  <li><b>No Teletype help.</b> The stock op-reference help does not fit; <kbd>alt</kbd>+<kbd>h</kbd> does nothing on the Teletype side. Orca's help (<kbd>alt</kbd>+<kbd>h</kbd> on the grid) is there.</li>
+  <li><b>Front button / PARAM:</b> on the Teletype side the button opens scene read, PARAM picks a scene, the button again loads it. In the pattern screen PARAM sets the value, as stock.</li>
+  <li><b>Power-on</b> is always the Orca grid, playing. The screensaver comes on after 5 idle minutes on either side and wakes into the screen that was on.</li>
+</ul>
 
 <h2 id="orca">3. Orca operators</h2>
 <p>All the classic operators work exactly as in Orca Seaflake, including its defaults: a lone <code>D</code> bangs every 8 frames, a lone <code>C</code> counts 0–7, a lone <code>I</code> counts up by 1, and a lone <code>U</code> plays 1 of 8. Uppercase operators run every frame. Lowercase ones run only when a <code>*</code> touches them. Values are base 36: <code>0</code>–<code>9</code>, then <code>a</code>–<code>z</code> = 10–35.</p>
@@ -511,7 +528,7 @@ D8.......
 <h3>Before you flash: back up</h3>
 <ol start="1">
 <li>Put a USB stick in the Teletype while it is running. The USB menu appears (on the stock firmware and on Orca Seaflake alike).</li>
-<li>Turn PARAM to WRITE TO USB and press the front-panel button. It saves all 32 scenes as tt00s.txt - tt31s.txt. If Orca Seaflake is already on the module it also writes SFSCAN.TXT (the I2C scan) and SFPATCH.TXT (patches + songs), which the emulator imports with cmd+I.</li>
+<li>Turn PARAM to WRITE TO USB and press the front-panel button. It saves all the scenes as tt00s.txt - tt31s.txt (this alt firmware keeps 16: tt00s - tt15s). If Orca Seaflake is already on the module it also writes SFSCAN.TXT (the I2C scan) and SFPATCH.TXT (patches + songs), which the emulator imports with cmd+I.</li>
 <li>The Disting EX and ER-301 can stay on the I2C bus while you flash.</li>
 </ol>
 <h3>Step 1: put the Teletype in its bootloader</h3>
@@ -540,7 +557,7 @@ dfu-programmer at32uc3b0512 start</pre>
 <li>The screen says SCENES WILL BE OVERWRITTEN / PRESS ONLY IF YOU ARE UPDATING FIRMWARE. Press the front-panel button once. That prepares the scene memory (the normal Teletype first-start step); Orca&#x27;s patch memory is prepared by itself.</li>
 <li>The Orca Seaflake grid appears and the bottom line shows what the I2C scan found, for example FOUND DISTING EX. ctrl+I shows the Disting EX (0x41), the ER-301 (0x31), Just Friends (0x70), the bus and the message count; enter looks again.</li>
 <li>To get your Teletype scenes (their scripts run with $script:N and F1-F10) back: USB stick in, turn PARAM to READ FROM USB, press the front-panel button. The grid comes back by itself.</li>
-<li>Esc never leaves the grid: there are no Teletype screens in this firmware. The front-panel button opens LOAD PATCH (PARAM picks the slot, the button again loads it). To flash again, power off and use step 1: the bootloader is only reached by holding the button at power-on.</li>
+<li>Esc never leaves the grid; alt+o (option+o) switches to the stock Teletype screens and back. On the grid the front-panel button opens LOAD PATCH (PARAM picks the slot, the button again loads it). To flash again, power off and use step 1: the bootloader is only reached by holding the button at power-on.</li>
 </ol>
 <h3>If something goes wrong</h3>
 <ul>
@@ -787,9 +804,10 @@ USING EX 1 ER301 1</pre>
 <h2 id="how">18. How it is built, limits</h2>
 <ul>
   <li><b>Source:</b> the <code>teletype/</code> folder of <code>github.com/femifleming/orca_seaflake</code>, a clone of monome/teletype. New files: <code>src/seaflake/</code> (engine <code>sf_core.c</code>, Disting EX / ER-301 bridge <code>sf_ii.c</code>), <code>module/seaflake_mode.c</code> (screen + keys), <code>module/seaflake_help.c</code> (help), <code>module/sf_flash.c</code> + <code>module/seaflake.lds</code> (storage), <code>src/seaflake/sf_config.c</code> (the ports block), <code>emu/</code> (the app: <code>App.swift</code>, <code>Flash.swift</code> over <code>tt_emu.c</code>), <code>docs/manual/</code> (this manual, <code>make.py</code>, and the tables the app's help is made from: <code>ops.tsv</code>, <code>keys.tsv</code>, <code>flashing.txt</code>), <code>tests/seaflake/</code>. <code>module/sf_ui.c</code> (which screen shows, and where keys, the front button and the knob go; shared with the emulator). Changed: <code>module/main.c</code>, <code>module/globals.h</code>, <code>module/usb_disk_mode.c</code> (reads SFPATCH.TXT back, returns to the grid), and the Makefiles. How the stock firmware works underneath, and what was found while reworking it: <code>docs/reverse-engineering.md</code>.</li>
-  <li><b>Making room:</b> the stock firmware has only ~4 KB of flash left. The op-name matcher that Ragel generates took 64 KB, and it was replaced by a 432-byte lookup over Teletype's own op table. It gives the same answer as the old matcher on all 3 million test strings, and Teletype's 60-test suite passes (928,970 assertions). Teletype's 37 KB op-reference help was replaced by the Seaflake help. Together that made room for Seaflake and 37 KB of patch/song storage. The firmware now puts <b>261578 bytes</b> into the 512 KB chip (49%): the program area below the ports block at 0x80044C00 is 275 KB, of which 255 KB is used and about 19 KB is free; the rest of the chip is the 37 KB patch area and the Teletype's own 256 KB scene area. RAM: about 57 KB of the 96 KB is static data and bss; the rest is heap and the 8 KB stack.</li>
+  <li><b>Making room:</b> the stock firmware has only ~4 KB of flash left. The op-name matcher that Ragel generates took 64 KB, and it was replaced by a 432-byte lookup over Teletype's own op table. It gives the same answer as the old matcher on all 3 million test strings, and Teletype's 60-test suite passes (928,970 assertions). Teletype's 37 KB op-reference help was replaced by the Seaflake help. Together that made room for Seaflake and 37 KB of patch/song storage. The firmware now puts <b>282751 bytes</b> into the 512 KB chip (53%): the program area below the ports block at 0x80044C00 is 275 KB, of which 260 KB is used and about 14 KB is free; the rest of the chip is the 37 KB patch area and the Teletype's own 256 KB scene area. RAM: about 57 KB of the 96 KB is static data and bss; the rest is heap and the 8 KB stack.</li>
+  <li><b>Alt layout (16 scenes):</b> Teletype scenes 1–16 at <code>0x8004E000</code> (unchanged), the stock live / edit / pattern / scene screens and the line editor (16 KB, section <code>.text_hi</code>) at <code>0x80066400</code> where scenes 17–32 were, the settings (calibration, first-run flag) at <code>0x8007E600</code> where they always were. The ports block and the patch area do not move, so <code>tools/keep_patches.py</code> keeps patches, songs, scenes 1–16 and calibration across a reflash.</li>
   <li><b>Screensavers:</b> four dreams are built in (<code>module/dreams/</code>, picked by <code>module/dream.c</code>); they share one 3 KB primitive list. The older train dream (<code>module/dreams/train.c</code>) is not in the set.</li>
-  <li><b>Build:</b> firmware: <code>cd module &amp;&amp; make</code> inside the <code>dewb/monome-build</code> Docker image (<code>dist/orca-seaflake-teletype.hex</code> + its <code>.sha256</code>). App: <code>cd emu &amp;&amp; make install</code>. Manual + README tables: <code>python3 docs/manual/make.py</code>. Tests: <code>cd emu &amp;&amp; make test</code> (212 end-to-end checks, including every example layout in this manual and the module's help: MIDI and I²C bytes against the stock ops, every <code>&gt;</code>/<code>&lt;</code> function, all 96 EX/SC ops reachable, triggers, CV, gates, <code>$pulse</code>, shaped runs, tempo, patches, songs, timing, inlet names, the I²C scan with devices present / absent / late / a dead bus, the startup preset, loadbang, esc in every state, the front button, the USB report round trip, the ports block, the Disting EX address) and <code>tests/seaflake/compare.sh</code> (JS vs C engine).</li>
+  <li><b>Build:</b> firmware: <code>cd module &amp;&amp; make</code> inside the <code>dewb/monome-build</code> Docker image (<code>dist/orca-seaflake-teletype.hex</code> + its <code>.sha256</code>). App: <code>cd emu &amp;&amp; make install</code>. Manual + README tables: <code>python3 docs/manual/make.py</code>. Tests: <code>cd emu &amp;&amp; make test</code> (271 end-to-end checks, including every example layout in this manual and the module's help: MIDI and I²C bytes against the stock ops, every <code>&gt;</code>/<code>&lt;</code> function, all 96 EX/SC ops reachable, triggers, CV, gates, <code>$pulse</code>, shaped runs, tempo, patches, songs, timing, inlet names, the I²C scan with devices present / absent / late / a dead bus, the startup preset, loadbang, esc in every state, alt+o from every Teletype screen after any keys, typing in the live screen, scene read with the knob, the screensaver on the Teletype side, the front button, the USB report round trip, the ports block, the Disting EX address) and <code>tests/seaflake/compare.sh</code> (JS vs C engine).</li>
   <li><b>The I²C bus</b> (fixed on the real module, 20 Nov 2026): the stock Teletype tells its I²C driver the chip runs at 12 MHz while it runs at 60 MHz, so its "100 kHz" bus really runs near 500 kHz. Orca Seaflake sets it up itself: a true 100 kHz, the chip's pull-ups on, a check of both lines at power-on, and the standard recovery for a stuck bus. A message that times out no longer jams the driver for good (the stock driver stays "busy" forever after one): the bus is reset and the message sent once more.</li>
   <li><b>Limits:</b> up to 16 MIDI notes held at once (the shortest is cut when full), 16 mono channels, 6 bursts (<code>~</code>) and 6 shaped runs (<code>@</code> / <code>{</code> / <code>}</code> / <code>&gt;@</code>) at a time. Trigger pulses closer together than <code>$pulse</code> merge into one. Values read back by <code>&gt;</code> are clamped to 0–35. Trigger/CV outputs are 1–4 and a–z.</li>
   <li><b>Pilot:</b> <code>;</code> messages (your Pilot commands) have nowhere to go on the Teletype. Pilot Sealflake on the Mac still gets them from Orca Seaflake on the Mac.</li>

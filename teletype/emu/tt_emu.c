@@ -459,7 +459,7 @@ static bool wake(void) {
     // a key while the screensaver is on only wakes it (as on the module)
     const bool was = idle_ms >= DREAM_AFTER;
     idle_ms = 0;
-    if (was) set_mode(sf_ui_mode());
+    if (was) sf_ui_redraw();
     return was;
 }
 
@@ -470,8 +470,8 @@ void emu_key(uint8_t key, uint8_t mod_key, bool held) {
 }
 
 void emu_key_release(uint8_t key, uint8_t mod_key) {
-    (void)key;
-    (void)mod_key;  // releases only mattered to the stock live screen
+    if (!ready || idle_ms >= DREAM_AFTER) return;  // a release doesn't wake the dream
+    sf_ui_key_release(key, mod_key);  // the stock live screen uses releases
 }
 
 void emu_front(void) {

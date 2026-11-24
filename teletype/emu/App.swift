@@ -416,7 +416,7 @@ struct HelpView: View {
 
 @main struct SeaflakeApp: App {
     var body: some Scene {
-        Window("Orca Seaflake TT", id: "main") { MainView().preferredColorScheme(.dark) }
+        Window("Orca Seaflake TT Alt", id: "main") { MainView().preferredColorScheme(.dark) }
             .windowResizability(.contentSize)
             .commands {
                 CommandMenu("Emulator") {

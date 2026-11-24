@@ -22,10 +22,16 @@ ctrl + t	grid	song mode (the song view)
 ctrl + i	grid	I2C: the Disting EX at 0x41 (algorithm, preset), the ER-301 at 0x31, the bus (pull-ups) and the message count; enter looks again
 alt + h	grid	help on the OLED: keys, every operator and selector
 alt + d	grid	start the screensaver now (any key, the knob or the front button wakes it)
-esc	grid	close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing)
-front button	module	LOAD PATCH: the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes
-PARAM knob	module	picks the slot while LOAD PATCH is open; always the Teletype PARAM value for scripts
-F1-F8 / F9 / F10	grid	run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script's trigger input, ctrl + F9 metro on / off
+esc	grid	close a picker, the song view, the scan or help; clear a selection. Esc never leaves Orca Seaflake (alt + esc, tab, F11, F12 and alt + F1-F10 do nothing there)
+alt + o	anywhere	switch between Orca Seaflake and the stock Teletype screens (option + o on a Mac keyboard). Back on the Teletype side you land on the screen you left; Orca keeps playing while Teletype is on show
+tab	Teletype	live -> edit -> pattern -> live
+esc / alt + esc	Teletype	scene read (esc again goes back) / scene write: 16 scenes
+alt + F1-F8 / F9 / F10	Teletype	edit script 1-8 / metro / init
+F11 or num lock / F12 or print screen	Teletype	pattern screen / live screen
+alt + h	Teletype	nothing: the stock Teletype help is not in this firmware (it does not fit); Orca's help (alt + h on the grid) is
+front button	module	Orca: LOAD PATCH, the picker opens; turn PARAM (or use the arrows) to pick a slot, press the button again to load it; esc closes. Teletype: scene read, PARAM picks, press again to load
+PARAM knob	module	picks the slot while LOAD PATCH is open, the scene in scene read, the value in the pattern screen; always the Teletype PARAM value for scripts
+F1-F8 / F9 / F10	both sides	run Teletype script 1-8 / metro / init of the scene loaded at power-on (as $script:N); ctrl + F1-F8 mute a script's trigger input, ctrl + F9 metro on / off
 up / down, left / right	song view	choose the slot / the field (PAT, LEN, MUL, BPM)
 0-9	song view	type a number into the field (commits when you move)
 + / - (or ] / [)	song view	field up / down
@@ -37,7 +43,7 @@ m / r	song view	mode ORD -> REV -> RND / loop on - off
 ctrl + s / ctrl + o	song view	save / load the song (8 song slots)
 ctrl + n	song view	new, empty song
 ctrl + t / esc	song view	back to the grid (the song keeps playing)
-WRITE TO USB	USB stick in the Teletype	writes the 32 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick
+WRITE TO USB	USB stick in the Teletype	writes the 16 scenes plus SFSCAN.TXT (the scan) and SFPATCH.TXT (all patches and songs) to the stick
 READ FROM USB	USB stick in the Teletype	reads the scenes back, and the patches and songs from SFPATCH.TXT if the stick has one
 cmd + F	emulator	the Flash window: ports check, flashing, restore to stock
 cmd + I	emulator	import SFSCAN.TXT + SFPATCH.TXT from a USB stick in /Volumes (the module's scan, patches and songs)

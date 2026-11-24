@@ -885,12 +885,10 @@ void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key,
     }
     ss_counter = 0;
 
-    // releases only mattered to the stock live screen
-    if (is_release) return;
-
-    // every key goes to Orca Seaflake (sf_ui.c): no stock Teletype screen
-    // can be reached from the keyboard
-    sf_ui_key(key, mod_key, is_held_key);
+    // every key goes to sf_ui.c: Orca Seaflake, or the stock Teletype
+    // screens (alt+o switches)
+    if (is_release) sf_ui_key_release(key, mod_key);
+    else sf_ui_key(key, mod_key, is_held_key);
 }
 
 
@@ -913,12 +911,12 @@ void exit_screensaver(void) {
     ss_counter = 0;
     screen_refresh_config();
     for (u8 i = 0; i < 8; i++) line[i].dirty = 1;  // every line again
-    set_mode(sf_ui_mode());  // redraw the screen that was on
+    sf_ui_redraw();  // redraw the screen that was on
 }
 
 void update_device_config(u8 refresh) {
     screen_set_direction(device_config.flip);
-    if (refresh) set_mode(sf_ui_mode());
+    if (refresh) sf_ui_redraw();
     flash_update_device_config(&device_config);
 }
 

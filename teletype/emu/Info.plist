@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Orca Seaflake TT</string>
-  <key>CFBundleDisplayName</key><string>Orca Seaflake TT</string>
-  <key>CFBundleIdentifier</key><string>com.femifleming.orca-seaflake-tt-emu</string>
+  <key>CFBundleName</key><string>Orca Seaflake TT Alt</string>
+  <key>CFBundleDisplayName</key><string>Orca Seaflake TT Alt</string>
+  <key>CFBundleIdentifier</key><string>com.femifleming.orca-seaflake-tt-alt-emu</string>
   <key>CFBundleExecutable</key><string>Orca Seaflake TT</string>
   <key>CFBundleIconFile</key><string>icon</string>
   <key>CFBundlePackageType</key><string>APPL</string>

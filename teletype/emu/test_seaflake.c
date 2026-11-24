@@ -19,6 +19,8 @@
 #include "state.h"
 #include "teletype.h"
 #include "dream.h"
+#include "sf_ui.h"
+#include "flash.h"
 
 extern scene_state_t scene_state;
 
@@ -1151,14 +1153,14 @@ int main(void) {
         clear();
     }
 
-    // ---- ESC never leaves Orca Seaflake ----
+    // ---- ESC never leaves Orca Seaflake (alt+o is the only way out) ----
     {
         sf_play(false);
         const int ORCA = M_SEAFLAKE, HELP = M_HELP;
         struct { const char *what; uint8_t k, m; } keys[] = {
             { "esc", 0x29, 0 }, { "alt-esc", 0x29, 0x04 }, { "shift-esc", 0x29, 0x02 },
             { "ctrl-esc", 0x29, 0x01 }, { "win-esc", 0x29, 0x08 }, { "tab", 0x2B, 0 },
-            { "alt-o", 0x12, 0x04 }, { "alt-F1", 0x3A, 0x04 }, { "alt-F10", 0x43, 0x04 },
+            { "alt-F1", 0x3A, 0x04 }, { "alt-F10", 0x43, 0x04 },
             { "F11", 0x44, 0 }, { "F12", 0x45, 0 }, { "num lock", 0x53, 0 },
             { "print screen", 0x46, 0 }, { "ctrl-s", 0x16, 0x01 }, { "ctrl-o", 0x12, 0x01 },
             { "ctrl-t", 0x17, 0x01 }, { "ctrl-i", 0x0C, 0x01 }, { "right alt-esc", 0x29, 0x40 },
@@ -1191,17 +1193,15 @@ int main(void) {
         emu_key(0x29, 0, false);
         emu_key(0x29, 0, false);
         CHECK("screensaver, esc, esc: Orca", emu_mode() == ORCA);
-        // what the stock code still asks for (USB stick menu end, grid
-        // visualizer, scene read) lands on the grid
-        const tele_mode_t stock_modes[] = { M_LIVE, M_EDIT, M_PATTERN, M_PRESET_R, M_PRESET_W };
-        bool all = true;
-        for (int i = 0; i < 5; i++) {
-            set_mode(stock_modes[i]);
-            if (emu_mode() != ORCA) all = false;
-            set_last_mode();
-            if (emu_mode() != ORCA) all = false;
-        }
-        CHECK("no stock Teletype screen can be set: set_mode(M_LIVE...) -> Orca", all);
+        // set_mode() from stock code lands where it asks; set_last_mode()
+        // stays on its side (scene read / write -> the Teletype screen,
+        // help -> the grid)
+        set_mode(M_PRESET_R);
+        set_last_mode();
+        CHECK("scene read, back: a Teletype screen (not Orca)", emu_mode() == M_LIVE);
+        set_mode(M_HELP);
+        set_last_mode();
+        CHECK("help, back: Orca", emu_mode() == ORCA);
         // the front button: LOAD PATCH, the knob picks, pressed again loads
         emu_key(0x29, 0, false);
         emu_front();
@@ -1294,6 +1294,104 @@ int main(void) {
         CHECK("Orca rule: D directly above an operator overwrites it (nothing sent)", !logged("EX.NOTE") && sf_get(0, 1) != '>');
         emu_set_devices(0x1, 0x1, false, 0);
         sf_scan_run();
+    }
+    // ---- alt firmware: alt+o switches Orca <-> stock Teletype ----
+    {
+        const int ORCA = M_SEAFLAKE;
+        const uint8_t ALT = 0x04, O = 0x12;
+        CHECK("16 Teletype scenes", SCENE_SLOTS == 16);
+        emu_key(0x29, 0, false);
+        CHECK("start: Orca", emu_mode() == ORCA);
+        emu_key(O, ALT, false);
+        CHECK("alt+o: Teletype live screen", emu_mode() == M_LIVE);
+        CHECK("right alt+o works too", (emu_key(O, 0x40, false), emu_mode() == ORCA) && (emu_key(O, 0x40, false), emu_mode() == M_LIVE));
+        // type a command in the live screen: X 7 <enter>
+        const uint8_t typed[] = { 0x1B, 0x2C, 0x24, 0x28 };
+        for (int i = 0; i < 4; i++) {
+            emu_key(typed[i], i == 0 ? 0x02 : 0, false);
+            emu_key_release(typed[i], 0);
+        }
+        CHECK("live screen: typing X 7 <enter> sets X", scene_state.variables.x == 7);
+        for (int i = 0; i < 4; i++) {
+            emu_key(typed[i], 0, false);
+            emu_key_release(typed[i], 0);
+        }
+        CHECK("live screen: lower case x 7 too", scene_state.variables.x == 7);
+        emu_key(0x2B, 0, false);
+        CHECK("tab: edit", emu_mode() == M_EDIT);
+        emu_key(0x2B, 0, false);
+        CHECK("tab: pattern", emu_mode() == M_PATTERN);
+        emu_key(0x2B, 0, false);
+        CHECK("tab: live again", emu_mode() == M_LIVE);
+        emu_key(0x2B, 0, false);
+        emu_key(O, ALT, false);
+        CHECK("edit, alt+o: Orca", emu_mode() == ORCA);
+        emu_key(O, ALT, false);
+        CHECK("alt+o back: the edit screen it left", emu_mode() == M_EDIT);
+        emu_key(0x29, 0, false);
+        CHECK("esc: scene read", emu_mode() == M_PRESET_R);
+        emu_key(0x29, 0, false);
+        CHECK("esc again: back to edit", emu_mode() == M_EDIT);
+        emu_key(0x29, ALT, false);
+        CHECK("alt+esc: scene write", emu_mode() == M_PRESET_W);
+        emu_key(O, ALT, false);
+        CHECK("scene write, alt+o: Orca", emu_mode() == ORCA);
+        emu_key(O, ALT, false);
+        CHECK("alt+o: back on scene write", emu_mode() == M_PRESET_W);
+        emu_key(0x2B, 0, false);
+        emu_key(O, ALT, false);
+        CHECK("tab, alt+o: Orca", emu_mode() == ORCA);
+        // alt+o gets home from anywhere on the Teletype side, after any keys
+        struct { uint8_t k, m; } keys[] = {
+            { 0x29, 0 }, { 0x29, ALT }, { 0x2B, 0 }, { 0x3A, ALT }, { 0x43, ALT },
+            { 0x44, 0 }, { 0x45, 0 }, { 0x53, 0 }, { 0x46, 0 }, { 0x29, 0x08 },
+            { 0x0B, ALT }, { 0x52, 0 }, { 0x51, 0 }, { 0x28, 0 },
+        };
+        const int nk = sizeof keys / sizeof keys[0];
+        bool home = true, stayed_tt = true;
+        for (int a = 0; a < nk; a++)
+            for (int b = 0; b < nk; b++) {
+                emu_key(O, ALT, false);  // to Teletype
+                if (emu_mode() == ORCA) stayed_tt = false;
+                emu_key(keys[a].k, keys[a].m, false);
+                emu_key(keys[b].k, keys[b].m, false);
+                if (emu_mode() == ORCA || emu_mode() == M_HELP) stayed_tt = false;
+                emu_key(O, ALT, false);
+                if (emu_mode() != ORCA) home = false, printf("  keys %d %d, alt+o -> mode %d\n", a, b, emu_mode());
+            }
+        CHECK("Teletype side: no stock key leads off it", stayed_tt);
+        CHECK("Teletype side: alt+o -> Orca after any two keys", home);
+        emu_key(O, ALT, false);
+        emu_key(0x45, 0, false);  // F12: live
+        emu_key(0x0B, ALT, false);
+        CHECK("alt+h on the Teletype side: no help (removed), stays", emu_mode() == M_LIVE);
+        // the front button: scene read, the knob picks, pressed again loads
+        emu_front();
+        CHECK("front: scene read", emu_mode() == M_PRESET_R);
+        emu_knob(4095);
+        CHECK("knob all the way: scene 16 (the last)", preset_select == 15);
+        emu_knob(3 * 256 + 128 - 64);  // the middle of scene 4's span
+        CHECK("knob: scene 4", preset_select == 3);
+        emu_front();
+        CHECK("front again: scene 4 loaded, back to live", emu_mode() == M_LIVE && flash_last_saved_scene() == 3);
+        // the screensaver covers the Teletype side too, and wakes into it
+        emu_set_idle(11 * 60 * 1000);
+        CHECK("screensaver draws on the Teletype side", emu_refresh());
+        emu_key(0x2C, 0, false);
+        CHECK("wake: back on the Teletype live screen", emu_mode() == M_LIVE);
+        emu_key_release(0x2C, 0);
+        // Orca keeps playing while Teletype is on show
+        sf_play(true);
+        const uint32_t f0 = sf.f;
+        for (int i = 0; i < 40; i++) { now += 25; emu_tick(now); }
+        CHECK("Orca keeps playing on the Teletype side", sf.f > f0 && emu_mode() == M_LIVE);
+        sf_play(false);
+        // the USB stick menu ends where it started
+        sf_ui_redraw();
+        CHECK("redraw (after USB / screensaver) keeps the Teletype screen", emu_mode() == M_LIVE);
+        emu_key(O, ALT, false);
+        sf_ui_redraw();
+        CHECK("... and Orca", emu_mode() == ORCA);
     }
     printf("%d passed, %d failed\n", passes, fails);
     return fails != 0;

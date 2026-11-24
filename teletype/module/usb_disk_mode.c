@@ -1,4 +1,5 @@
 #include "usb_disk_mode.h"
+#include "sf_ui.h"
 
 #include <ctype.h>
 #include <stdint.h>
@@ -110,8 +111,9 @@ void handler_usb_Front(int32_t data) {
 
     if (usb_menu_command != USB_MENU_COMMAND_EXIT) { tele_usb_disk(); }
 
-    // back to Orca Seaflake (the stock firmware went to its live screen)
-    set_mode(M_SEAFLAKE);
+    // back to the screen that was on (Orca or Teletype; the stock firmware
+    // went to its live screen)
+    sf_ui_redraw();
     assign_main_event_handlers();
     irqs_resume(flags);
 }
