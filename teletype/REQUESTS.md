@@ -424,3 +424,5 @@ Every request typed while Orca Seaflake for Teletype was designed and built with
 > i dont have just friends, so someone else will test it for me, just push it to the github and say that just freinds implementation is in beta. also my teletyre is on and in bootloader mode. my teletype does not need the just friends stuff, it can just have the new 4 random screensavers.
 
 > push the 4 random screensavers to github
+
+> now that i put monsoon back into my eurorack case, the orca-tt firmware keeps glitching out and is unusable, i think it has to do with power on my 5v rail but i have gotten teletype to work in this config before, can you make a super low power version of this firmware with all the features to fix this issue?

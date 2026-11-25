@@ -851,7 +851,16 @@ static void assign_msc_event_handlers(void) {
 // app event loop
 void check_events(void) {
     event_t e;
-    if (event_next(&e)) { (app_event_handlers)[e.type](e.data); }
+    if (event_next(&e)) {
+        (app_event_handlers)[e.type](e.data);
+        return;
+    }
+#ifdef SF_LOW_POWER
+    // Nothing to do: idle the CPU until the next interrupt (the 1 ms timer
+    // tick at the latest; USB, I2C, SPI and the timers keep running). An
+    // event posted right before the sleep waits at most that 1 ms.
+    SLEEP(AVR32_PM_SMODE_IDLE);
+#endif
 }
 
 
