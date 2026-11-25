@@ -8,6 +8,7 @@ Firmware that turns the [monome Teletype](https://monome.org/docs/teletype/) int
 
 - **Manual:** [`docs/manual/Orca Seaflake TT Manual.pdf`](docs/manual/): every operator, key and screen, the flashing chapter, and how to go back to the stock firmware
 - **Firmware:** [`dist/orca-seaflake-teletype.hex`](dist/) with its SHA-256 next to it
+- **Low-power firmware:** [`dist/orca-seaflake-teletype-lowpower.hex`](dist/): every feature (alt+o included), for cases whose **+12 V** rail is short (the Teletype draws nothing from +5 V). The screen runs dimmer (about 40 % OLED current) and the CPU sleeps between events; ctrl+I shows LOW POWER BUILD. Use it if the module glitches in a full case but works with fewer modules. Flash it like the normal .hex (in Terminal, use its file name)
 - **App:** Orca Seaflake TT Alt for macOS (Apple Silicon): emulator, flasher (`cmd`+`F`) and help (`cmd`+`/`)
 
 ## Install

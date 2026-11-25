@@ -428,3 +428,7 @@ Every request typed while Orca Seaflake for Teletype was designed and built with
 > does it have enouph space where i can switch between normal teletpe and orca on teletype?
 
 > make it 16 scenes and remove the tt help, and make it option+o to stwich back and forth,m test and then push to github, but also keep the version that i on github now, just have this as an alt version. keep the screensavers in teletype mode as well.
+
+> now that i put monsoon back into my eurorack case, the orca-tt firmware keeps glitching out and is unusable, i think it has to do with power on my 5v rail but i have gotten teletype to work in this config before, can you make a super low power version of this firmware with all the features to fix this issue?
+
+> make it for alt too, then push that

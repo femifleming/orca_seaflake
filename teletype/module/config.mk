@@ -265,6 +265,11 @@ CFLAGS = -fshort-enums -fno-common
 #   EXT_BOARD  Optional extension board in use, see boards/board.h for a list.
 CPPFLAGS = -D BOARD=USER_BOARD -D UHD_ENABLE
 
+# Orca Seaflake: `make LOW_POWER=1` = dim OLED + CPU idle sleep (weak +12 V rails)
+ifdef LOW_POWER
+CPPFLAGS += -D SF_LOW_POWER=1
+endif
+
 # Extra flags to use when linking
 # NVRAM size may need to change if additional data is to be stored in scenes.
 LDFLAGS = -Wl,-e,_trampoline,--defsym=__flash_nvram_size__=200K
