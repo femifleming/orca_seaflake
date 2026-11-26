@@ -26,19 +26,6 @@
 // screen buffer
 static u8 screenBuf[GRAM_BYTES];
 
-// OLED panel currents. The panel is the biggest load the firmware controls
-// (it runs off the module's +12 V); SF_LOW_POWER (Orca Seaflake, make
-// LOW_POWER=1) runs it at about 40 % master current for weak rails.
-#ifdef SF_LOW_POWER
-#define SF_OLED_MASTER   0x06
-#define SF_OLED_CONTRAST 0x7F
-#define SF_OLED_CONTRAST_OLD 0x40
-#else
-#define SF_OLED_MASTER   0x0f
-#define SF_OLED_CONTRAST 0x9F
-#define SF_OLED_CONTRAST_OLD 0x7F
-#endif
-
 // common temp vars
 static u32 i, j;
 static u8* pScr; // movable pointer to screen buf
@@ -269,9 +256,9 @@ void init_oled(void) {
     write_data(0x16);
     write_data(0x11);
     write_command(0xC7);  // master contrast current
-    write_data(SF_OLED_MASTER);
+    write_data(0x0f);
     write_command(0xC1);  // set contrast current
-    write_data(SF_OLED_CONTRAST);
+    write_data(0x9F);
     write_command(0xB1);	// phase length
     write_data(0xF2);
     write_command(0xBB);  // set pre-charge voltage
@@ -290,8 +277,8 @@ void init_oled(void) {
     write_command(0xA8);	// multiplex
     write_command(0x3F);
     write_command(0x86);	// full current range
-    write_command(0x81);	// contrast (full unless SF_LOW_POWER)
-    write_command(SF_OLED_CONTRAST_OLD);
+    write_command(0x81);	// contrast to full
+    write_command(0x7F);
     write_command(0xB2);	// frame freq
     write_command(0x51);
     write_command(0xA8);	// multiplex
@@ -356,8 +343,8 @@ void screen_refresh_config(void) {
     write_command(0xA2); write_data(0);       // offset
     write_command(0xAB); write_data(0x01);    // internal vdd reg
     write_command(0xA0); write_data(0x16); write_data(0x11);  // remap
-    write_command(0xC7); write_data(SF_OLED_MASTER);    // master contrast
-    write_command(0xC1); write_data(SF_OLED_CONTRAST);  // contrast
+    write_command(0xC7); write_data(0x0f);    // master contrast
+    write_command(0xC1); write_data(0x9F);    // contrast
     write_command(0xB1); write_data(0xF2);    // phase length
     write_command(0xBB); write_data(0x1F);    // pre-charge voltage
     write_command(0xB4); write_data(0xA0); write_data(0xFD);  // vsl
@@ -367,7 +354,7 @@ void screen_refresh_config(void) {
     write_command(0xB3); write_command(0x91);
     write_command(0xA8); write_command(0x3F);
     write_command(0x86);
-    write_command(0x81); write_command(SF_OLED_CONTRAST_OLD);
+    write_command(0x81); write_command(0x7F);
     write_command(0xB2); write_command(0x51);
     write_command(0xBC); write_command(0x10);
     write_command(0xBE); write_command(0x1C);

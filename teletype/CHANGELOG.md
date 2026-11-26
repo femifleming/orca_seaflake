@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-11-26
+- Empty grid cells are drawn at the two faintest grey levels (1, operand cells 2) instead of 2 / 5: the grid stays readable with far less lit screen. This is the build on the module after the screen investigation (the experimental low-power / repair / locked / framed screen drivers did not stop a hardware-side glitch and are not in it).
+
 ## 2026-11-23
 - Just Friends in the I2C scan: one write-only byte (the JF.SPEED request, 0x8F, never read back) to 0x70 at power-on and on ctrl+I; ctrl+I shows JUST FRIENDS 70 FOUND / --, the power-on line says + JF, and every , message updates it.
 - The screensaver picks one of the four new dreams at random each time it starts, never the same one twice in a row (module/dream.c; they share dream_kit's primitive list, ~8 KB more program, no more RAM). The user's request: "is there enoupgh space for it to be a random one of those 4 screensavers each time?"

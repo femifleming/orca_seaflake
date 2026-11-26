@@ -378,6 +378,7 @@ static void draw_grid(void) {
                 fg = 0;
                 bg = insert_mode ? 10 : 15;
             }
+            if ((g == '.' || g == '+') && bg == 0) fg = sf_locked (x, y) ? 2 : 1;   // grid dots at the faintest levels (operand cells one step up)
             draw_char(r, col, g, fg, bg);
         }
     }
@@ -561,9 +562,6 @@ static void draw_scan(void) {
     }
     else
         draw_text(&line[1], 0, "DISTING EX 41 --", 4, 0);
-#ifdef SF_LOW_POWER
-    draw_text(&line[3], 0, "LOW POWER BUILD", 10, 0);
-#endif
     draw_text(&line[4], 0, sf_scan.er[0] ? "ER-301 31 FOUND" : "ER-301 31 -- TRY <P1", sf_scan.er[0] ? 15 : 4, 0);
     draw_text(&line[5], 0, sf_jf_state == 1 ? "JUST FRIENDS 70 FOUND" : sf_jf_state == 2 ? "JUST FRIENDS 70 --" : "JUST FRIENDS 70 ?",
               sf_jf_state == 1 ? 15 : 4, 0);

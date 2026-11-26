@@ -425,4 +425,24 @@ Every request typed while Orca Seaflake for Teletype was designed and built with
 
 > push the 4 random screensavers to github
 
+## 2026-11-25
+
 > now that i put monsoon back into my eurorack case, the orca-tt firmware keeps glitching out and is unusable, i think it has to do with power on my 5v rail but i have gotten teletype to work in this config before, can you make a super low power version of this firmware with all the features to fix this issue?
+
+## 2026-11-26
+
+> orca-tt still gets glitchy and unsuable after the case is on for a while
+
+> i dont want the screen refresh fix, i want it fixed in the firmware itself, it shoulnt glitch at all, the screen refresh should not be the solution, do deep resesarch and reverse engineer the teleype, look at its chips, poer consumtion, screen details ect and try out a bucnh of dirrerent things
+
+> flash the last woring frimware these are all gettign worse and worse. go all the way back to the lst working fully featueresd orca-tt firmware.
+
+> remove the dots from the grid, keep it full brightness.
+
+> also, this teletype firmware seems to be working nicely, can you add the grid dots back but really faint? i need to see them but they can be etreemly light.
+
+> is this version of tt fully featured?
+
+> yes add it
+
+> push latest teletype firmware to gitbub and cleanup.
